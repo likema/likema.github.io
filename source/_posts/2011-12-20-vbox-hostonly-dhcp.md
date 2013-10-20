@@ -20,10 +20,11 @@ VirtualBox支持各种虚拟网络：NAT, Bridge Adapter, Internal Network和Hos
 
 1. 安装dnsmasq
 
-	sudo apt-get install dnsmasq
+```
+sudo apt-get install dnsmasq
+```
 
-
-1. 打开/etc/dnsmasq.conf，针对vboxnet0配置DHCP。
+2. 打开/etc/dnsmasq.conf，针对vboxnet0配置DHCP。
 
 ```
 interface=vboxnet0
@@ -37,9 +38,11 @@ dhcp-option=vboxnet0,option:dns-server,192.168.56.1,208.67.222.222,208.67.220.22
 dhcp-range=vboxnet0,192.168.56.2,192.168.56.254,infinite
 ```
 
-1. 重启动dnsmasq
+3. 重启动dnsmasq
 
-	sudo service dnsmasq restart
+```
+sudo service dnsmasq restart
+```
 
 当然，dnsmasq也支持MAC地址与IP地址静态绑定。比如，在/etc/dnsmasq.conf中针对MAC地址08:00:27:81:51:85，分配机器名vbox-xp，分配IP地址192.168.56.2
 

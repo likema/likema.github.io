@@ -19,13 +19,13 @@ cd tolua
 git-import-orig -u 5.1.4 ../tolua-5.1.4.tar.gz
 ```
 
-1. 手动解决遇到的冲突（如src/bin/Makefile）并提交更新：
+2. 手动解决遇到的冲突（如src/bin/Makefile）并提交更新：
 
 ```
 git commit
 ```
 
-1. 这时，运行
+3. 这时，运行
 
 ```
 git log --format=%d:%s
@@ -43,7 +43,7 @@ git log --format=%d:%s
 
 upstream/5.1.4分支被创建，且将其合并到master分支中。如此，master分支合并完毕，接下来将合并debian的patches。
 
-1. 重整patch-queue：
+4. 重整patch-queue：
 
 ```
 gbp-pq rebase
@@ -56,14 +56,14 @@ git rm -f src/bin/toluabind.c
 git rebase --continue
 ```
 
-1. 导出patch-queue（至master分支）
+5. 导出patch-queue（至master分支）
 
 ```
 git clean -df
 gbp-pq export
 ```
 
-1. 指定版本号5.1.4-1自动生成snapshot的debian/changelog：
+6. 指定版本号5.1.4-1自动生成snapshot的debian/changelog：
 
 ```
 git-dch -a -S -N 5.1.4-1
@@ -78,7 +78,7 @@ git commit -m "Update patches from debian/5.1.3-1"
 git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
 ```
 
-1. 生成release的版本信息，并构建release的deb包：
+7. 生成release的版本信息，并构建release的deb包：
 
 ```
 git-dch -a -R
