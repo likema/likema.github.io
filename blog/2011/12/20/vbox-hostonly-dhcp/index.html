@@ -120,10 +120,16 @@
 <p>以前就听说过dnsmasq，不仅集成DNS、DHCP和TFTP功能，而且占用资源很少，设置也相对简单。</p>
 
 <ol>
-<li><p>安装dnsmasq</p>
+<li>安装dnsmasq</li>
+</ol>
 
-<p> sudo apt-get install dnsmasq</p></li>
-<li><p>打开/etc/dnsmasq.conf，针对vboxnet0配置DHCP。</p></li>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo apt-get install dnsmasq</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>打开/etc/dnsmasq.conf，针对vboxnet0配置DHCP。</li>
 </ol>
 
 
@@ -148,10 +154,12 @@
 
 
 <ol>
-<li><p>重启动dnsmasq</p>
-
-<p> sudo service dnsmasq restart</p></li>
+<li>重启动dnsmasq</li>
 </ol>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo service dnsmasq restart</span></code></pre></td></tr></table></div></figure>
 
 
 <p>当然，dnsmasq也支持MAC地址与IP地址静态绑定。比如，在/etc/dnsmasq.conf中针对MAC地址08:00:27:81:51:85，分配机器名vbox-xp，分配IP地址192.168.56.2</p>
