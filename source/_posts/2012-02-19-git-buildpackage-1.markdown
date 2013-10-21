@@ -2,7 +2,7 @@
 layout: post
 title: git-buildpackage示例（一）
 comments: true
-categories:
+categories: [Git, Debian]
 ---
 
 在《为tolua的deb包作一个补丁》中，我介绍了如何利用quilt为Ubuntu已有包做一个补丁包的办法。可以看出quilt具有一定的版本管理能力，然而与流行版本管理系统相比，功能较弱也不灵活。

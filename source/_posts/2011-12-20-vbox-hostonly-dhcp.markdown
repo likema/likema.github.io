@@ -2,7 +2,7 @@
 layout: post
 title: Ubuntu 11.10 VirtualBox的Host-only网卡上外网和DHCP永久地址
 comments: true
-categories:
+categories: [Ubuntu, Dnsmasq, VirtualBox]
 ---
 
 VirtualBox支持各种虚拟网络：NAT, Bridge Adapter, Internal Network和Host-only Adapter等。其中Bridged Adapter最为简单和常用，它几乎是0配置，直接桥接有线或无线物理网卡就可以与互联网通信。
@@ -12,7 +12,9 @@ VirtualBox支持各种虚拟网络：NAT, Bridge Adapter, Internal Network和Hos
 
 一个问题是Host-only Adapter（网段为192.168.56.0/24）默认不能与互联网通信。google之后发现网上早有人遇到类似问题，他们给出的解决办法是在/etc/rc.local中加入：
 
-	iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
+```
+iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
+```
 
 另一个问题是VirtualBox内置DHCP的IP租赁时间设置，也无法将MAC地址与IP地址静态绑定，这造成虚拟机IP地址每隔一段时间改变一次，给使用带来诸多不方便。另一方面，我也不想静态设置IP地址，因为如果这样做，我必须每安装一次虚拟机都要重新设置IP地址。
 
