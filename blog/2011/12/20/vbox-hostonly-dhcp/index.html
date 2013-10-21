@@ -70,6 +70,7 @@
 <ul class="main-navigation">
   <li><a href="/">Blog</a></li>
   <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
 </ul>
 
 </nav>
@@ -112,8 +113,9 @@
 
 <p>一个问题是Host-only Adapter（网段为192.168.56.0/24）默认不能与互联网通信。google之后发现网上早有人遇到类似问题，他们给出的解决办法是在/etc/rc.local中加入：</p>
 
-<pre><code>iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
-</code></pre>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE</span></code></pre></td></tr></table></div></figure>
+
 
 <p>另一个问题是VirtualBox内置DHCP的IP租赁时间设置，也无法将MAC地址与IP地址静态绑定，这造成虚拟机IP地址每隔一段时间改变一次，给使用带来诸多不方便。另一方面，我也不想静态设置IP地址，因为如果这样做，我必须每安装一次虚拟机都要重新设置IP地址。</p>
 
@@ -194,6 +196,12 @@
 <time datetime="2011-12-20T00:00:00+08:00" pubdate data-updated="true">Dec 20<span>th</span>, 2011</time>
       
 
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/dnsmasq/'>Dnsmasq</a>, <a class='category' href='/blog/categories/ubuntu/'>Ubuntu</a>, <a class='category' href='/blog/categories/virtualbox/'>VirtualBox</a>
+  
+</span>
+
 
     </p>
     
@@ -236,6 +244,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/07/25/pep8-summary/">PEP 8总结</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2012/10/23/git-buildpackage-2/">Git-buildpackage示例（二）</a>
       </li>
     
@@ -249,10 +261,6 @@
     
       <li class="post">
         <a href="/blog/2011/10/31/tolua-deb-patch/">为tolua的deb包作一个补丁</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2008/10/05/mpc-tutorial/">MakeProjectCreator (MPC) 简介</a>
       </li>
     
   </ul>

@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Python | Like的世界]]></title>
+  <link href="http://likema.github.io/blog/categories/python/atom.xml" rel="self"/>
+  <link href="http://likema.github.io/"/>
+  <updated>2013-10-22T04:10:57+08:00</updated>
+  <id>http://likema.github.io/</id>
+  <author>
+    <name><![CDATA[Like Ma]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[PEP 8总结]]></title>
+    <link href="http://likema.github.io/blog/2013/07/25/pep8-summary/"/>
+    <updated>2013-07-25T00:00:00+08:00</updated>
+    <id>http://likema.github.io/blog/2013/07/25/pep8-summary</id>
+    <content type="html"><![CDATA[<p>下述内容主要源于<a href="http://www.python.org/dev/peps/pep-0008/">PEP 8 &mdash; Style Guide for Python Code</a>。</p>
+
+<h2>最大的行长度</h2>
+
+<ul>
+<li>所有行不超过79个字符。</li>
+<li>docstring或comment应不超过72字符</li>
+</ul>
+
+
+<h2>补齐</h2>
+
+<ul>
+<li>每个补齐级别为4个空格。</li>
+<li>当一行操作最大行长度时，应尽可能按照各种括号作为纵向对齐的参照物（可以适当增加括号），如：</li>
+</ul>
+
+
+<p>```python
+from bottle import (get, post, delete, error, run, default_app, HTTPError,</p>
+
+<pre><code>                request, response, static_file)
+</code></pre>
+
+<h1>Aligned with opening delimiter</h1>
+
+<p>foo = long_function_name(var_one, var_two,</p>
+
+<pre><code>                     var_three, var_four)
+</code></pre>
+
+<h1>More indentation included to distinguish this from the rest.</h1>
+
+<p>def long_function_name(</p>
+
+<pre><code>    var_one, var_two, var_three,
+    var_four):
+print(var_one)
+</code></pre>
+
+<p>```</p>
+
+<ul>
+<li>多行情况下，关闭括号可以出现在一行开始，如：</li>
+</ul>
+
+
+<p>```python
+my_dict = {</p>
+
+<pre><code>'hello': 'foo',
+'world': 'bar',
+</code></pre>
+
+<p>}</p>
+
+<p>my_list = [</p>
+
+<pre><code>1, 2, 3,
+4, 5, 6,
+</code></pre>
+
+<p>]
+result = some_function_that_takes_arguments(</p>
+
+<pre><code>'a', 'b', 'c',
+'d', 'e', 'f',
+</code></pre>
+
+<p>)
+```</p>
+
+<p>实际工作中，不同开发语言存在不同的补齐风格要求。强烈建议不要将补齐设置在.vimrc中，而将</p>
+
+<p>```python</p>
+
+<h1>vim: ts=4 sw=4 sts=4 et:</h1>
+
+<p>```</p>
+
+<p>追加在每个python源文件的最后一行，从而保证vim打开该文件时满足4个空格补齐的要求。</p>
+
+<h2>空行</h2>
+
+<p>顶层函数或类定义的间隔为2行。
+类的方法定义的间隔为1行。</p>
+
+<h2>源文件编码</h2>
+
+<p>Python核心代码应为UTF-8（或ASCII，在Python 2中）。
+源文件若在Python 2中用ASCII或在Python 3中用UTF-8，则不应出现编码声明。</p>
+
+<p>```python</p>
+
+<h1>&ndash;<em>&ndash; coding: utf-8 &ndash;</em>&ndash;</h1>
+
+<p>```</p>
+
+<h2>导入</h2>
+
+<ul>
+<li>每行仅导入一个模块，但每行可以导入一个模块的多个函数:</li>
+</ul>
+
+
+<p><code>python
+import os
+import sys
+from subprocess import Popen, PIPE
+</code></p>
+
+<ul>
+<li>保证所有import在文件的头部，仅在模块注释后面，并先于模块的全局变量和常量。</li>
+<li>import应按下列顺序分组：
+<strong> 标准库的导入
+</strong> 相关第3方库的导入
+** 本地应用程序/库的导入
+每个分组间空1行
+将类似<strong>all</strong>定义放在所有import后面</li>
+<li>绝对导入优于相对导入</li>
+<li>避免导入模块所有的内容（通配方式， from <module> import *)，在<strong>init</strong>.py中导出内部API除外。</li>
+</ul>
+
+
+<h2>表达式和语句中的空格</h2>
+
+<ul>
+<li>括号前后不允许有空格</li>
+<li>操作符号（如=，>和+=等）前后各1个空格</li>
+<li>:和,之前不允许有空格，之后仅1个空格</li>
+<li>函数默认参数的等号（=）前后不允许空格</li>
+</ul>
+
+
+<h2>注释</h2>
+
+<ul>
+<li>为所有公开模块、函数、类和方法写docstring。</li>
+<li>非公开方法的comment应出现在def行之后</li>
+<li><a href="http://www.python.org/dev/peps/pep-0257/">PEP-257</a>描述良好的docstring惯例。多行docstring的第1行后应跟着1个空白行。</li>
+<li>单行docstring可保持关闭的"&ldquo;"在同一行。</li>
+</ul>
+
+
+<h2>命名规范</h2>
+
+<p>尽管Python库代码的命名存在一些混乱，新模块和包（包括第3方框架）应满足下列规范。但已有库若风格不同，应保持原来的内部一致性。</p>
+
+<ul>
+<li>单下划线开头（如：_single_leading_underscore）弱内部使用，类似from M import *不导入类似符号。</li>
+<li>单下划线结尾（如：single_trailing_underscore<em>）用于与Python关键字冲突的情况下，如classs</em>。</li>
+<li>双下划线开头（如：__double_leading_underscore）用于类属性。</li>
+<li>双下划线开头和结构用于特殊对象或属性，如<strong>init</strong>, <strong>import</strong>或<strong>file</strong>。多为语言定义，避免发明类似名字。</li>
+<li>避免使用小写L、大写O和大写I作为单字符变量名。</li>
+<li>模块名应简短、全小写，可包含下划线；包名类似，但不鼓励包含下划线。</li>
+<li>C/C++实现的扩展模块应伴随着提供如面向对象等高级接口的Python模块存在，且其名字以下划线开头（如_socket）</li>
+<li>类名应为驼峰词（CapWords），内部使用的类以下划线开头。</li>
+<li>异常名与类名一样，且应以Error结尾（若该异常确为一个错误）。</li>
+<li>函数名应为小写加下划线。</li>
+<li>总是使用self作为实例方法的第1个参数，总是使用cls作为类方法的第1个参数</li>
+<li>常量名应为大写加下划线（如MAX_OVERFLOW）</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>
