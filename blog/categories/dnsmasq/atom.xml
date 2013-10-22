@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Dnsmasq | Like的世界]]></title>
-  <link href="http://likema.github.io/blog/categories/dnsmasq/atom.xml" rel="self"/>
-  <link href="http://likema.github.io/"/>
-  <updated>2013-10-22T09:24:49+08:00</updated>
-  <id>http://likema.github.io/</id>
+  <link href="http://www.malike.net.cn/blog/categories/dnsmasq/atom.xml" rel="self"/>
+  <link href="http://www.malike.net.cn/"/>
+  <updated>2013-10-22T10:36:53+08:00</updated>
+  <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Ubuntu 11.10 VirtualBox的Host-only网卡上外网和DHCP永久地址]]></title>
-    <link href="http://likema.github.io/blog/2011/12/20/vbox-hostonly-dhcp/"/>
+    <link href="http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp/"/>
     <updated>2011-12-20T00:00:00+08:00</updated>
-    <id>http://likema.github.io/blog/2011/12/20/vbox-hostonly-dhcp</id>
+    <id>http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp</id>
     <content type="html"><![CDATA[<p>VirtualBox支持各种虚拟网络：NAT, Bridge Adapter, Internal Network和Host-only Adapter等。其中Bridged Adapter最为简单和常用，它几乎是0配置，直接桥接有线或无线物理网卡就可以与互联网通信。</p>
 
 <p>然而，我工作场所内部网和家里内部网的网段不相同，DHCP存在一定租赁时间，如果使用Bridged Adapter并DHCP获取IP地址的时候，虚拟机地址经常会改变。为此，我将笔记本电脑的VirtualBox虚拟机都修改为Host-only Adapter模式。</p>

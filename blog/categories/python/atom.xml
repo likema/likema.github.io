@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Python | Like的世界]]></title>
-  <link href="http://likema.github.io/blog/categories/python/atom.xml" rel="self"/>
-  <link href="http://likema.github.io/"/>
-  <updated>2013-10-22T09:24:49+08:00</updated>
-  <id>http://likema.github.io/</id>
+  <link href="http://www.malike.net.cn/blog/categories/python/atom.xml" rel="self"/>
+  <link href="http://www.malike.net.cn/"/>
+  <updated>2013-10-22T10:36:53+08:00</updated>
+  <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[PEP 8总结]]></title>
-    <link href="http://likema.github.io/blog/2013/07/25/pep8-summary/"/>
+    <link href="http://www.malike.net.cn/blog/2013/07/25/pep8-summary/"/>
     <updated>2013-07-25T00:00:00+08:00</updated>
-    <id>http://likema.github.io/blog/2013/07/25/pep8-summary</id>
+    <id>http://www.malike.net.cn/blog/2013/07/25/pep8-summary</id>
     <content type="html"><![CDATA[<p>下述内容主要源于<a href="http://www.python.org/dev/peps/pep-0008/">PEP 8 &mdash; Style Guide for Python Code</a>。</p>
 
 <h2>最大的行长度</h2>

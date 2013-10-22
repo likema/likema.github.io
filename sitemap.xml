@@ -1,43 +1,43 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
-        <loc>http://likema.github.io/blog/2008/10/05/mpc-tutorial/</loc>
+        <loc>http://www.malike.net.cn/blog/2008/10/05/mpc-tutorial/</loc>
         <lastmod>2013-10-22T03:59:30+08:00</lastmod>
     </url>
     <url>
-        <loc>http://likema.github.io/blog/2011/10/31/tolua-deb-patch/</loc>
+        <loc>http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch/</loc>
         <lastmod>2013-10-22T03:57:42+08:00</lastmod>
     </url>
     <url>
-        <loc>http://likema.github.io/blog/2011/12/20/vbox-hostonly-dhcp/</loc>
+        <loc>http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp/</loc>
         <lastmod>2013-10-22T03:58:13+08:00</lastmod>
     </url>
     <url>
-        <loc>http://likema.github.io/blog/2012/02/19/git-buildpackage-1/</loc>
+        <loc>http://www.malike.net.cn/blog/2012/02/19/git-buildpackage-1/</loc>
         <lastmod>2013-10-22T03:58:26+08:00</lastmod>
     </url>
     <url>
-        <loc>http://likema.github.io/blog/2012/10/23/git-buildpackage-2/</loc>
+        <loc>http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2/</loc>
         <lastmod>2013-10-22T03:58:34+08:00</lastmod>
     </url>
     <url>
-        <loc>http://likema.github.io/blog/2013/07/25/pep8-summary/</loc>
+        <loc>http://www.malike.net.cn/blog/2013/07/25/pep8-summary/</loc>
         <lastmod>2013-10-22T04:07:18+08:00</lastmod>
     </url>
     <url>
-        <loc>http://likema.github.io/blog/archives/</loc>
+        <loc>http://www.malike.net.cn/blog/archives/</loc>
         <lastmod>2013-10-22T04:07:18+08:00</lastmod>
     </url>
     <url>
-        <loc>http://likema.github.io/blog/categories/</loc>
+        <loc>http://www.malike.net.cn/blog/categories/</loc>
         <lastmod>2013-10-22T03:38:26+08:00</lastmod>
     </url>
     <url>
-        <loc>http://likema.github.io/</loc>
+        <loc>http://www.malike.net.cn/</loc>
         <lastmod>2013-10-22T04:07:18+08:00</lastmod>
     </url>
     <url>
-        <loc>http://likema.github.io/robots.txt</loc>
+        <loc>http://www.malike.net.cn/robots.txt</loc>
         <lastmod>2013-10-19T23:07:03+08:00</lastmod>
     </url>
 </urlset>

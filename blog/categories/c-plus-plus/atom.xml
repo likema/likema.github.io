@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: C++ | Like的世界]]></title>
-  <link href="http://likema.github.io/blog/categories/c-plus-plus/atom.xml" rel="self"/>
-  <link href="http://likema.github.io/"/>
-  <updated>2013-10-22T09:24:49+08:00</updated>
-  <id>http://likema.github.io/</id>
+  <link href="http://www.malike.net.cn/blog/categories/c-plus-plus/atom.xml" rel="self"/>
+  <link href="http://www.malike.net.cn/"/>
+  <updated>2013-10-22T10:36:53+08:00</updated>
+  <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[MakeProjectCreator (MPC) 简介]]></title>
-    <link href="http://likema.github.io/blog/2008/10/05/mpc-tutorial/"/>
+    <link href="http://www.malike.net.cn/blog/2008/10/05/mpc-tutorial/"/>
     <updated>2008-10-05T00:00:00+08:00</updated>
-    <id>http://likema.github.io/blog/2008/10/05/mpc-tutorial</id>
+    <id>http://www.malike.net.cn/blog/2008/10/05/mpc-tutorial</id>
     <content type="html"><![CDATA[<p><a href="http://www.ociweb.com/products/mpc">Makefile, Project, and Workspace Creator (MPC)</a> 原始OCI为网络通信库ACE开发的跨平台工程文件生成工具，它可以生成很多种工程文件，例如Windows平台的Borland Developer Studio, Borland C++ Build 2007, Borland Makefile，Microsoft eMbedded VC3, Microsoft Visual C++ 6/7/71/8/9/10, nmake；Linux平台的automake, make等。</p>
 
 <p>下面将以Windows平台的nmake和vc9为例介绍MPC的使用方法。首先，我们需要下载</p>

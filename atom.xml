@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Like的世界]]></title>
-  <link href="http://likema.github.io/atom.xml" rel="self"/>
-  <link href="http://likema.github.io/"/>
-  <updated>2013-10-22T09:24:49+08:00</updated>
-  <id>http://likema.github.io/</id>
+  <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
+  <link href="http://www.malike.net.cn/"/>
+  <updated>2013-10-22T10:36:53+08:00</updated>
+  <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[PEP 8总结]]></title>
-    <link href="http://likema.github.io/blog/2013/07/25/pep8-summary/"/>
+    <link href="http://www.malike.net.cn/blog/2013/07/25/pep8-summary/"/>
     <updated>2013-07-25T00:00:00+08:00</updated>
-    <id>http://likema.github.io/blog/2013/07/25/pep8-summary</id>
+    <id>http://www.malike.net.cn/blog/2013/07/25/pep8-summary</id>
     <content type="html"><![CDATA[<p>下述内容主要源于<a href="http://www.python.org/dev/peps/pep-0008/">PEP 8 &mdash; Style Guide for Python Code</a>。</p>
 
 <h2>最大的行长度</h2>
@@ -194,10 +194,10 @@
   
   <entry>
     <title type="html"><![CDATA[git-buildpackage示例（二）]]></title>
-    <link href="http://likema.github.io/blog/2012/10/23/git-buildpackage-2/"/>
+    <link href="http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2/"/>
     <updated>2012-10-23T00:00:00+08:00</updated>
-    <id>http://likema.github.io/blog/2012/10/23/git-buildpackage-2</id>
-    <content type="html"><![CDATA[<p>在<a href="http://likema.github.io/blog/2012/02/19/git-buildpackage-1/">《git-buildpackage示例（一）》</a>中，我介绍了如何利用git-buildpackage为Ubuntu已有包做一个补丁包的办法。</p>
+    <id>http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2</id>
+    <content type="html"><![CDATA[<p>在<a href="http://www.malike.net.cn/blog/2012/02/19/git-buildpackage-1/">《git-buildpackage示例（一）》</a>中，我介绍了如何利用git-buildpackage为Ubuntu已有包做一个补丁包的办法。</p>
 
 <p>当时，我的补丁是基于tolua 5.1.3版本。一段时间后，tolua的作者释放了5.1.4版本。问题出现了，如何将我的补丁合并到5.1.4版本中呢？</p>
 
@@ -320,9 +320,9 @@
   
   <entry>
     <title type="html"><![CDATA[git-buildpackage示例（一）]]></title>
-    <link href="http://likema.github.io/blog/2012/02/19/git-buildpackage-1/"/>
+    <link href="http://www.malike.net.cn/blog/2012/02/19/git-buildpackage-1/"/>
     <updated>2012-02-19T00:00:00+08:00</updated>
-    <id>http://likema.github.io/blog/2012/02/19/git-buildpackage-1</id>
+    <id>http://www.malike.net.cn/blog/2012/02/19/git-buildpackage-1</id>
     <content type="html"><![CDATA[<p>在《为tolua的deb包作一个补丁》中，我介绍了如何利用quilt为Ubuntu已有包做一个补丁包的办法。可以看出quilt具有一定的版本管理能力，然而与流行版本管理系统相比，功能较弱也不灵活。</p>
 
 <p>从<a href="http://www.debian.org/doc/manuals/maint-guide/">Debian New Maintainers&#8217; Guide</a>中，了解到deb包的制作和维护管理已经与现有流行版本管理系统结合在了一块，其中一款工具为git-buildpackage，它将包制作和维护，特别是第三方补丁包维护，与git紧密的结合了起来。</p>
@@ -552,9 +552,9 @@
   
   <entry>
     <title type="html"><![CDATA[Ubuntu 11.10 VirtualBox的Host-only网卡上外网和DHCP永久地址]]></title>
-    <link href="http://likema.github.io/blog/2011/12/20/vbox-hostonly-dhcp/"/>
+    <link href="http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp/"/>
     <updated>2011-12-20T00:00:00+08:00</updated>
-    <id>http://likema.github.io/blog/2011/12/20/vbox-hostonly-dhcp</id>
+    <id>http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp</id>
     <content type="html"><![CDATA[<p>VirtualBox支持各种虚拟网络：NAT, Bridge Adapter, Internal Network和Host-only Adapter等。其中Bridged Adapter最为简单和常用，它几乎是0配置，直接桥接有线或无线物理网卡就可以与互联网通信。</p>
 
 <p>然而，我工作场所内部网和家里内部网的网段不相同，DHCP存在一定租赁时间，如果使用Bridged Adapter并DHCP获取IP地址的时候，虚拟机地址经常会改变。为此，我将笔记本电脑的VirtualBox虚拟机都修改为Host-only Adapter模式。</p>
@@ -624,9 +624,9 @@
   
   <entry>
     <title type="html"><![CDATA[为tolua的deb包作一个补丁]]></title>
-    <link href="http://likema.github.io/blog/2011/10/31/tolua-deb-patch/"/>
+    <link href="http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch/"/>
     <updated>2011-10-31T00:00:00+08:00</updated>
-    <id>http://likema.github.io/blog/2011/10/31/tolua-deb-patch</id>
+    <id>http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch</id>
     <content type="html"><![CDATA[<p>近日在学习tolua时发现在Kubuntu 11.10 amd64平台下将其链接到so时报告如下错误：</p>
 
 <blockquote><p>relocation R_X86_64_32 against &lsquo;.rodata&rsquo; can not be used when making a shared object; recompile with -fPIC</p></blockquote>
@@ -703,9 +703,9 @@ Author: Like Ma &lt;likemartinma@gmail.com&gt;
   
   <entry>
     <title type="html"><![CDATA[MakeProjectCreator (MPC) 简介]]></title>
-    <link href="http://likema.github.io/blog/2008/10/05/mpc-tutorial/"/>
+    <link href="http://www.malike.net.cn/blog/2008/10/05/mpc-tutorial/"/>
     <updated>2008-10-05T00:00:00+08:00</updated>
-    <id>http://likema.github.io/blog/2008/10/05/mpc-tutorial</id>
+    <id>http://www.malike.net.cn/blog/2008/10/05/mpc-tutorial</id>
     <content type="html"><![CDATA[<p><a href="http://www.ociweb.com/products/mpc">Makefile, Project, and Workspace Creator (MPC)</a> 原始OCI为网络通信库ACE开发的跨平台工程文件生成工具，它可以生成很多种工程文件，例如Windows平台的Borland Developer Studio, Borland C++ Build 2007, Borland Makefile，Microsoft eMbedded VC3, Microsoft Visual C++ 6/7/71/8/9/10, nmake；Linux平台的automake, make等。</p>
 
 <p>下面将以Windows平台的nmake和vc9为例介绍MPC的使用方法。首先，我们需要下载</p>

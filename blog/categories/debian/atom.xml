@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Debian | Like的世界]]></title>
-  <link href="http://likema.github.io/blog/categories/debian/atom.xml" rel="self"/>
-  <link href="http://likema.github.io/"/>
-  <updated>2013-10-22T09:24:49+08:00</updated>
-  <id>http://likema.github.io/</id>
+  <link href="http://www.malike.net.cn/blog/categories/debian/atom.xml" rel="self"/>
+  <link href="http://www.malike.net.cn/"/>
+  <updated>2013-10-22T10:36:53+08:00</updated>
+  <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[git-buildpackage示例（二）]]></title>
-    <link href="http://likema.github.io/blog/2012/10/23/git-buildpackage-2/"/>
+    <link href="http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2/"/>
     <updated>2012-10-23T00:00:00+08:00</updated>
-    <id>http://likema.github.io/blog/2012/10/23/git-buildpackage-2</id>
+    <id>http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2</id>
     <content type="html"><![CDATA[<p>在<a href="/blog/2012/02/19/git-buildpackage-1/">《git-buildpackage示例（一）》</a>中，我介绍了如何利用git-buildpackage为Ubuntu已有包做一个补丁包的办法。</p>
 
 <p>当时，我的补丁是基于tolua 5.1.3版本。一段时间后，tolua的作者释放了5.1.4版本。问题出现了，如何将我的补丁合并到5.1.4版本中呢？</p>
@@ -127,9 +127,9 @@ git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
   
   <entry>
     <title type="html"><![CDATA[git-buildpackage示例（一）]]></title>
-    <link href="http://likema.github.io/blog/2012/02/19/git-buildpackage-1/"/>
+    <link href="http://www.malike.net.cn/blog/2012/02/19/git-buildpackage-1/"/>
     <updated>2012-02-19T00:00:00+08:00</updated>
-    <id>http://likema.github.io/blog/2012/02/19/git-buildpackage-1</id>
+    <id>http://www.malike.net.cn/blog/2012/02/19/git-buildpackage-1</id>
     <content type="html"><![CDATA[<p>在《为tolua的deb包作一个补丁》中，我介绍了如何利用quilt为Ubuntu已有包做一个补丁包的办法。可以看出quilt具有一定的版本管理能力，然而与流行版本管理系统相比，功能较弱也不灵活。</p>
 
 <p>从<a href="http://www.debian.org/doc/manuals/maint-guide/">Debian New Maintainers' Guide</a>中，了解到deb包的制作和维护管理已经与现有流行版本管理系统结合在了一块，其中一款工具为git-buildpackage，它将包制作和维护，特别是第三方补丁包维护，与git紧密的结合了起来。</p>
@@ -332,9 +332,9 @@ git tag debian/5.1.3-2
   
   <entry>
     <title type="html"><![CDATA[为tolua的deb包作一个补丁]]></title>
-    <link href="http://likema.github.io/blog/2011/10/31/tolua-deb-patch/"/>
+    <link href="http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch/"/>
     <updated>2011-10-31T00:00:00+08:00</updated>
-    <id>http://likema.github.io/blog/2011/10/31/tolua-deb-patch</id>
+    <id>http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch</id>
     <content type="html"><![CDATA[<p>近日在学习tolua时发现在Kubuntu 11.10 amd64平台下将其链接到so时报告如下错误：</p>
 
 <blockquote><p>relocation R_X86_64_32 against &lsquo;.rodata&rsquo; can not be used when making a shared object; recompile with -fPIC</p></blockquote>
