@@ -2,7 +2,7 @@
 #      Main Configs       #
 # ----------------------- #
 
-url: http://likema.github.io
+url: http://www.malike.net.cn
 title:  Like的世界
 subtitle: 个人总结与随想
 author: Like Ma
@@ -79,7 +79,7 @@ google_plus_one_size: medium
 
 # Google Plus Profile
 # Hidden: No visible button, just add author information to search results
-googleplus_user: likemartinma
+googleplus_user: 112910538663131864533
 googleplus_hidden: false
 
 # Pinboard
