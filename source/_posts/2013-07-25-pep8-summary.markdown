@@ -50,13 +50,21 @@ result = some_function_that_takes_arguments(
 )
 ```
 
-实际工作中，不同开发语言存在不同的补齐风格要求。强烈建议不要将补齐设置在.vimrc中，而将
+实际工作中，不同开发语言存在不同的补齐风格要求。可以在.vimrc中针对python设置：
+
+```vim
+autocmd BufRead,BufNewFile *.py set et ts=4 sw=4 sts=4
+```
+
+仅对python源文件设置4个空格补齐。
+
+当然，更好的办法是在每个python源文件的最后一行追加：
 
 ```python
 # vim: ts=4 sw=4 sts=4 et:
 ```
 
-追加在每个python源文件的最后一行，从而保证vim打开该文件时满足4个空格补齐的要求。
+从而保证vim打开该文件时满足4个空格补齐的要求。
 
 ## 空行 ##
 
