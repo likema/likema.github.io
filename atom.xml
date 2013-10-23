@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2013-10-23T22:36:49+08:00</updated>
+  <updated>2013-10-24T03:05:12+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,237 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Flake8简介]]></title>
+    <link href="http://www.malike.net.cn/blog/2013/10/23/flake8-tutorial/"/>
+    <updated>2013-10-23T00:00:00+08:00</updated>
+    <id>http://www.malike.net.cn/blog/2013/10/23/flake8-tutorial</id>
+    <content type="html"><![CDATA[<p><a href="http://flake8.readthedocs.org/">Flake8</a>包装了下列工具：</p>
+
+<ul>
+<li><a href="https://launchpad.net/pyflakes">PyFlakes</a>：静态检查Python代码逻辑错误的工具。</li>
+<li><a href="http://pep8.readthedocs.org/en/latest/">pep8</a>： 静态检查<a href="http://www.malike.net.cn/blog/2013/07/25/pep8-summary/">PEP 8</a>编码风格的工具。</li>
+<li><a href="http://nedbatchelder.com/blog/200803/python_code_complexity_microtool.html">Ned Batchelder’s McCabe script</a>：静态分析Python代码复杂度的工具。</li>
+</ul>
+
+
+<p>它综合上述三者的功能，在简化操作的同时，还提供了扩展开发接口。</p>
+
+<h2>安装</h2>
+
+<p>这里仅介绍Ubuntu的安装方法，其他安装方法见Flake8官网。</p>
+
+<ul>
+<li>添加ppa:cjohnston/flake8。Ubuntu 12.04官方源仅提供pep8的包，而该PPA不仅提供了最新的python-flake8包，还提供最新的pep8包。Ubuntu 13.10和14.04默认已经提供最新的pep8和python-flake8，所以可以跳过这一步。</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo apt-add-repository ppa:cjohnston/flake8
+</span><span class='line'>sudo apt-get update
+</span><span class='line'>sudo apt-get -y --force-yes dist-upgrade</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>安装python-flake8</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo apt-get install python-flake8
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>使用</h2>
+
+<ul>
+<li>递归检查当前目录的所有Python文件：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>flake8 .
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>检查指定文件</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>flake8 foo.py bar.py
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>通过setup.py检查工程的所有Python文件：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>python setup.py flake8
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了保证其在其他环境中正确运行，需要将flake8增加到setup_requires中，例如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">setup</span><span class="p">(</span>
+</span><span class='line'>    <span class="n">name</span><span class="o">=</span><span class="s">&quot;project&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">packages</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;project&quot;</span><span class="p">],</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">setup_requires</span><span class="o">=</span><span class="p">[</span>
+</span><span class='line'>        <span class="s">&quot;flake8&quot;</span>
+</span><span class='line'>    <span class="p">]</span>
+</span><span class='line'><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>由于默认禁用代码条件复杂度检查，需要通过&mdash;max-complexity激活该功能：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>flake8 --max-complexity 12 .
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>该功能对于发现代码过度复杂非常有用，根据Thomas J. McCabe, Sr（<a href="https://en.wikipedia.org/wiki/Cyclomatic_complexity">Cyclomatic complexity</a>的创造者）研究，代码复杂度不宜超过10，而Flake8官网建议值为12。</p>
+
+<h2>配置</h2>
+
+<ul>
+<li>用户相关的配置存在~/.config/flake8中，如：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[flake8]</span>
+</span><span class='line'><span class="na">max-complexity</span><span class="o">=</span><span class="s">12</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>个人感觉除了代码复杂度因子（max-complexity）外，其他参数的默认值已经很好，基本不需要再作配置。</p>
+
+<ul>
+<li>工程相关的设置，可以存放在工程顶级目录的tox.ini或setup.cfg，格式与用户相关的配置一致。</li>
+</ul>
+
+
+<h2>与Git整合</h2>
+
+<p>在.git/hooks目录中，创建Git的pre-commit钩子脚本，Flake8可以对每次提交的代码进行检查。该脚本如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c">#!/usr/bin/python</span>
+</span><span class='line'>
+</span><span class='line'><span class="kn">import</span> <span class="nn">sys</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">flake8.run</span> <span class="kn">import</span> <span class="n">git_hook</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">COMPLEXITY</span> <span class="o">=</span> <span class="mi">12</span>
+</span><span class='line'><span class="n">STRICT</span> <span class="o">=</span> <span class="bp">True</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+</span><span class='line'>    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">git_hook</span><span class="p">(</span><span class="n">complexity</span><span class="o">=</span><span class="n">COMPLEXITY</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="n">STRICT</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>若strict为True，任何warning都将阻挡提交。否则（或缺省），warning仅会被打印到标准输出。</p>
+
+<h2>与vim整合</h2>
+
+<p>这里仅介绍vim插件vim-flake8的安装和配置</p>
+
+<ul>
+<li>安装vim插件pathogen：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>mkdir -p ~/.vim/autoload ~/.vim/bundle
+</span><span class='line'>curl -Sso ~/.vim/autoload/pathogen.vim <span class="se">\</span>
+</span><span class='line'>    https://raw.github.com/tpope/vim-pathogen/master/autoload/pathogen.vim
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>添加下列配置至~/.vimrc中：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='vim'><span class='line'>execute pathogen#infect<span class="p">()</span>
+</span><span class='line'><span class="nb">syntax</span> <span class="k">on</span>
+</span><span class='line'><span class="k">filetype</span> plugin indent <span class="k">on</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>安装vim-flake8：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">cd</span> ~/.vim/bundle
+</span><span class='line'>git clone git://github.com/nvie/vim-flake8.git
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>至此，当vim打开Python源码后，按F7就会执行Flake8对当前文件进行检查。</p>
+
+<h2>插件</h2>
+
+<p>Flake8相比pep8的优势在于其良好的扩展性，pep8 1.4.6尚未支持命名规范的检查，却已有人开发Flake8的插件<a href="https://github.com/flintwork/pep8-naming">pep8-naming</a>来弥补这个缺陷。</p>
+
+<p>pep8-naming处于早期开发阶段，尚无人为其制作deb包。我花时间做了deb包，并上传到我的ppa:likemartinma/python上。通过下述步骤可以轻松安装它：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo add-apt-repository ppa:likemartinma/python
+</span><span class='line'>sudo apt-get update
+</span><span class='line'>sudo apt-get -y --force-yes dist-upgrade
+</span><span class='line'>sudo apt-get install pep8-naming
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>由于Python部分核心库的函数命令存在“历史遗留”问题，与PEP 8并不保持完全一致，如<a href="http://docs.python.org/2/library/pyexpat.html#xml.parsers.expat.xmlparser.StartElementHandler">xml.parsers.expat.xmlparser.StartElementHandler</a>，这给pep8-naming带来一定的误报困扰。</p>
+
+<p>解决的办法是这样的代码行追加 # noqa 的注释，从避免flake8发出类似warning。</p>
+
+<h2>存在的问题</h2>
+
+<p>由于pep8尚未支持docstring规范的检查，也没有相关Flake8的插件。目前仅能用<a href="https://github.com/GreenSteam/pep257">pep257</a>来完成docstring规范的检查。期待pep257早日衍生成Flake8的插件。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[PEP 8总结]]></title>
@@ -148,14 +379,23 @@
 
 <ul>
 <li>保证所有import在文件的头部，仅在模块注释后面，并先于模块的全局变量和常量。</li>
-<li>import应按下列顺序分组：
-<strong> 标准库的导入
-</strong> 相关第3方库的导入
-** 本地应用程序/库的导入
-每个分组间空1行
-将类似<strong>all</strong>定义放在所有import后面</li>
+<li><p>import应按下列顺序分组：</p>
+
+<ul>
+<li>标准库的导入</li>
+<li>相关第3方库的导入</li>
+<li>本地应用程序/库的导入</li>
+</ul>
+</li>
+</ul>
+
+
+<p>每个分组间空1行
+将类似__all__定义放在所有import后面</p>
+
+<ul>
 <li>绝对导入优于相对导入</li>
-<li>避免导入模块所有的内容（通配方式， from <module> import *)，在<strong>init</strong>.py中导出内部API除外。</li>
+<li>避免导入模块所有的内容（通配方式， from <module> import *)，在__init__.py中导出内部API除外。</li>
 </ul>
 
 
@@ -187,7 +427,7 @@
 <li>单下划线开头（如：_single_leading_underscore）弱内部使用，类似from M import *不导入类似符号。</li>
 <li>单下划线结尾（如：single_trailing_underscore<em>）用于与Python关键字冲突的情况下，如classs</em>。</li>
 <li>双下划线开头（如：__double_leading_underscore）用于类属性。</li>
-<li>双下划线开头和结构用于特殊对象或属性，如<strong>init</strong>, <strong>import</strong>或<strong>file</strong>。多为语言定义，避免发明类似名字。</li>
+<li>双下划线开头和结构用于特殊对象或属性，如__init__, __import__或__file__。多为语言定义，避免发明类似名字。</li>
 <li>避免使用小写L、大写O和大写I作为单字符变量名。</li>
 <li>模块名应简短、全小写，可包含下划线；包名类似，但不鼓励包含下划线。</li>
 <li>C/C++实现的扩展模块应伴随着提供如面向对象等高级接口的Python模块存在，且其名字以下划线开头（如_socket）</li>
@@ -212,40 +452,43 @@
 
 <p>下面我将继续使用git-buildpackage来解决合并上游新版本的问题：</p>
 
-<ol>
+<ul>
 <li>下载tolua 5.1.4源码包（假设放在git工作目录上层）：</li>
-</ol>
+</ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>wget http://www.tecgraf.puc-rio.br/~celes/tolua/tolua-5.1.4.tar.gz
-</span><span class='line'>cd tolua
-</span><span class='line'>git-import-orig -u 5.1.4 ../tolua-5.1.4.tar.gz</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>wget http://www.tecgraf.puc-rio.br/~celes/tolua/tolua-5.1.4.tar.gz
+</span><span class='line'><span class="nb">cd </span>tolua
+</span><span class='line'>git-import-orig -u 5.1.4 ../tolua-5.1.4.tar.gz
+</span></code></pre></td></tr></table></div></figure>
 
 
-<ol>
+<ul>
 <li>手动解决遇到的冲突（如src/bin/Makefile）并提交更新：</li>
-</ol>
+</ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git commit</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git commit
+</span></code></pre></td></tr></table></div></figure>
 
 
-<ol>
+<ul>
 <li>这时，运行</li>
-</ol>
+</ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git log --format=%d:%s</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git log --format<span class="o">=</span>%d:%s
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>输出：</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -259,68 +502,74 @@
 
 <p>upstream/5.1.4分支被创建，且将其合并到master分支中。如此，master分支合并完毕，接下来将合并debian的patches。</p>
 
-<ol>
+<ul>
 <li>重整patch-queue：</li>
-</ol>
+</ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gbp-pq rebase</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>gbp-pq rebase
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>手动解决遇到的冲突：</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git rm -f src/bin/toluabind.c
-</span><span class='line'>git rebase --continue</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git rm -f src/bin/toluabind.c
+</span><span class='line'>git rebase --continue
+</span></code></pre></td></tr></table></div></figure>
 
 
-<ol>
+<ul>
 <li>导出patch-queue（至master分支）</li>
-</ol>
+</ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git clean -df
-</span><span class='line'>gbp-pq export</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git clean -df
+</span><span class='line'>gbp-pq <span class="nb">export</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
-<ol>
+<ul>
 <li>指定版本号5.1.4-1自动生成snapshot的debian/changelog：</li>
-</ol>
+</ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git-dch -a -S -N 5.1.4-1
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git-dch -a -S -N 5.1.4-1
 </span><span class='line'>git add debian/changelog
 </span><span class='line'>git add debian/patches/0001-mkdir-for-tolua-lib-archive-and-remove-temp-files.patch
-</span><span class='line'>git commit -m "Update patches from debian/5.1.3-1"</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>git commit -m <span class="s2">&quot;Update patches from debian/5.1.3-1&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>测试构建新的deb包。为了避免污染当前环境，这里指定git首先导出源码至../tolua-build目录：</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git-buildpackage --git-export-dir=../tolua-build --git-ignore-new</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git-buildpackage --git-export-dir<span class="o">=</span>../tolua-build --git-ignore-new
+</span></code></pre></td></tr></table></div></figure>
 
 
-<ol>
+<ul>
 <li>生成release的版本信息，并构建release的deb包：</li>
-</ol>
+</ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git-dch -a -R
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git-dch -a -R
 </span><span class='line'>git ci --amend
 </span><span class='line'>git tag debian/5.1.4-1
-</span><span class='line'>git-buildpackage --git-export-dir=../tolua-build --git-ignore-new</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>git-buildpackage --git-export-dir<span class="o">=</span>../tolua-build --git-ignore-new
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>到此为止，我已经演示了git-buildpackage合并上游版本的过程。不难发现，git-buildpackage充分利用了git的特点，在很大程度上简化了补丁开发和维护的过程。</p>
@@ -338,70 +587,74 @@
 
 <p>下面仍然以tolua的补丁制作为例，一步一步展示git-buildpackage的基本操作。</p>
 
-<ol>
+<ul>
 <li>安装必要的工具：</li>
-</ol>
+</ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sudo apt-get install git-buildpackage build-essential debhelper quilt</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo apt-get install git-buildpackage build-essential debhelper quilt
+</span></code></pre></td></tr></table></div></figure>
 
 
-<ol>
+<ul>
 <li>下载libtolua-dev的源码（建立upstream目录单独存放Ubuntu的deb源码包是为了保证清洁和正确）：</li>
-</ol>
+</ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>mkdir upstream
-</span><span class='line'>apt-get source libtolua-dev</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>mkdir upstream
+</span><span class='line'>apt-get <span class="nb">source </span>libtolua-dev
+</span></code></pre></td></tr></table></div></figure>
 
 
-<ol>
+<ul>
 <li>导入upsteam的dsc文件（将生成与目录upstream同级的目录tolua）：</li>
-</ol>
+</ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>cd ..
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">cd</span> ..
 </span><span class='line'>git-import-dsc upstream/tolua_5.1.3-1.dsc
-</span><span class='line'>cd tolua</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'><span class="nb">cd </span>tolua
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>这时，运行</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git log --format=%d:%s</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git log --format<span class="o">=</span>%d:%s
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>输出：</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'> (HEAD, debian/5.1.3-1, master):Imported Debian patch 5.1.3-1
 </span><span class='line'> (upstream/5.1.3, upstream):Imported Upstream version 5.1.3</span></code></pre></td></tr></table></div></figure>
 
 
-<pre><code>从下至上，首条提交导入了tolua 5.1.3的源码，次条提交导入了deb包维护者的deb包文件(debian/*)；并且建立了upstream和master两个分支，标签upstream/5.1.3位于upstream分支上，标签debian/5.1.3-1位于master分支头部。
+<p>从下至上，首条提交导入了tolua 5.1.3的源码，次条提交导入了deb包维护者的deb包文件(debian/*)；并且建立了upstream和master两个分支，标签upstream/5.1.3位于upstream分支上，标签debian/5.1.3-1位于master分支头部。</p>
 
-此外，upstream分支用于维护源码作者的发布版本更新情况，master分支用于维护deb包描述文件及其补丁文件。git-buildpackage工具集的正确运行将依赖于标签upstream/5.1.3和debian/5.1.3-1，不能随意删改。
-</code></pre>
+<p>此外，upstream分支用于维护源码作者的发布版本更新情况，master分支用于维护deb包描述文件及其补丁文件。git-buildpackage工具集的正确运行将依赖于标签upstream/5.1.3和debian/5.1.3-1，不能随意删改。</p>
 
-<ol>
+<ul>
 <li>导入quilt patches到patch queue中——创建patch-queue/master分支，并将debian/patches/*逐一变成该分支的提交，并自动切换到该分支上：</li>
-</ol>
+</ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gbp-pq import</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>gbp-pq import
+</span></code></pre></td></tr></table></div></figure>
 
 
-<ol>
+<ul>
 <li>执行make后发现构建目标libtolua.a的生成目录lib不存在，这是git只针对文件做版本，所以upstream导入git时，该目录被忽略了。为此，我将src/lib/Makefile中</li>
-</ol>
+</ul>
 
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -426,22 +679,20 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<pre><code>这样，它将在每次构建该目标时，创建该目标所在目录。更进一步不难发现，src/bin/tolua_lua.o和src/bin/toluabind.c为受版本控制的中间文件，将影响构建的正确运行。为此，删除这两个文件并提交日志。
-</code></pre>
+<p>这样，它将在每次构建该目标时，创建该目标所在目录。更进一步不难发现，src/bin/tolua_lua.o和src/bin/toluabind.c为受版本控制的中间文件，将影响构建的正确运行。为此，删除这两个文件并提交日志。</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="err">git</span> <span class="err">rm</span> <span class="err">-f</span> <span class="err">src/bin/tolua_lua.o</span> <span class="err">src/bin/toluabind.c</span>
-</span><span class='line'><span class="err">git</span> <span class="err">commit</span> <span class="err">-a</span> <span class="err">-m</span> <span class="s2">&quot;mkdir for tolua lib archive and remove temp files&quot;</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git rm -f src/bin/tolua_lua.o src/bin/toluabind.c
+</span><span class='line'>git commit -a -m <span class="s2">&quot;mkdir for tolua lib archive and remove temp files&quot;</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<pre><code>此时，可以正确make该工程了。
-</code></pre>
+<p>此时，可以正确make该工程了。</p>
 
-<ol>
+<ul>
 <li>修复x86_64链接问题，将config文件中，如下内容</li>
-</ol>
+</ul>
 
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -463,33 +714,33 @@
 <p>并提交日志：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="err">git</span> <span class="err">commit</span> <span class="err">-a</span> <span class="err">-m</span> <span class="s2">&quot;Fix relocation R_X86_64_32 against &#39;.rodata&#39; erro for shared object.&quot;</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git commit -a -m <span class="s2">&quot;Fix relocation R_X86_64_32 against &#39;.rodata&#39; erro for shared object.&quot;</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<ol>
+<ul>
 <li>导出patch-queue——将其分支提交逐一转化为debian/patches目录下的补丁文件（为保证正确运行，清理掉中间文件）：</li>
-</ol>
+</ul>
 
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="err">git</span> <span class="err">clean</span> <span class="err">-df</span>
-</span><span class='line'><span class="err">gbp-pq</span> <span class="k">export</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git clean -df
+</span><span class='line'>gbp-pq <span class="nb">export</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<ol>
+<ul>
 <li>指定版本号5.1.3-2自动生成snapshot的debian/changelog：</li>
-</ol>
+</ul>
 
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="err">git-dch</span> <span class="err">-S</span> <span class="err">-a</span> <span class="err">-N</span> <span class="err">5.1.3-2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git-dch -S -a -N 5.1.3-2
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>debian/change的新增内容如下：</p>
+<p>debian/changelog的新增内容如下：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -498,14 +749,13 @@
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="err">tolua</span> <span class="err">(5.1.3-2~1.gbp896bed)</span> <span class="err">UNRELEASED;</span> <span class="nv">urgency</span><span class="o">=</span>low
+</pre></td><td class='code'><pre><code class=''><span class='line'>tolua (5.1.3-2~1.gbp896bed) UNRELEASED; urgency=low
 </span><span class='line'>
 </span><span class='line'>  ** SNAPSHOT build @896bede5a4eb6f3967cdfe94ea2ef419235e7183 **
 </span><span class='line'>
 </span><span class='line'>  * UNRELEASED
 </span><span class='line'>
-</span><span class='line'> -- Like Ma   Sun, 19 Feb 2012 01:07:06 +0800
-</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'> -- Like Ma   Sun, 19 Feb 2012 01:07:06 +0800</span></code></pre></td></tr></table></div></figure>
 
 
 <p>提交相关修改：</p>
@@ -515,26 +765,26 @@
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="err">git</span> <span class="err">add</span> <span class="err">debian/changelog</span> <span class="err">\</span>
-</span><span class='line'>      <span class="err">debian/patches/series</span> <span class="err">\</span>
-</span><span class='line'>      <span class="err">debian/patches/0001-mkdir-for-tolua-lib-archive-and-remove-temp-files.patch</span> <span class="err">\</span>
-</span><span class='line'>      <span class="err">debian/patches/0002-Fix-relocation-R_X86_64_32-against-.rodata-can-not-b.patch</span>
-</span><span class='line'><span class="err">git</span> <span class="err">commit</span> <span class="err">-m</span> <span class="s2">&quot;Fix relocation R_X86_64_32 against &#39;.rodata&#39; error for shared object&quot;</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git add debian/changelog <span class="se">\</span>
+</span><span class='line'>      debian/patches/series <span class="se">\</span>
+</span><span class='line'>      debian/patches/0001-mkdir-for-tolua-lib-archive-and-remove-temp-files.patch <span class="se">\</span>
+</span><span class='line'>      debian/patches/0002-Fix-relocation-R_X86_64_32-against-.rodata-can-not-b.patch
+</span><span class='line'>git commit -m <span class="s2">&quot;Fix relocation R_X86_64_32 against &#39;.rodata&#39; error for shared object&quot;</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
 <p>测试构建新的deb包。为了避免污染当前环境，这里指定git首先导出源码至../tolua-build目录：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="err">git-buildpackage</span> <span class="nv">--git-export-dir</span><span class="o">=</span>../tolua-build --git-ignore-new
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git-buildpackage --git-export-dir<span class="o">=</span>../tolua-build --git-ignore-new
 </span></code></pre></td></tr></table></div></figure>
 
 
 <p>可以看出，上述debian/changelog新增信息，除版本号5.1.3-2外（新包的版本信息），并无实在意义，仅用于测试deb包的构建。</p>
 
-<ol>
+<ul>
 <li>生成release的版本信息，并构建release的deb包：</li>
-</ol>
+</ul>
 
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -542,18 +792,17 @@
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="err">git</span> <span class="err">checkout</span> <span class="err">src/bin/tolua_lua.o</span> <span class="err">src/bin/toluabind.c</span>
-</span><span class='line'><span class="err">git-dch</span> <span class="err">-R</span> <span class="err">-a</span>
-</span><span class='line'><span class="err">git</span> <span class="err">commit</span> <span class="err">-a</span> <span class="err">--amend</span>
-</span><span class='line'><span class="err">git-buildpackage</span> <span class="nv">--git-export-dir</span><span class="o">=</span>../tolua-build --git-ignore-new
-</span><span class='line'><span class="err">git</span> <span class="err">tag</span> <span class="err">debian/5.1.3-2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git checkout src/bin/tolua_lua.o src/bin/toluabind.c
+</span><span class='line'>git-dch -R -a
+</span><span class='line'>git commit -a --amend
+</span><span class='line'>git-buildpackage --git-export-dir<span class="o">=</span>../tolua-build --git-ignore-new
+</span><span class='line'>git tag debian/5.1.3-2
 </span></code></pre></td></tr></table></div></figure>
 
 
-<pre><code>注意，前面仅仅在patch-queue分支上删除的两个中间文件，并未在master分支上删除它们，所以重新checkout它们以保证后续构建的正确运行。
+<p>注意，前面仅仅在patch-queue分支上删除的两个中间文件，并未在master分支上删除它们，所以重新checkout它们以保证后续构建的正确运行。</p>
 
-这里的关键命令git-dch -R -a自动生成了release的版本信息，当然我们也可以根据需要再修改它们。最后一条命令，给master分支的HEAD加上标签debian/5.1.3-2，git-buildpackage将依赖于它才能继续正确工作。
-</code></pre>
+<p>这里的关键命令git-dch -R -a自动生成了release的版本信息，当然我们也可以根据需要再修改它们。最后一条命令，给master分支的HEAD加上标签debian/5.1.3-2，git-buildpackage将依赖于它才能继续正确工作。</p>
 
 <p>到此为止，我已经演示了git-buildpackage的补丁制作过程，可以观察../tolua-build目录中生成的文件，它们就是我们可以用于发布的deb包源码文件，形式上与ubuntu/debian中apt-get source得到的一样。</p>
 ]]></content>
@@ -570,29 +819,31 @@
 
 <p>一个问题是Host-only Adapter（网段为192.168.56.0/24）默认不能与互联网通信。google之后发现网上早有人遇到类似问题，他们给出的解决办法是在/etc/rc.local中加入：</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>另一个问题是VirtualBox内置DHCP的IP租赁时间设置，也无法将MAC地址与IP地址静态绑定，这造成虚拟机IP地址每隔一段时间改变一次，给使用带来诸多不方便。另一方面，我也不想静态设置IP地址，因为如果这样做，我必须每安装一次虚拟机都要重新设置IP地址。</p>
 
 <p>以前就听说过dnsmasq，不仅集成DNS、DHCP和TFTP功能，而且占用资源很少，设置也相对简单。</p>
 
-<ol>
+<ul>
 <li>安装dnsmasq</li>
-</ol>
+</ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sudo apt-get install dnsmasq</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo apt-get install dnsmasq
+</span></code></pre></td></tr></table></div></figure>
 
 
-<ol>
+<ul>
 <li>打开/etc/dnsmasq.conf，针对vboxnet0配置DHCP。</li>
-</ol>
+</ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -612,18 +863,19 @@
 </span><span class='line'>dhcp-range=vboxnet0,192.168.56.2,192.168.56.254,infinite</span></code></pre></td></tr></table></div></figure>
 
 
-<ol>
+<ul>
 <li>重启动dnsmasq</li>
-</ol>
+</ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sudo service dnsmasq restart</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo service dnsmasq restart
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>当然，dnsmasq也支持MAC地址与IP地址静态绑定。比如，在/etc/dnsmasq.conf中针对MAC地址08:00:27:81:51:85，分配机器名vbox-xp，分配IP地址192.168.56.2</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>dhcp-host=vbox-xp,08:00:27:81:51:85,192.168.56.2</span></code></pre></td></tr></table></div></figure>
 
 
@@ -745,10 +997,9 @@ Author: Like Ma &lt;likemartinma@gmail.com&gt;
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">project</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">exename</span> <span class="o">=</span> <span class="n">helloworld</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>project {
+</span><span class='line'>  exename = helloworld
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
 <p>最后，打开Visual Studio 2008 Command Prompt（也可以用VS2003或2005的），进入helloworld的目录, 然后输入</p>
@@ -772,14 +1023,13 @@ Author: Like Ma &lt;likemartinma@gmail.com&gt;
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">project</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">exename</span> <span class="o">=</span> <span class="n">helloworld</span>
-</span><span class='line'>  <span class="n">specific</span> <span class="p">(</span><span class="n">nmake</span><span class="p">,</span> <span class="n">vc6</span><span class="p">,</span> <span class="n">vc7</span><span class="p">,</span> <span class="n">vc71</span><span class="p">,</span> <span class="n">vc8</span><span class="p">,</span> <span class="n">vc9</span><span class="p">,</span> <span class="n">vc10</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>      <span class="n">Debug</span><span class="o">::</span><span class="n">install</span> <span class="o">=</span> <span class="n">debug</span>
-</span><span class='line'>      <span class="n">Release</span><span class="o">::</span><span class="n">install</span> <span class="o">=</span> <span class="n">release</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>project {
+</span><span class='line'>  exename = helloworld
+</span><span class='line'>  specific (nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
+</span><span class='line'>      Debug::install = debug
+</span><span class='line'>      Release::install = release
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
 <p>或许你更喜欢用IDE，让我们生成VS2008的工程文件吧：</p>
@@ -861,15 +1111,14 @@ Author: Like Ma &lt;likemartinma@gmail.com&gt;
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
 <span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">project</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">sharedname</span> <span class="o">=</span> <span class="n">hello</span>
-</span><span class='line'>  <span class="n">dynamicflags</span> <span class="o">+=</span> <span class="n">HELLO_BUILD_DLL</span>
-</span><span class='line'>  <span class="n">specific</span><span class="p">(</span><span class="n">nmake</span><span class="p">,</span> <span class="n">vc6</span><span class="p">,</span> <span class="n">vc7</span><span class="p">,</span> <span class="n">vc71</span><span class="p">,</span> <span class="n">vc8</span><span class="p">,</span> <span class="n">vc9</span><span class="p">,</span> <span class="n">vc10</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>      <span class="n">Debug</span><span class="o">::</span><span class="n">dllout</span> <span class="o">=</span> <span class="n">debug</span>
-</span><span class='line'>      <span class="n">Release</span><span class="o">::</span><span class="n">dllout</span> <span class="o">=</span> <span class="n">release</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>project {
+</span><span class='line'>  sharedname = hello
+</span><span class='line'>  dynamicflags += HELLO_BUILD_DLL
+</span><span class='line'>  specific(nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
+</span><span class='line'>      Debug::dllout = debug
+</span><span class='line'>      Release::dllout = release
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
 <p>之后，执行如下命令，可以生成Debug和Release的dll。注意Debug的dll是hellod.dll。</p>
@@ -920,23 +1169,22 @@ nmake CFG="Win32 Release"
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
 <span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">project</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">after</span> <span class="o">+=</span> <span class="n">hellodll</span>
-</span><span class='line'>  <span class="n">exename</span> <span class="o">=</span> <span class="n">hellotest</span>
-</span><span class='line'>  <span class="n">libs</span> <span class="o">+=</span> <span class="n">hello</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>project {
+</span><span class='line'>  after += hellodll
+</span><span class='line'>  exename = hellotest
+</span><span class='line'>  libs += hello
 </span><span class='line'>
-</span><span class='line'>  <span class="n">Source_Files</span> <span class="p">{</span>
-</span><span class='line'>      <span class="n">hellotest</span><span class="p">.</span><span class="n">cpp</span>
-</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  Source_Files {
+</span><span class='line'>      hellotest.cpp
+</span><span class='line'>  }
 </span><span class='line'>
-</span><span class='line'>  <span class="n">specific</span><span class="p">(</span><span class="n">nmake</span><span class="p">,</span> <span class="n">vc6</span><span class="p">,</span> <span class="n">vc7</span><span class="p">,</span> <span class="n">vc71</span><span class="p">,</span> <span class="n">vc8</span><span class="p">,</span> <span class="n">vc9</span><span class="p">,</span> <span class="n">vc10</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>      <span class="n">Debug</span><span class="o">::</span><span class="n">libpaths</span> <span class="o">=</span> <span class="n">debug</span>
-</span><span class='line'>      <span class="n">Debug</span><span class="o">::</span><span class="n">install</span> <span class="o">=</span> <span class="n">debug</span>
-</span><span class='line'>      <span class="n">Release</span><span class="o">::</span><span class="n">libpaths</span> <span class="o">=</span> <span class="n">Release</span>
-</span><span class='line'>      <span class="n">Release</span><span class="o">::</span><span class="n">install</span> <span class="o">=</span> <span class="n">Release</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>  specific(nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
+</span><span class='line'>      Debug::libpaths = debug
+</span><span class='line'>      Debug::install = debug
+</span><span class='line'>      Release::libpaths = Release
+</span><span class='line'>      Release::install = Release
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
 <p>注意到helloworld.mpc和hellotest.mpc的差异吗？后者的after语句表示hellotest.mpc依赖于hellodll.mpc，必须在其后编译。另外，我在后者增加了Source_Files块，顾名思义，其作用是指定工程源文件(cpp和c)列表。如果没有它，MPC默认会将hellotest.mpc所在目录的所有源文件作为这个工程的源文件，这显然不是我们希望看到的；同理，需要在hellodll.mpc增加Source_Files块，修改后的内容如下：</p>
@@ -954,20 +1202,19 @@ nmake CFG="Win32 Release"
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
 <span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">project</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">sharedname</span> <span class="o">=</span> <span class="n">hello</span>
-</span><span class='line'>  <span class="n">dynamicflags</span> <span class="o">+=</span> <span class="n">HELLO_BUILD_DLL</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>project {
+</span><span class='line'>  sharedname = hello
+</span><span class='line'>  dynamicflags += HELLO_BUILD_DLL
 </span><span class='line'>
-</span><span class='line'>  <span class="n">Source_Files</span> <span class="p">{</span>
-</span><span class='line'>      <span class="n">hellodll</span><span class="p">.</span><span class="n">cpp</span>
-</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  Source_Files {
+</span><span class='line'>      hellodll.cpp
+</span><span class='line'>  }
 </span><span class='line'>
-</span><span class='line'>  <span class="n">specific</span> <span class="p">(</span><span class="n">nmake</span><span class="p">,</span> <span class="n">vc6</span><span class="p">,</span> <span class="n">vc7</span><span class="p">,</span> <span class="n">vc71</span><span class="p">,</span> <span class="n">vc8</span><span class="p">,</span> <span class="n">vc9</span><span class="p">,</span> <span class="n">vc10</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>      <span class="n">Debug</span><span class="o">::</span><span class="n">dllout</span> <span class="o">=</span> <span class="n">debug</span>
-</span><span class='line'>      <span class="n">Release</span><span class="o">::</span><span class="n">dllout</span> <span class="o">=</span> <span class="n">Release</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>  specific (nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
+</span><span class='line'>      Debug::dllout = debug
+</span><span class='line'>      Release::dllout = Release
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
 <p>类似Source_Files块，还有Header_Files, Inline_Files和Resoure_Files等，具体可以查看MPC官方文档。

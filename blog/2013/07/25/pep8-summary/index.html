@@ -239,14 +239,23 @@ docstring或comment应不超过72字符 补齐 每个补齐级别为4个空格�
 
 <ul>
 <li>保证所有import在文件的头部，仅在模块注释后面，并先于模块的全局变量和常量。</li>
-<li>import应按下列顺序分组：
-<strong> 标准库的导入
-</strong> 相关第3方库的导入
-** 本地应用程序/库的导入
-每个分组间空1行
-将类似<strong>all</strong>定义放在所有import后面</li>
+<li><p>import应按下列顺序分组：</p>
+
+<ul>
+<li>标准库的导入</li>
+<li>相关第3方库的导入</li>
+<li>本地应用程序/库的导入</li>
+</ul>
+</li>
+</ul>
+
+
+<p>每个分组间空1行
+将类似__all__定义放在所有import后面</p>
+
+<ul>
 <li>绝对导入优于相对导入</li>
-<li>避免导入模块所有的内容（通配方式， from <module> import *)，在<strong>init</strong>.py中导出内部API除外。</li>
+<li>避免导入模块所有的内容（通配方式， from <module> import *)，在__init__.py中导出内部API除外。</li>
 </ul>
 
 
@@ -278,7 +287,7 @@ docstring或comment应不超过72字符 补齐 每个补齐级别为4个空格�
 <li>单下划线开头（如：_single_leading_underscore）弱内部使用，类似from M import *不导入类似符号。</li>
 <li>单下划线结尾（如：single_trailing_underscore<em>）用于与Python关键字冲突的情况下，如classs</em>。</li>
 <li>双下划线开头（如：__double_leading_underscore）用于类属性。</li>
-<li>双下划线开头和结构用于特殊对象或属性，如<strong>init</strong>, <strong>import</strong>或<strong>file</strong>。多为语言定义，避免发明类似名字。</li>
+<li>双下划线开头和结构用于特殊对象或属性，如__init__, __import__或__file__。多为语言定义，避免发明类似名字。</li>
 <li>避免使用小写L、大写O和大写I作为单字符变量名。</li>
 <li>模块名应简短、全小写，可包含下划线；包名类似，但不鼓励包含下划线。</li>
 <li>C/C++实现的扩展模块应伴随着提供如面向对象等高级接口的Python模块存在，且其名字以下划线开头（如_socket）</li>
@@ -341,6 +350,8 @@ docstring或comment应不超过72字符 补齐 每个补齐级别为4个空格�
         <a class="basic-alignment left" href="/blog/2012/10/23/git-buildpackage-2/" title="Previous Post: git-buildpackage示例（二）">&laquo; git-buildpackage示例（二）</a>
       
       
+        <a class="basic-alignment right" href="/blog/2013/10/23/flake8-tutorial/" title="Next Post: Flake8简介">Flake8简介 &raquo;</a>
+      
     </p>
   </footer>
 </article>
@@ -360,6 +371,10 @@ docstring或comment应不超过72字符 补齐 每个补齐级别为4个空格�
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/10/23/flake8-tutorial/">Flake8简介</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/07/25/pep8-summary/">PEP 8总结</a>
       </li>
     
@@ -373,10 +388,6 @@ docstring或comment应不超过72字符 补齐 每个补齐级别为4个空格�
     
       <li class="post">
         <a href="/blog/2011/12/20/vbox-hostonly-dhcp/">Ubuntu 11.10 VirtualBox的Host-only网卡上外网和DHCP永久地址</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2011/10/31/tolua-deb-patch/">为tolua的deb包作一个补丁</a>
       </li>
     
   </ul>
@@ -425,7 +436,7 @@ docstring或comment应不超过72字符 补齐 每个补齐级别为4个空格�
 
 <section>
   <h1>Categories</h1>
-    <ul id="category-list"><li><a href='/blog/categories/c'>C (1)</a></li><li><a href='/blog/categories/c-'>C++ (1)</a></li><li><a href='/blog/categories/debian'>Debian (3)</a></li><li><a href='/blog/categories/dnsmasq'>Dnsmasq (1)</a></li><li><a href='/blog/categories/git'>Git (2)</a></li><li><a href='/blog/categories/lua'>Lua (1)</a></li><li><a href='/blog/categories/python'>Python (1)</a></li><li><a href='/blog/categories/ubuntu'>Ubuntu (1)</a></li><li><a href='/blog/categories/virtualbox'>VirtualBox (1)</a></li><li><a href='/blog/categories/windows'>Windows (1)</a></li></ul>
+    <ul id="category-list"><li><a href='/blog/categories/c'>C (1)</a></li><li><a href='/blog/categories/c-'>C++ (1)</a></li><li><a href='/blog/categories/debian'>Debian (3)</a></li><li><a href='/blog/categories/dnsmasq'>Dnsmasq (1)</a></li><li><a href='/blog/categories/git'>Git (2)</a></li><li><a href='/blog/categories/lua'>Lua (1)</a></li><li><a href='/blog/categories/python'>Python (2)</a></li><li><a href='/blog/categories/ubuntu'>Ubuntu (1)</a></li><li><a href='/blog/categories/virtualbox'>VirtualBox (1)</a></li><li><a href='/blog/categories/windows'>Windows (1)</a></li></ul>
 </section>
 
   

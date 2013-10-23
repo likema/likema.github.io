@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Git | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/git/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2013-10-23T22:36:49+08:00</updated>
+  <updated>2013-10-24T03:05:12+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -24,38 +24,38 @@
 
 <p>下面我将继续使用git-buildpackage来解决合并上游新版本的问题：</p>
 
-<ol>
+<ul>
 <li>下载tolua 5.1.4源码包（假设放在git工作目录上层）：</li>
-</ol>
+</ul>
 
 
-<p><code>
+<p><code>sh
 wget http://www.tecgraf.puc-rio.br/~celes/tolua/tolua-5.1.4.tar.gz
 cd tolua
 git-import-orig -u 5.1.4 ../tolua-5.1.4.tar.gz
 </code></p>
 
-<ol>
+<ul>
 <li>手动解决遇到的冲突（如src/bin/Makefile）并提交更新：</li>
-</ol>
+</ul>
 
 
-<p><code>
+<p><code>sh
 git commit
 </code></p>
 
-<ol>
+<ul>
 <li>这时，运行</li>
-</ol>
+</ul>
 
 
-<p><code>
+<p><code>sh
 git log --format=%d:%s
 </code></p>
 
 <p>输出：</p>
 
-<p><code>
+<p><code>plain
  (HEAD, master):Merge commit 'upstream/5.1.4'
  (upstream/5.1.4, upstream):Imported Upstream version 5.1.4
  (debian/5.1.3-2):Fix relocation R_X86_64_32 against '.rodata' can not be used when making a shared object
@@ -65,38 +65,38 @@ git log --format=%d:%s
 
 <p>upstream/5.1.4分支被创建，且将其合并到master分支中。如此，master分支合并完毕，接下来将合并debian的patches。</p>
 
-<ol>
+<ul>
 <li>重整patch-queue：</li>
-</ol>
+</ul>
 
 
-<p><code>
+<p><code>sh
 gbp-pq rebase
 </code></p>
 
 <p>手动解决遇到的冲突：</p>
 
-<p><code>
+<p><code>sh
 git rm -f src/bin/toluabind.c
 git rebase --continue
 </code></p>
 
-<ol>
+<ul>
 <li>导出patch-queue（至master分支）</li>
-</ol>
+</ul>
 
 
-<p><code>
+<p><code>sh
 git clean -df
 gbp-pq export
 </code></p>
 
-<ol>
+<ul>
 <li>指定版本号5.1.4-1自动生成snapshot的debian/changelog：</li>
-</ol>
+</ul>
 
 
-<p><code>
+<p><code>sh
 git-dch -a -S -N 5.1.4-1
 git add debian/changelog
 git add debian/patches/0001-mkdir-for-tolua-lib-archive-and-remove-temp-files.patch
@@ -105,16 +105,16 @@ git commit -m "Update patches from debian/5.1.3-1"
 
 <p>测试构建新的deb包。为了避免污染当前环境，这里指定git首先导出源码至../tolua-build目录：</p>
 
-<p><code>
+<p><code>sh
 git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
 </code></p>
 
-<ol>
+<ul>
 <li>生成release的版本信息，并构建release的deb包：</li>
-</ol>
+</ul>
 
 
-<p><code>
+<p><code>sh
 git-dch -a -R
 git ci --amend
 git tag debian/5.1.4-1
@@ -136,31 +136,31 @@ git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
 
 <p>下面仍然以tolua的补丁制作为例，一步一步展示git-buildpackage的基本操作。</p>
 
-<ol>
+<ul>
 <li>安装必要的工具：</li>
-</ol>
+</ul>
 
 
-<p><code>
+<p><code>sh
 sudo apt-get install git-buildpackage build-essential debhelper quilt
 </code></p>
 
-<ol>
+<ul>
 <li>下载libtolua-dev的源码（建立upstream目录单独存放Ubuntu的deb源码包是为了保证清洁和正确）：</li>
-</ol>
+</ul>
 
 
-<p><code>
+<p><code>sh
 mkdir upstream
 apt-get source libtolua-dev
 </code></p>
 
-<ol>
+<ul>
 <li>导入upsteam的dsc文件（将生成与目录upstream同级的目录tolua）：</li>
-</ol>
+</ul>
 
 
-<p><code>
+<p><code>sh
 cd ..
 git-import-dsc upstream/tolua_5.1.3-1.dsc
 cd tolua
@@ -168,34 +168,33 @@ cd tolua
 
 <p>这时，运行</p>
 
-<p><code>
+<p><code>sh
 git log --format=%d:%s
 </code></p>
 
 <p>输出：</p>
 
-<p><code>
+<p><code>plain
  (HEAD, debian/5.1.3-1, master):Imported Debian patch 5.1.3-1
  (upstream/5.1.3, upstream):Imported Upstream version 5.1.3
 </code></p>
 
-<pre><code>从下至上，首条提交导入了tolua 5.1.3的源码，次条提交导入了deb包维护者的deb包文件(debian/*)；并且建立了upstream和master两个分支，标签upstream/5.1.3位于upstream分支上，标签debian/5.1.3-1位于master分支头部。
+<p>从下至上，首条提交导入了tolua 5.1.3的源码，次条提交导入了deb包维护者的deb包文件(debian/*)；并且建立了upstream和master两个分支，标签upstream/5.1.3位于upstream分支上，标签debian/5.1.3-1位于master分支头部。</p>
 
-此外，upstream分支用于维护源码作者的发布版本更新情况，master分支用于维护deb包描述文件及其补丁文件。git-buildpackage工具集的正确运行将依赖于标签upstream/5.1.3和debian/5.1.3-1，不能随意删改。
-</code></pre>
+<p>此外，upstream分支用于维护源码作者的发布版本更新情况，master分支用于维护deb包描述文件及其补丁文件。git-buildpackage工具集的正确运行将依赖于标签upstream/5.1.3和debian/5.1.3-1，不能随意删改。</p>
 
-<ol>
+<ul>
 <li>导入quilt patches到patch queue中——创建patch-queue/master分支，并将debian/patches/*逐一变成该分支的提交，并自动切换到该分支上：</li>
-</ol>
+</ul>
 
 
-<p><code>
+<p><code>sh
 gbp-pq import
 </code></p>
 
-<ol>
+<ul>
 <li>执行make后发现构建目标libtolua.a的生成目录lib不存在，这是git只针对文件做版本，所以upstream导入git时，该目录被忽略了。为此，我将src/lib/Makefile中</li>
-</ol>
+</ul>
 
 
 <p>```makefile
@@ -219,20 +218,18 @@ $(RANLIB) $@
 
 <p>```</p>
 
-<pre><code>这样，它将在每次构建该目标时，创建该目标所在目录。更进一步不难发现，src/bin/tolua_lua.o和src/bin/toluabind.c为受版本控制的中间文件，将影响构建的正确运行。为此，删除这两个文件并提交日志。
-</code></pre>
+<p>这样，它将在每次构建该目标时，创建该目标所在目录。更进一步不难发现，src/bin/tolua_lua.o和src/bin/toluabind.c为受版本控制的中间文件，将影响构建的正确运行。为此，删除这两个文件并提交日志。</p>
 
-<p><code>
+<p><code>sh
 git rm -f src/bin/tolua_lua.o src/bin/toluabind.c
 git commit -a -m "mkdir for tolua lib archive and remove temp files"
 </code></p>
 
-<pre><code>此时，可以正确make该工程了。
-</code></pre>
+<p>此时，可以正确make该工程了。</p>
 
-<ol>
+<ul>
 <li>修复x86_64链接问题，将config文件中，如下内容</li>
-</ol>
+</ul>
 
 
 <p><code>makefile
@@ -249,32 +246,32 @@ CPPFLAGS= -fPIC -O2 -pipe  -g $(WARN) $(INC)
 
 <p>并提交日志：</p>
 
-<p><code>
+<p><code>sh
 git commit -a -m "Fix relocation R_X86_64_32 against '.rodata' erro for shared object."
 </code></p>
 
-<ol>
+<ul>
 <li>导出patch-queue——将其分支提交逐一转化为debian/patches目录下的补丁文件（为保证正确运行，清理掉中间文件）：</li>
-</ol>
+</ul>
 
 
-<p><code>
+<p><code>sh
 git clean -df
 gbp-pq export
 </code></p>
 
-<ol>
+<ul>
 <li>指定版本号5.1.3-2自动生成snapshot的debian/changelog：</li>
-</ol>
+</ul>
 
 
-<p><code>
+<p><code>sh
 git-dch -S -a -N 5.1.3-2
 </code></p>
 
-<p>debian/change的新增内容如下：</p>
+<p>debian/changelog的新增内容如下：</p>
 
-<p>```
+<p>```plain
 tolua (5.1.3-2~1.gbp896bed) UNRELEASED; urgency=low</p>
 
 <p>  <strong> SNAPSHOT build @896bede5a4eb6f3967cdfe94ea2ef419235e7183 </strong></p>
@@ -289,7 +286,7 @@ tolua (5.1.3-2~1.gbp896bed) UNRELEASED; urgency=low</p>
 
 <p>提交相关修改：</p>
 
-<p>```
+<p>```sh
 git add debian/changelog \</p>
 
 <pre><code>    debian/patches/series \
@@ -302,18 +299,18 @@ git add debian/changelog \</p>
 
 <p>测试构建新的deb包。为了避免污染当前环境，这里指定git首先导出源码至../tolua-build目录：</p>
 
-<p><code>
+<p><code>sh
 git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
 </code></p>
 
 <p>可以看出，上述debian/changelog新增信息，除版本号5.1.3-2外（新包的版本信息），并无实在意义，仅用于测试deb包的构建。</p>
 
-<ol>
+<ul>
 <li>生成release的版本信息，并构建release的deb包：</li>
-</ol>
+</ul>
 
 
-<p><code>
+<p><code>sh
 git checkout src/bin/tolua_lua.o src/bin/toluabind.c
 git-dch -R -a
 git commit -a --amend
@@ -321,10 +318,9 @@ git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
 git tag debian/5.1.3-2
 </code></p>
 
-<pre><code>注意，前面仅仅在patch-queue分支上删除的两个中间文件，并未在master分支上删除它们，所以重新checkout它们以保证后续构建的正确运行。
+<p>注意，前面仅仅在patch-queue分支上删除的两个中间文件，并未在master分支上删除它们，所以重新checkout它们以保证后续构建的正确运行。</p>
 
-这里的关键命令git-dch -R -a自动生成了release的版本信息，当然我们也可以根据需要再修改它们。最后一条命令，给master分支的HEAD加上标签debian/5.1.3-2，git-buildpackage将依赖于它才能继续正确工作。
-</code></pre>
+<p>这里的关键命令git-dch -R -a自动生成了release的版本信息，当然我们也可以根据需要再修改它们。最后一条命令，给master分支的HEAD加上标签debian/5.1.3-2，git-buildpackage将依赖于它才能继续正确工作。</p>
 
 <p>到此为止，我已经演示了git-buildpackage的补丁制作过程，可以观察../tolua-build目录中生成的文件，它们就是我们可以用于发布的deb包源码文件，形式上与ubuntu/debian中apt-get source得到的一样。</p>
 ]]></content>

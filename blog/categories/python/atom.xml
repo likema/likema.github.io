@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Python | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/python/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2013-10-23T22:36:49+08:00</updated>
+  <updated>2013-10-24T03:05:12+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,208 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Flake8简介]]></title>
+    <link href="http://www.malike.net.cn/blog/2013/10/23/flake8-tutorial/"/>
+    <updated>2013-10-23T00:00:00+08:00</updated>
+    <id>http://www.malike.net.cn/blog/2013/10/23/flake8-tutorial</id>
+    <content type="html"><![CDATA[<p><a href="http://flake8.readthedocs.org/">Flake8</a>包装了下列工具：</p>
+
+<ul>
+<li><a href="https://launchpad.net/pyflakes">PyFlakes</a>：静态检查Python代码逻辑错误的工具。</li>
+<li><a href="http://pep8.readthedocs.org/en/latest/">pep8</a>： 静态检查<a href="/blog/2013/07/25/pep8-summary/">PEP 8</a>编码风格的工具。</li>
+<li><a href="http://nedbatchelder.com/blog/200803/python_code_complexity_microtool.html">Ned Batchelder’s McCabe script</a>：静态分析Python代码复杂度的工具。</li>
+</ul>
+
+
+<p>它综合上述三者的功能，在简化操作的同时，还提供了扩展开发接口。</p>
+
+<h2>安装</h2>
+
+<p>这里仅介绍Ubuntu的安装方法，其他安装方法见Flake8官网。</p>
+
+<ul>
+<li>添加ppa:cjohnston/flake8。Ubuntu 12.04官方源仅提供pep8的包，而该PPA不仅提供了最新的python-flake8包，还提供最新的pep8包。Ubuntu 13.10和14.04默认已经提供最新的pep8和python-flake8，所以可以跳过这一步。</li>
+</ul>
+
+
+<p><code>
+sudo apt-add-repository ppa:cjohnston/flake8
+sudo apt-get update
+sudo apt-get -y --force-yes dist-upgrade
+</code></p>
+
+<ul>
+<li>安装python-flake8</li>
+</ul>
+
+
+<p><code>sh
+sudo apt-get install python-flake8
+</code></p>
+
+<h2>使用</h2>
+
+<ul>
+<li>递归检查当前目录的所有Python文件：</li>
+</ul>
+
+
+<p><code>sh
+flake8 .
+</code></p>
+
+<ul>
+<li>检查指定文件</li>
+</ul>
+
+
+<p><code>sh
+flake8 foo.py bar.py
+</code></p>
+
+<ul>
+<li>通过setup.py检查工程的所有Python文件：</li>
+</ul>
+
+
+<p><code>sh
+python setup.py flake8
+</code></p>
+
+<p>为了保证其在其他环境中正确运行，需要将flake8增加到setup_requires中，例如：</p>
+
+<p>```python
+setup(</p>
+
+<pre><code>name="project",
+packages=["project"],
+
+setup_requires=[
+    "flake8"
+]
+</code></pre>
+
+<p>)
+```</p>
+
+<ul>
+<li>由于默认禁用代码条件复杂度检查，需要通过&mdash;max-complexity激活该功能：</li>
+</ul>
+
+
+<p><code>sh
+flake8 --max-complexity 12 .
+</code></p>
+
+<p>该功能对于发现代码过度复杂非常有用，根据Thomas J. McCabe, Sr（<a href="https://en.wikipedia.org/wiki/Cyclomatic_complexity">Cyclomatic complexity</a>的创造者）研究，代码复杂度不宜超过10，而Flake8官网建议值为12。</p>
+
+<h2>配置</h2>
+
+<ul>
+<li>用户相关的配置存在~/.config/flake8中，如：</li>
+</ul>
+
+
+<p><code>ini
+[flake8]
+max-complexity=12
+</code></p>
+
+<p>个人感觉除了代码复杂度因子（max-complexity）外，其他参数的默认值已经很好，基本不需要再作配置。</p>
+
+<ul>
+<li>工程相关的设置，可以存放在工程顶级目录的tox.ini或setup.cfg，格式与用户相关的配置一致。</li>
+</ul>
+
+
+<h2>与Git整合</h2>
+
+<p>在.git/hooks目录中，创建Git的pre-commit钩子脚本，Flake8可以对每次提交的代码进行检查。该脚本如下：</p>
+
+<p>```python</p>
+
+<h1>!/usr/bin/python</h1>
+
+<p>import sys
+from flake8.run import git_hook</p>
+
+<p>COMPLEXITY = 12
+STRICT = True</p>
+
+<p>if <strong>name</strong> == &lsquo;<strong>main</strong>&rsquo;:</p>
+
+<pre><code>sys.exit(git_hook(complexity=COMPLEXITY, strict=STRICT))
+</code></pre>
+
+<p>```</p>
+
+<p>若strict为True，任何warning都将阻挡提交。否则（或缺省），warning仅会被打印到标准输出。</p>
+
+<h2>与vim整合</h2>
+
+<p>这里仅介绍vim插件vim-flake8的安装和配置</p>
+
+<ul>
+<li>安装vim插件pathogen：</li>
+</ul>
+
+
+<p>```sh
+mkdir -p ~/.vim/autoload ~/.vim/bundle
+curl -Sso ~/.vim/autoload/pathogen.vim \</p>
+
+<pre><code>https://raw.github.com/tpope/vim-pathogen/master/autoload/pathogen.vim
+</code></pre>
+
+<p>```</p>
+
+<ul>
+<li>添加下列配置至~/.vimrc中：</li>
+</ul>
+
+
+<p><code>vim
+execute pathogen#infect()
+syntax on
+filetype plugin indent on
+</code></p>
+
+<ul>
+<li>安装vim-flake8：</li>
+</ul>
+
+
+<p><code>sh
+cd ~/.vim/bundle
+git clone git://github.com/nvie/vim-flake8.git
+</code></p>
+
+<p>至此，当vim打开Python源码后，按F7就会执行Flake8对当前文件进行检查。</p>
+
+<h2>插件</h2>
+
+<p>Flake8相比pep8的优势在于其良好的扩展性，pep8 1.4.6尚未支持命名规范的检查，却已有人开发Flake8的插件<a href="https://github.com/flintwork/pep8-naming">pep8-naming</a>来弥补这个缺陷。</p>
+
+<p>pep8-naming处于早期开发阶段，尚无人为其制作deb包。我花时间做了deb包，并上传到我的ppa:likemartinma/python上。通过下述步骤可以轻松安装它：</p>
+
+<p><code>sh
+sudo add-apt-repository ppa:likemartinma/python
+sudo apt-get update
+sudo apt-get -y --force-yes dist-upgrade
+sudo apt-get install pep8-naming
+</code></p>
+
+<p>由于Python部分核心库的函数命令存在“历史遗留”问题，与PEP 8并不保持完全一致，如<a href="http://docs.python.org/2/library/pyexpat.html#xml.parsers.expat.xmlparser.StartElementHandler">xml.parsers.expat.xmlparser.StartElementHandler</a>，这给pep8-naming带来一定的误报困扰。</p>
+
+<p>解决的办法是这样的代码行追加 # noqa 的注释，从避免flake8发出类似warning。</p>
+
+<h2>存在的问题</h2>
+
+<p>由于pep8尚未支持docstring规范的检查，也没有相关Flake8的插件。目前仅能用<a href="https://github.com/GreenSteam/pep257">pep257</a>来完成docstring规范的检查。期待pep257早日衍生成Flake8的插件。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[PEP 8总结]]></title>
@@ -139,14 +341,23 @@ from subprocess import Popen, PIPE
 
 <ul>
 <li>保证所有import在文件的头部，仅在模块注释后面，并先于模块的全局变量和常量。</li>
-<li>import应按下列顺序分组：
-<strong> 标准库的导入
-</strong> 相关第3方库的导入
-** 本地应用程序/库的导入
-每个分组间空1行
-将类似<strong>all</strong>定义放在所有import后面</li>
+<li><p>import应按下列顺序分组：</p>
+
+<ul>
+<li>标准库的导入</li>
+<li>相关第3方库的导入</li>
+<li>本地应用程序/库的导入</li>
+</ul>
+</li>
+</ul>
+
+
+<p>每个分组间空1行
+将类似__all__定义放在所有import后面</p>
+
+<ul>
 <li>绝对导入优于相对导入</li>
-<li>避免导入模块所有的内容（通配方式， from <module> import *)，在<strong>init</strong>.py中导出内部API除外。</li>
+<li>避免导入模块所有的内容（通配方式， from <module> import *)，在__init__.py中导出内部API除外。</li>
 </ul>
 
 
@@ -178,7 +389,7 @@ from subprocess import Popen, PIPE
 <li>单下划线开头（如：_single_leading_underscore）弱内部使用，类似from M import *不导入类似符号。</li>
 <li>单下划线结尾（如：single_trailing_underscore<em>）用于与Python关键字冲突的情况下，如classs</em>。</li>
 <li>双下划线开头（如：__double_leading_underscore）用于类属性。</li>
-<li>双下划线开头和结构用于特殊对象或属性，如<strong>init</strong>, <strong>import</strong>或<strong>file</strong>。多为语言定义，避免发明类似名字。</li>
+<li>双下划线开头和结构用于特殊对象或属性，如__init__, __import__或__file__。多为语言定义，避免发明类似名字。</li>
 <li>避免使用小写L、大写O和大写I作为单字符变量名。</li>
 <li>模块名应简短、全小写，可包含下划线；包名类似，但不鼓励包含下划线。</li>
 <li>C/C++实现的扩展模块应伴随着提供如面向对象等高级接口的Python模块存在，且其名字以下划线开头（如_socket）</li>

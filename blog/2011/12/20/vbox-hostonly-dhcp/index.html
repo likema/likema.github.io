@@ -113,29 +113,31 @@
 
 <p>一个问题是Host-only Adapter（网段为192.168.56.0/24）默认不能与互联网通信。google之后发现网上早有人遇到类似问题，他们给出的解决办法是在/etc/rc.local中加入：</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>另一个问题是VirtualBox内置DHCP的IP租赁时间设置，也无法将MAC地址与IP地址静态绑定，这造成虚拟机IP地址每隔一段时间改变一次，给使用带来诸多不方便。另一方面，我也不想静态设置IP地址，因为如果这样做，我必须每安装一次虚拟机都要重新设置IP地址。</p>
 
 <p>以前就听说过dnsmasq，不仅集成DNS、DHCP和TFTP功能，而且占用资源很少，设置也相对简单。</p>
 
-<ol>
+<ul>
 <li>安装dnsmasq</li>
-</ol>
+</ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sudo apt-get install dnsmasq</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo apt-get install dnsmasq
+</span></code></pre></td></tr></table></div></figure>
 
 
-<ol>
+<ul>
 <li>打开/etc/dnsmasq.conf，针对vboxnet0配置DHCP。</li>
-</ol>
+</ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -155,18 +157,19 @@
 </span><span class='line'>dhcp-range=vboxnet0,192.168.56.2,192.168.56.254,infinite</span></code></pre></td></tr></table></div></figure>
 
 
-<ol>
+<ul>
 <li>重启动dnsmasq</li>
-</ol>
+</ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sudo service dnsmasq restart</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo service dnsmasq restart
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>当然，dnsmasq也支持MAC地址与IP地址静态绑定。比如，在/etc/dnsmasq.conf中针对MAC地址08:00:27:81:51:85，分配机器名vbox-xp，分配IP地址192.168.56.2</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>dhcp-host=vbox-xp,08:00:27:81:51:85,192.168.56.2</span></code></pre></td></tr></table></div></figure>
 
 
@@ -244,6 +247,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/10/23/flake8-tutorial/">Flake8简介</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/07/25/pep8-summary/">PEP 8总结</a>
       </li>
     
@@ -257,10 +264,6 @@
     
       <li class="post">
         <a href="/blog/2011/12/20/vbox-hostonly-dhcp/">Ubuntu 11.10 VirtualBox的Host-only网卡上外网和DHCP永久地址</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2011/10/31/tolua-deb-patch/">为tolua的deb包作一个补丁</a>
       </li>
     
   </ul>
@@ -309,7 +312,7 @@
 
 <section>
   <h1>Categories</h1>
-    <ul id="category-list"><li><a href='/blog/categories/c'>C (1)</a></li><li><a href='/blog/categories/c-'>C++ (1)</a></li><li><a href='/blog/categories/debian'>Debian (3)</a></li><li><a href='/blog/categories/dnsmasq'>Dnsmasq (1)</a></li><li><a href='/blog/categories/git'>Git (2)</a></li><li><a href='/blog/categories/lua'>Lua (1)</a></li><li><a href='/blog/categories/python'>Python (1)</a></li><li><a href='/blog/categories/ubuntu'>Ubuntu (1)</a></li><li><a href='/blog/categories/virtualbox'>VirtualBox (1)</a></li><li><a href='/blog/categories/windows'>Windows (1)</a></li></ul>
+    <ul id="category-list"><li><a href='/blog/categories/c'>C (1)</a></li><li><a href='/blog/categories/c-'>C++ (1)</a></li><li><a href='/blog/categories/debian'>Debian (3)</a></li><li><a href='/blog/categories/dnsmasq'>Dnsmasq (1)</a></li><li><a href='/blog/categories/git'>Git (2)</a></li><li><a href='/blog/categories/lua'>Lua (1)</a></li><li><a href='/blog/categories/python'>Python (2)</a></li><li><a href='/blog/categories/ubuntu'>Ubuntu (1)</a></li><li><a href='/blog/categories/virtualbox'>VirtualBox (1)</a></li><li><a href='/blog/categories/windows'>Windows (1)</a></li></ul>
 </section>
 
   

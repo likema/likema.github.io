@@ -137,10 +137,9 @@
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">project</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">exename</span> <span class="o">=</span> <span class="n">helloworld</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>project {
+</span><span class='line'>  exename = helloworld
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
 <p>最后，打开Visual Studio 2008 Command Prompt（也可以用VS2003或2005的），进入helloworld的目录, 然后输入</p>
@@ -164,14 +163,13 @@
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">project</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">exename</span> <span class="o">=</span> <span class="n">helloworld</span>
-</span><span class='line'>  <span class="n">specific</span> <span class="p">(</span><span class="n">nmake</span><span class="p">,</span> <span class="n">vc6</span><span class="p">,</span> <span class="n">vc7</span><span class="p">,</span> <span class="n">vc71</span><span class="p">,</span> <span class="n">vc8</span><span class="p">,</span> <span class="n">vc9</span><span class="p">,</span> <span class="n">vc10</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>      <span class="n">Debug</span><span class="o">::</span><span class="n">install</span> <span class="o">=</span> <span class="n">debug</span>
-</span><span class='line'>      <span class="n">Release</span><span class="o">::</span><span class="n">install</span> <span class="o">=</span> <span class="n">release</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>project {
+</span><span class='line'>  exename = helloworld
+</span><span class='line'>  specific (nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
+</span><span class='line'>      Debug::install = debug
+</span><span class='line'>      Release::install = release
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
 <p>或许你更喜欢用IDE，让我们生成VS2008的工程文件吧：</p>
@@ -253,15 +251,14 @@
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
 <span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">project</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">sharedname</span> <span class="o">=</span> <span class="n">hello</span>
-</span><span class='line'>  <span class="n">dynamicflags</span> <span class="o">+=</span> <span class="n">HELLO_BUILD_DLL</span>
-</span><span class='line'>  <span class="n">specific</span><span class="p">(</span><span class="n">nmake</span><span class="p">,</span> <span class="n">vc6</span><span class="p">,</span> <span class="n">vc7</span><span class="p">,</span> <span class="n">vc71</span><span class="p">,</span> <span class="n">vc8</span><span class="p">,</span> <span class="n">vc9</span><span class="p">,</span> <span class="n">vc10</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>      <span class="n">Debug</span><span class="o">::</span><span class="n">dllout</span> <span class="o">=</span> <span class="n">debug</span>
-</span><span class='line'>      <span class="n">Release</span><span class="o">::</span><span class="n">dllout</span> <span class="o">=</span> <span class="n">release</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>project {
+</span><span class='line'>  sharedname = hello
+</span><span class='line'>  dynamicflags += HELLO_BUILD_DLL
+</span><span class='line'>  specific(nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
+</span><span class='line'>      Debug::dllout = debug
+</span><span class='line'>      Release::dllout = release
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
 <p>之后，执行如下命令，可以生成Debug和Release的dll。注意Debug的dll是hellod.dll。</p>
@@ -312,23 +309,22 @@ nmake CFG="Win32 Release"
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
 <span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">project</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">after</span> <span class="o">+=</span> <span class="n">hellodll</span>
-</span><span class='line'>  <span class="n">exename</span> <span class="o">=</span> <span class="n">hellotest</span>
-</span><span class='line'>  <span class="n">libs</span> <span class="o">+=</span> <span class="n">hello</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>project {
+</span><span class='line'>  after += hellodll
+</span><span class='line'>  exename = hellotest
+</span><span class='line'>  libs += hello
 </span><span class='line'>
-</span><span class='line'>  <span class="n">Source_Files</span> <span class="p">{</span>
-</span><span class='line'>      <span class="n">hellotest</span><span class="p">.</span><span class="n">cpp</span>
-</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  Source_Files {
+</span><span class='line'>      hellotest.cpp
+</span><span class='line'>  }
 </span><span class='line'>
-</span><span class='line'>  <span class="n">specific</span><span class="p">(</span><span class="n">nmake</span><span class="p">,</span> <span class="n">vc6</span><span class="p">,</span> <span class="n">vc7</span><span class="p">,</span> <span class="n">vc71</span><span class="p">,</span> <span class="n">vc8</span><span class="p">,</span> <span class="n">vc9</span><span class="p">,</span> <span class="n">vc10</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>      <span class="n">Debug</span><span class="o">::</span><span class="n">libpaths</span> <span class="o">=</span> <span class="n">debug</span>
-</span><span class='line'>      <span class="n">Debug</span><span class="o">::</span><span class="n">install</span> <span class="o">=</span> <span class="n">debug</span>
-</span><span class='line'>      <span class="n">Release</span><span class="o">::</span><span class="n">libpaths</span> <span class="o">=</span> <span class="n">Release</span>
-</span><span class='line'>      <span class="n">Release</span><span class="o">::</span><span class="n">install</span> <span class="o">=</span> <span class="n">Release</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>  specific(nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
+</span><span class='line'>      Debug::libpaths = debug
+</span><span class='line'>      Debug::install = debug
+</span><span class='line'>      Release::libpaths = Release
+</span><span class='line'>      Release::install = Release
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
 <p>注意到helloworld.mpc和hellotest.mpc的差异吗？后者的after语句表示hellotest.mpc依赖于hellodll.mpc，必须在其后编译。另外，我在后者增加了Source_Files块，顾名思义，其作用是指定工程源文件(cpp和c)列表。如果没有它，MPC默认会将hellotest.mpc所在目录的所有源文件作为这个工程的源文件，这显然不是我们希望看到的；同理，需要在hellodll.mpc增加Source_Files块，修改后的内容如下：</p>
@@ -346,20 +342,19 @@ nmake CFG="Win32 Release"
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
 <span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">project</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">sharedname</span> <span class="o">=</span> <span class="n">hello</span>
-</span><span class='line'>  <span class="n">dynamicflags</span> <span class="o">+=</span> <span class="n">HELLO_BUILD_DLL</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>project {
+</span><span class='line'>  sharedname = hello
+</span><span class='line'>  dynamicflags += HELLO_BUILD_DLL
 </span><span class='line'>
-</span><span class='line'>  <span class="n">Source_Files</span> <span class="p">{</span>
-</span><span class='line'>      <span class="n">hellodll</span><span class="p">.</span><span class="n">cpp</span>
-</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  Source_Files {
+</span><span class='line'>      hellodll.cpp
+</span><span class='line'>  }
 </span><span class='line'>
-</span><span class='line'>  <span class="n">specific</span> <span class="p">(</span><span class="n">nmake</span><span class="p">,</span> <span class="n">vc6</span><span class="p">,</span> <span class="n">vc7</span><span class="p">,</span> <span class="n">vc71</span><span class="p">,</span> <span class="n">vc8</span><span class="p">,</span> <span class="n">vc9</span><span class="p">,</span> <span class="n">vc10</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>      <span class="n">Debug</span><span class="o">::</span><span class="n">dllout</span> <span class="o">=</span> <span class="n">debug</span>
-</span><span class='line'>      <span class="n">Release</span><span class="o">::</span><span class="n">dllout</span> <span class="o">=</span> <span class="n">Release</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>  specific (nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
+</span><span class='line'>      Debug::dllout = debug
+</span><span class='line'>      Release::dllout = Release
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
 <p>类似Source_Files块，还有Header_Files, Inline_Files和Resoure_Files等，具体可以查看MPC官方文档。
@@ -442,6 +437,10 @@ nmake CFG="Win32 Release"
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/10/23/flake8-tutorial/">Flake8简介</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/07/25/pep8-summary/">PEP 8总结</a>
       </li>
     
@@ -455,10 +454,6 @@ nmake CFG="Win32 Release"
     
       <li class="post">
         <a href="/blog/2011/12/20/vbox-hostonly-dhcp/">Ubuntu 11.10 VirtualBox的Host-only网卡上外网和DHCP永久地址</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2011/10/31/tolua-deb-patch/">为tolua的deb包作一个补丁</a>
       </li>
     
   </ul>
@@ -507,7 +502,7 @@ nmake CFG="Win32 Release"
 
 <section>
   <h1>Categories</h1>
-    <ul id="category-list"><li><a href='/blog/categories/c'>C (1)</a></li><li><a href='/blog/categories/c-'>C++ (1)</a></li><li><a href='/blog/categories/debian'>Debian (3)</a></li><li><a href='/blog/categories/dnsmasq'>Dnsmasq (1)</a></li><li><a href='/blog/categories/git'>Git (2)</a></li><li><a href='/blog/categories/lua'>Lua (1)</a></li><li><a href='/blog/categories/python'>Python (1)</a></li><li><a href='/blog/categories/ubuntu'>Ubuntu (1)</a></li><li><a href='/blog/categories/virtualbox'>VirtualBox (1)</a></li><li><a href='/blog/categories/windows'>Windows (1)</a></li></ul>
+    <ul id="category-list"><li><a href='/blog/categories/c'>C (1)</a></li><li><a href='/blog/categories/c-'>C++ (1)</a></li><li><a href='/blog/categories/debian'>Debian (3)</a></li><li><a href='/blog/categories/dnsmasq'>Dnsmasq (1)</a></li><li><a href='/blog/categories/git'>Git (2)</a></li><li><a href='/blog/categories/lua'>Lua (1)</a></li><li><a href='/blog/categories/python'>Python (2)</a></li><li><a href='/blog/categories/ubuntu'>Ubuntu (1)</a></li><li><a href='/blog/categories/virtualbox'>VirtualBox (1)</a></li><li><a href='/blog/categories/windows'>Windows (1)</a></li></ul>
 </section>
 
   

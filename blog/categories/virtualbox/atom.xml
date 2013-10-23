@@ -4,7 +4,7 @@
   <title><![CDATA[Category: VirtualBox | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/virtualbox/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2013-10-23T22:36:49+08:00</updated>
+  <updated>2013-10-24T03:05:12+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -24,7 +24,7 @@
 
 <p>一个问题是Host-only Adapter（网段为192.168.56.0/24）默认不能与互联网通信。google之后发现网上早有人遇到类似问题，他们给出的解决办法是在/etc/rc.local中加入：</p>
 
-<p><code>
+<p><code>sh
 iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
 </code></p>
 
@@ -32,21 +32,21 @@ iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
 
 <p>以前就听说过dnsmasq，不仅集成DNS、DHCP和TFTP功能，而且占用资源很少，设置也相对简单。</p>
 
-<ol>
+<ul>
 <li>安装dnsmasq</li>
-</ol>
+</ul>
 
 
-<p><code>
+<p><code>sh
 sudo apt-get install dnsmasq
 </code></p>
 
-<ol>
+<ul>
 <li>打开/etc/dnsmasq.conf，针对vboxnet0配置DHCP。</li>
-</ol>
+</ul>
 
 
-<p>```
+<p>```plain
 interface=vboxnet0</p>
 
 <h1>192.168.56.1是默认网关（host机器的vboxnet0地址）</h1>
@@ -62,18 +62,18 @@ interface=vboxnet0</p>
 <p>dhcp-range=vboxnet0,192.168.56.2,192.168.56.254,infinite
 ```</p>
 
-<ol>
+<ul>
 <li>重启动dnsmasq</li>
-</ol>
+</ul>
 
 
-<p><code>
+<p><code>sh
 sudo service dnsmasq restart
 </code></p>
 
 <p>当然，dnsmasq也支持MAC地址与IP地址静态绑定。比如，在/etc/dnsmasq.conf中针对MAC地址08:00:27:81:51:85，分配机器名vbox-xp，分配IP地址192.168.56.2</p>
 
-<p><code>
+<p><code>plain
 dhcp-host=vbox-xp,08:00:27:81:51:85,192.168.56.2
 </code></p>
 
