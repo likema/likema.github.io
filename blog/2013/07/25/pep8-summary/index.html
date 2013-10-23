@@ -188,14 +188,23 @@ docstring或comment应不超过72字符 补齐 每个补齐级别为4个空格�
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>实际工作中，不同开发语言存在不同的补齐风格要求。强烈建议不要将补齐设置在.vimrc中，而将</p>
+<p>实际工作中，不同开发语言存在不同的补齐风格要求。可以在.vimrc中针对python设置：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='vim'><span class='line'>autocmd <span class="nb">BufRead</span><span class="p">,</span><span class="nb">BufNewFile</span> *.<span class="k">py</span> <span class="k">set</span> <span class="nb">et</span> <span class="k">ts</span><span class="p">=</span><span class="m">4</span> <span class="k">sw</span><span class="p">=</span><span class="m">4</span> <span class="k">sts</span><span class="p">=</span><span class="m">4</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>仅对python源文件设置4个空格补齐。</p>
+
+<p>当然，更好的办法是在每个python源文件的最后一行追加：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c"># vim: ts=4 sw=4 sts=4 et:</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>追加在每个python源文件的最后一行，从而保证vim打开该文件时满足4个空格补齐的要求。</p>
+<p>从而保证vim打开该文件时满足4个空格补齐的要求。</p>
 
 <h2>空行</h2>
 

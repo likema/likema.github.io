@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Python | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/python/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2013-10-22T11:45:59+08:00</updated>
+  <updated>2013-10-23T22:36:49+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -90,7 +90,15 @@ result = some_function_that_takes_arguments(</p>
 <p>)
 ```</p>
 
-<p>实际工作中，不同开发语言存在不同的补齐风格要求。强烈建议不要将补齐设置在.vimrc中，而将</p>
+<p>实际工作中，不同开发语言存在不同的补齐风格要求。可以在.vimrc中针对python设置：</p>
+
+<p><code>vim
+autocmd BufRead,BufNewFile *.py set et ts=4 sw=4 sts=4
+</code></p>
+
+<p>仅对python源文件设置4个空格补齐。</p>
+
+<p>当然，更好的办法是在每个python源文件的最后一行追加：</p>
 
 <p>```python</p>
 
@@ -98,7 +106,7 @@ result = some_function_that_takes_arguments(</p>
 
 <p>```</p>
 
-<p>追加在每个python源文件的最后一行，从而保证vim打开该文件时满足4个空格补齐的要求。</p>
+<p>从而保证vim打开该文件时满足4个空格补齐的要求。</p>
 
 <h2>空行</h2>
 
