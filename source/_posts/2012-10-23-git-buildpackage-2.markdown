@@ -11,29 +11,29 @@ categories: [Git, Debian]
 
 下面我将继续使用git-buildpackage来解决合并上游新版本的问题：
 
-1. 下载tolua 5.1.4源码包（假设放在git工作目录上层）：
+* 下载tolua 5.1.4源码包（假设放在git工作目录上层）：
 
-```
+```sh
 wget http://www.tecgraf.puc-rio.br/~celes/tolua/tolua-5.1.4.tar.gz
 cd tolua
 git-import-orig -u 5.1.4 ../tolua-5.1.4.tar.gz
 ```
 
-2. 手动解决遇到的冲突（如src/bin/Makefile）并提交更新：
+* 手动解决遇到的冲突（如src/bin/Makefile）并提交更新：
 
-```
+```sh
 git commit
 ```
 
-3. 这时，运行
+* 这时，运行
 
-```
+```sh
 git log --format=%d:%s
 ```
 
 输出：
 
-```
+```plain
  (HEAD, master):Merge commit 'upstream/5.1.4'
  (upstream/5.1.4, upstream):Imported Upstream version 5.1.4
  (debian/5.1.3-2):Fix relocation R_X86_64_32 against '.rodata' can not be used when making a shared object
@@ -43,29 +43,29 @@ git log --format=%d:%s
 
 upstream/5.1.4分支被创建，且将其合并到master分支中。如此，master分支合并完毕，接下来将合并debian的patches。
 
-4. 重整patch-queue：
+* 重整patch-queue：
 
-```
+```sh
 gbp-pq rebase
 ```
 
 手动解决遇到的冲突：
 
-```
+```sh
 git rm -f src/bin/toluabind.c
 git rebase --continue
 ```
 
-5. 导出patch-queue（至master分支）
+* 导出patch-queue（至master分支）
 
-```
+```sh
 git clean -df
 gbp-pq export
 ```
 
-6. 指定版本号5.1.4-1自动生成snapshot的debian/changelog：
+* 指定版本号5.1.4-1自动生成snapshot的debian/changelog：
 
-```
+```sh
 git-dch -a -S -N 5.1.4-1
 git add debian/changelog
 git add debian/patches/0001-mkdir-for-tolua-lib-archive-and-remove-temp-files.patch
@@ -74,13 +74,13 @@ git commit -m "Update patches from debian/5.1.3-1"
 
 测试构建新的deb包。为了避免污染当前环境，这里指定git首先导出源码至../tolua-build目录：
 
-```
+```sh
 git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
 ```
 
-7. 生成release的版本信息，并构建release的deb包：
+* 生成release的版本信息，并构建release的deb包：
 
-```
+```sh
 git-dch -a -R
 git ci --amend
 git tag debian/5.1.4-1

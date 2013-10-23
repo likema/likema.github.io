@@ -25,7 +25,7 @@ int main ()
 
 然后，创建MPC工程文件helloworld.mpc，内容如下：
 
-```
+```plain
 project {
 	exename = helloworld
 }
@@ -43,7 +43,7 @@ project {
 
 或许你希望debug和release生成的exe分别放在debug和release目录，修改一下MPC文件
 
-```
+```plain
 project {
 	exename = helloworld
 	specific (nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
@@ -97,7 +97,7 @@ void print_hello ()
 
 最后，创建文件hellodll.mpc，内容如下
 
-```
+```plain
 project {
 	sharedname = hello
 	dynamicflags += HELLO_BUILD_DLL
@@ -132,7 +132,7 @@ int main ()
 
 然后，创建文件hellotest.mpc，内容如下：
 
-```
+```plain
 project {
 	after += hellodll
 	exename = hellotest
@@ -153,7 +153,7 @@ project {
 
 注意到helloworld.mpc和hellotest.mpc的差异吗？后者的after语句表示hellotest.mpc依赖于hellodll.mpc，必须在其后编译。另外，我在后者增加了Source_Files块，顾名思义，其作用是指定工程源文件(cpp和c)列表。如果没有它，MPC默认会将hellotest.mpc所在目录的所有源文件作为这个工程的源文件，这显然不是我们希望看到的；同理，需要在hellodll.mpc增加Source_Files块，修改后的内容如下：
 
-```
+```plain
 project {
 	sharedname = hello
 	dynamicflags += HELLO_BUILD_DLL

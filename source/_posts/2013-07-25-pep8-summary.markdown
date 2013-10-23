@@ -92,13 +92,16 @@ from subprocess import Popen, PIPE
 
 * 保证所有import在文件的头部，仅在模块注释后面，并先于模块的全局变量和常量。
 * import应按下列顺序分组：
-** 标准库的导入
-** 相关第3方库的导入
-** 本地应用程序/库的导入
+
+  * 标准库的导入
+  * 相关第3方库的导入
+  * 本地应用程序/库的导入
+
 每个分组间空1行
-将类似__all__定义放在所有import后面
+将类似\_\_all\_\_定义放在所有import后面
+
 * 绝对导入优于相对导入
-* 避免导入模块所有的内容（通配方式， from <module> import *)，在__init__.py中导出内部API除外。
+* 避免导入模块所有的内容（通配方式， from <module> import *)，在\_\_init\_\_.py中导出内部API除外。
 
 ## 表达式和语句中的空格 ##
 
@@ -121,7 +124,7 @@ from subprocess import Popen, PIPE
 * 单下划线开头（如：_single_leading_underscore）弱内部使用，类似from M import *不导入类似符号。
 * 单下划线结尾（如：single_trailing_underscore_）用于与Python关键字冲突的情况下，如classs_。
 * 双下划线开头（如：__double_leading_underscore）用于类属性。
-* 双下划线开头和结构用于特殊对象或属性，如__init__, __import__或__file__。多为语言定义，避免发明类似名字。
+* 双下划线开头和结构用于特殊对象或属性，如\_\_init\_\_, \_\_import\_\_或\_\_file\_\_。多为语言定义，避免发明类似名字。
 * 避免使用小写L、大写O和大写I作为单字符变量名。
 * 模块名应简短、全小写，可包含下划线；包名类似，但不鼓励包含下划线。
 * C/C++实现的扩展模块应伴随着提供如面向对象等高级接口的Python模块存在，且其名字以下划线开头（如_socket）
@@ -130,4 +133,3 @@ from subprocess import Popen, PIPE
 * 函数名应为小写加下划线。
 * 总是使用self作为实例方法的第1个参数，总是使用cls作为类方法的第1个参数
 * 常量名应为大写加下划线（如MAX_OVERFLOW）
-

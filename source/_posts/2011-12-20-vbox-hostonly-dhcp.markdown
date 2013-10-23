@@ -12,7 +12,7 @@ VirtualBox支持各种虚拟网络：NAT, Bridge Adapter, Internal Network和Hos
 
 一个问题是Host-only Adapter（网段为192.168.56.0/24）默认不能与互联网通信。google之后发现网上早有人遇到类似问题，他们给出的解决办法是在/etc/rc.local中加入：
 
-```
+```sh
 iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
 ```
 
@@ -20,15 +20,15 @@ iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
 
 以前就听说过dnsmasq，不仅集成DNS、DHCP和TFTP功能，而且占用资源很少，设置也相对简单。
 
-1. 安装dnsmasq
+* 安装dnsmasq
 
-```
+```sh
 sudo apt-get install dnsmasq
 ```
 
-2. 打开/etc/dnsmasq.conf，针对vboxnet0配置DHCP。
+* 打开/etc/dnsmasq.conf，针对vboxnet0配置DHCP。
 
-```
+```plain
 interface=vboxnet0
 
 # 192.168.56.1是默认网关（host机器的vboxnet0地址）
@@ -40,15 +40,15 @@ dhcp-option=vboxnet0,option:dns-server,192.168.56.1,208.67.222.222,208.67.220.22
 dhcp-range=vboxnet0,192.168.56.2,192.168.56.254,infinite
 ```
 
-3. 重启动dnsmasq
+* 重启动dnsmasq
 
-```
+```sh
 sudo service dnsmasq restart
 ```
 
 当然，dnsmasq也支持MAC地址与IP地址静态绑定。比如，在/etc/dnsmasq.conf中针对MAC地址08:00:27:81:51:85，分配机器名vbox-xp，分配IP地址192.168.56.2
 
-```
+```plain
 dhcp-host=vbox-xp,08:00:27:81:51:85,192.168.56.2
 ```
 
