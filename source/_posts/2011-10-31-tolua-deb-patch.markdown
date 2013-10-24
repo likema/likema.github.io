@@ -54,6 +54,10 @@ CFLAGS = -fPIC -O2 -pipe -g $(WARN) $(INC)
 
 	  * config: add -fPIC -O2 -pipe to CFLAGS and CPPFLAGS
 
+通过执行
+
+	dch -R
+
 在debian/changelog顶部增加日志信息：
 
 	tolua (5.1.3-2) unstable; urgency=low
