@@ -9,9 +9,7 @@
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="Flake8包装了下列工具： PyFlakes：静态检查Python代码逻辑错误的工具。
-pep8： 静态检查PEP 8编码风格的工具。
-Ned Batchelder’s McCabe script：静态分析Python代码复杂度的工具。 它综合上述三者的功能，在简化操作的同时， &hellip;">
+  <meta name="description" content="Python的distutils和setuptools都是为开源项目设计的，Python模块分发和安装都包含该模块的源代码。实际公司工作多为闭源项目，Python模块的安装是不能包核心源代码的。 过去对distutils和setuptools的一知半解，为了达到闭源的目的， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -86,6 +84,176 @@ Ned Batchelder’s McCabe script：静态分析Python代码复杂度的工具。
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2013/10/27/customize-python-modules-installation-without-source-files/">定制无源码安装Python模块</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-27T00:00:00+08:00" pubdate data-updated="true">Oct 27<span>th</span>, 2013</time>
+        
+           | <a href="/blog/2013/10/27/customize-python-modules-installation-without-source-files/#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn/blog/2013/10/27/customize-python-modules-installation-without-source-files/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Python的<a href="http://docs.python.org/2/library/distutils.html">distutils</a>和<a href="https://pypi.python.org/pypi/setuptools">setuptools</a>都是为开源项目设计的，Python模块分发和安装都包含该模块的源代码。实际公司工作多为闭源项目，Python模块的安装是不能包核心源代码的。</p>
+
+<p>过去对distutils和setuptools的一知半解，为了达到闭源的目的，我通过书写Makefile来编译Python源码为.pyc或.pyo，完全绕开distutils和setuptools的限制。权宜之计虽然解决了一时之急，然总是让我追求标准和完美的心感到不安。为此，最近我花了一些时间来阅读distutils文档和部分源代码，终于找到了相对地道的解决办法。</p>
+
+<p>根据<a href="http://docs.python.org/2/distutils/extending.html">Extending Distutils</a>的描述，继承distutils.cmd.Command的子类，如distutils.command.build_py.build_py，并重载已有的方法来达到扩展的目的。</p>
+
+<p>根据<a href="http://docs.python.org/2/distutils/apiref.html#creating-a-new-distutils-command">Creating a new Distutils command</a>描述子类必须定义如下方法：</p>
+
+<ul>
+<li>Command.initialize_options()</li>
+<li>Command.finalize_options()</li>
+<li>Command.run()</li>
+<li>Command.sub_commands()</li>
+</ul>
+
+
+<p>并且命令install由install_lib和install_headers等子命令构成。</p>
+
+<p>我的目的不是扩展Distutils的install命令，而是改变其行为，避免其安装源码。其实，只需要改变install_lib的行为就足够了。</p>
+
+<p>类install_lib存在于/usr/lib/python2.7/distutils/command/install_lib.py文件中，它的方法run源码如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>    <span class="c"># Make sure we have built everything we need first</span>
+</span><span class='line'>    <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># Install everything: simply dump the entire contents of the build</span>
+</span><span class='line'>    <span class="c"># directory to the installation directory (that&#39;s the beauty of</span>
+</span><span class='line'>    <span class="c"># having a build directory!)</span>
+</span><span class='line'>    <span class="n">outfiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">install</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># (Optionally) compile .py to .pyc</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">outfiles</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">has_pure_modules</span><span class="p">():</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">byte_compile</span><span class="p">(</span><span class="n">outfiles</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>与先编译再安装的直觉相反，编译生成pyc并不发生在build方法中，而是install方法执行后。所以，若重载build方法（实际调用build_py命令），则install和byte_compile都需要修改，工作量较大且复杂度较高。</p>
+
+<p>直接能想到的办法是重载install方法，使其直接编译源码，并返回None，从而使byte_compile不会被执行。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">os</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">distutils.core</span> <span class="kn">import</span> <span class="n">setup</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">distutils.command.install_lib</span> <span class="kn">import</span> <span class="n">install_lib</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">distutils</span> <span class="kn">import</span> <span class="n">log</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">distutils.dep_util</span> <span class="kn">import</span> <span class="n">newer</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">py_compile</span> <span class="kn">import</span> <span class="nb">compile</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">InstallLib</span><span class="p">(</span><span class="n">install_lib</span><span class="p">):</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">install</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build_dir</span><span class="p">):</span>
+</span><span class='line'>            <span class="n">current</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">install_dir</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dirs</span><span class="p">:</span>
+</span><span class='line'>                <span class="bp">self</span><span class="o">.</span><span class="n">mkpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+</span><span class='line'>                <span class="nb">file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+</span><span class='line'>                <span class="n">cfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;c&quot;</span>
+</span><span class='line'>                <span class="n">cfile_base</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">cfile</span><span class="p">)</span>
+</span><span class='line'>                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">force</span> <span class="ow">or</span> <span class="n">newer</span><span class="p">(</span><span class="nb">file</span><span class="p">,</span> <span class="n">cfile</span><span class="p">):</span>
+</span><span class='line'>                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;byte-compiling </span><span class="si">%s</span><span class="s"> to </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="nb">file</span><span class="p">,</span> <span class="n">cfile_base</span><span class="p">)</span>
+</span><span class='line'>                    <span class="nb">compile</span><span class="p">(</span><span class="nb">file</span><span class="p">,</span> <span class="n">cfile</span><span class="p">)</span>
+</span><span class='line'>                <span class="k">else</span><span class="p">:</span>
+</span><span class='line'>                    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;skipping byte-compilation of </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="n">setup</span><span class="p">(</span><span class="n">cmdclass</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;install_lib&quot;</span><span class="p">:</span> <span class="n">InstallLib</span><span class="p">},</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;HelloWorld&quot;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="s">&quot;1.0&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>虽然这样做达到了目的，然而仔细思考一下，更简单的办法是等安装完成后，删除目标目录的源码文件（这里仅给出InstallLib的实现，其余部分同上）：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">class</span> <span class="nc">InstallLib</span><span class="p">(</span><span class="n">install_lib</span><span class="p">):</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+</span><span class='line'>        <span class="n">outfiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">install</span><span class="p">()</span>
+</span><span class='line'>        <span class="k">if</span> <span class="n">outfiles</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">has_pure_modules</span><span class="p">():</span>
+</span><span class='line'>            <span class="bp">self</span><span class="o">.</span><span class="n">byte_compile</span><span class="p">(</span><span class="n">outfiles</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">outfiles</span><span class="p">:</span>
+</span><span class='line'>                <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如此非常简洁，实际只增加了2行代码，其余皆copy-paste。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2013/10/23/flake8-tutorial/">Flake8简介</a></h1>
     
     
@@ -128,7 +296,7 @@ Ned Batchelder’s McCabe script：静态分析Python代码复杂度的工具。
 <p>这里仅介绍Ubuntu的安装方法，其他安装方法见Flake8官网。</p>
 
 <ul>
-<li>添加ppa:cjohnston/flake8。Ubuntu 12.04官方源仅提供pep8的包，而该PPA不仅提供了最新的python-flake8包，还提供最新的pep8包。Ubuntu 13.10和14.04默认已经提供最新的pep8和python-flake8，所以可以跳过这一步。</li>
+<li>添加ppa:cjohnston/flake8。Ubuntu 12.04、12.10和13.04官方源仅提供pep8的包，而该PPA不仅提供了最新的python-flake8包，还提供最新的pep8包。Ubuntu 13.10和14.04默认已经提供最新的pep8和python-flake8，所以可以跳过这一步。</li>
 </ul>
 
 
@@ -1190,6 +1358,11 @@ Author: Like Ma &lt;likemartinma@gmail.com&gt;
   * config: add -fPIC -O2 -pipe to CFLAGS and CPPFLAGS
 </code></pre>
 
+<p>通过执行</p>
+
+<pre><code>dch -R
+</code></pre>
+
 <p>在debian/changelog顶部增加日志信息：</p>
 
 <pre><code>tolua (5.1.3-2) unstable; urgency=low
@@ -1520,6 +1693,10 @@ nmake CFG="Win32 Release"
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/10/27/customize-python-modules-installation-without-source-files/">定制无源码安装Python模块</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/10/23/flake8-tutorial/">Flake8简介</a>
       </li>
     
@@ -1533,10 +1710,6 @@ nmake CFG="Win32 Release"
     
       <li class="post">
         <a href="/blog/2012/02/19/git-buildpackage-1/">Git-buildpackage示例（一）</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2011/12/20/vbox-hostonly-dhcp/">Ubuntu 11.10 VirtualBox的Host-only网卡上外网和DHCP永久地址</a>
       </li>
     
   </ul>
@@ -1585,7 +1758,7 @@ nmake CFG="Win32 Release"
 
 <section>
   <h1>Categories</h1>
-    <ul id="category-list"><li><a href='/blog/categories/c'>C (1)</a></li><li><a href='/blog/categories/c-'>C++ (1)</a></li><li><a href='/blog/categories/debian'>Debian (3)</a></li><li><a href='/blog/categories/dnsmasq'>Dnsmasq (1)</a></li><li><a href='/blog/categories/git'>Git (2)</a></li><li><a href='/blog/categories/lua'>Lua (1)</a></li><li><a href='/blog/categories/python'>Python (2)</a></li><li><a href='/blog/categories/ubuntu'>Ubuntu (1)</a></li><li><a href='/blog/categories/virtualbox'>VirtualBox (1)</a></li><li><a href='/blog/categories/windows'>Windows (1)</a></li></ul>
+    <ul id="category-list"><li><a href='/blog/categories/c'>C (1)</a></li><li><a href='/blog/categories/c-'>C++ (1)</a></li><li><a href='/blog/categories/debian'>Debian (3)</a></li><li><a href='/blog/categories/dnsmasq'>Dnsmasq (1)</a></li><li><a href='/blog/categories/git'>Git (2)</a></li><li><a href='/blog/categories/lua'>Lua (1)</a></li><li><a href='/blog/categories/python'>Python (3)</a></li><li><a href='/blog/categories/ubuntu'>Ubuntu (1)</a></li><li><a href='/blog/categories/virtualbox'>VirtualBox (1)</a></li><li><a href='/blog/categories/windows'>Windows (1)</a></li></ul>
 </section>
 
   

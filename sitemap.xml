@@ -6,7 +6,7 @@
     </url>
     <url>
         <loc>http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch/</loc>
-        <lastmod>2013-10-22T03:57:42+08:00</lastmod>
+        <lastmod>2013-10-25T00:54:31+08:00</lastmod>
     </url>
     <url>
         <loc>http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp/</loc>
@@ -26,11 +26,17 @@
     </url>
     <url>
         <loc>http://www.malike.net.cn/blog/2013/10/23/flake8-tutorial/</loc>
-        <lastmod>2013-10-24T03:02:23+08:00</lastmod>
+        <lastmod>2013-10-27T20:22:19+08:00</lastmod>
+    </url>
+    <url>
+        <loc>
+            http://www.malike.net.cn/blog/2013/10/27/customize-python-modules-installation-without-source-files/
+        </loc>
+        <lastmod>2013-10-28T05:27:32+08:00</lastmod>
     </url>
     <url>
         <loc>http://www.malike.net.cn/blog/archives/</loc>
-        <lastmod>2013-10-24T03:02:23+08:00</lastmod>
+        <lastmod>2013-10-28T05:27:32+08:00</lastmod>
     </url>
     <url>
         <loc>http://www.malike.net.cn/blog/categories/</loc>
@@ -38,7 +44,7 @@
     </url>
     <url>
         <loc>http://www.malike.net.cn/</loc>
-        <lastmod>2013-10-24T03:02:23+08:00</lastmod>
+        <lastmod>2013-10-28T05:27:32+08:00</lastmod>
     </url>
     <url>
         <loc>http://www.malike.net.cn/robots.txt</loc>

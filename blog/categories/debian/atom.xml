@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Debian | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/debian/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2013-10-24T03:05:12+08:00</updated>
+  <updated>2013-10-28T05:28:22+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -382,6 +382,11 @@ CFLAGS = -fPIC -O2 -pipe -g $(WARN) $(INC)
 Author: Like Ma &lt;likemartinma@gmail.com&gt;
 
   * config: add -fPIC -O2 -pipe to CFLAGS and CPPFLAGS
+</code></pre>
+
+<p>通过执行</p>
+
+<pre><code>dch -R
 </code></pre>
 
 <p>在debian/changelog顶部增加日志信息：</p>
