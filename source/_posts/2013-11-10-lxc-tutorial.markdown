@@ -5,7 +5,7 @@ comments: true
 categories: [Linux, Ubuntu, LXC]
 ---
 
-[LXC](http://linuxcontainers.org/) (Linux Containters) 是一种基于内核容器属性的用户空间接口。 它被认为介于chroot和完全虚拟化，其目标为创建一个不需要独立内核，但近可能接近标准Linux安装的环境。
+[LXC](http://linuxcontainers.org/) (Linux Containters) 是一种基于内核容器属性的用户空间接口。 它被认为介于chroot和完全虚拟化之间，其目标为创建一个不需要独立内核，但近可能接近标准Linux安装的环境。
 
 其特性如下：
 
@@ -26,9 +26,9 @@ sudo apt-get install -y lxc
 
 ## 创建LXC ##
 
-以创建一个名为precise的Ubuntu 12.04容器为例：
+以创建一个名为precise的Ubuntu 12.04容器为例。
 
-需要创建一个基础的配置文件。由于创建LXC完成后，不再需要该配置文件（可以删除），故该文件的名字和路径没有特殊要求。这里命名为precise.conf，放在当前路径下（也可以放在/tmp中）：
+需要创建一个基础的配置文件。由于创建LXC完成后，不再需要该配置文件（可以删除），故该文件的名字和路径没有特殊要求。这里命名为precise.conf，放在当前路径下：
 
 ```
 lxc.network.type = veth
@@ -49,7 +49,7 @@ sudo lxc-create -n precise -f precise.conf -t ubuntu -- -r precise
 * -f指定基础配置文件，即上一步骤创建的precise.conf。
 * -t指定模板名，这里必须为ubuntu（创建Ubuntu 12.04)。每个模板名，对应一个脚本，它们存放在/usr/lib/lxc/templates目录（文件名形如lxc-<模板名>）中。
 * --以后的参数被传递给模板脚本；
-* -r为ubuntu模板脚本的参数，表示[Ubuntu发行版代号](http://en.wikipedia.org/w/index.php?title=Ubuntu_(operating_system)#Releases)，这里必须为precise（它是12.04的发行代号）。
+* -r为ubuntu模板脚本的参数，表示[Ubuntu发行版代号](http://en.wikipedia.org/w/index.php?title=Ubuntu_\(operating_system\)#Releases)，这里必须为precise（它是12.04的发行代号）。
 
 创建过程可能会比较漫长。通过阅读/usr/lib/lxc/templates/lxc-ubuntu，不难发现创建ubuntu容器主要依靠deboostrap来完成。另一方面，变量MIRROR和SECURITY_MIRROR决定了镜像的设置，它们默认为：
 
@@ -58,7 +58,7 @@ MIRROR=http://archive.ubuntu.com/ubuntu
 SECURITY_MIRROR=http://security.ubuntu.com/ubuntu
 ```
 
-在大陆地区，使用默认镜像的网速较慢。为了加快创建过程，可以将它们都换成大陆或香港的镜像，如http://ftp.cuhk.edu.hk/pub/Linux/ubuntu。
+在大陆地区，使用默认镜像的网速较慢。为了加快创建过程，可以将它们都换成大陆或香港的镜像，如http://ftp.cuhk.edu.hk/pub/Linux/ubuntu
 
 具体问题是lxc-ubuntu并没有提供命令行参数来设置MIRROR和SECURITY_MIRROR。在不修改lxc-ubuntu代码的情况下，唯一的办法就是通过设置相关环境变量来达到这个目的，如：
 
@@ -68,7 +68,7 @@ sudo MIRROR="http://ftp.cuhk.edu.hk/pub/Linux/ubuntu" \
      lxc-create -n precise -f precise.conf -t ubuntu -- -r precise
 ```
 
-我司为了加快开发和测试人员安装Ubuntu，提供了[apt-cacher-ng](https://www.unix-ag.uni-kl.de/~bloch/acng/)——一种deb包HTTP缓存代理。由于lxc-ubuntu基于deboostrap，可以通过设置环境变量http_proxy来设置deboostrap的缓存代理（请见[Global cache config of debootstrap](http://unix.stackexchange.com/questions/38993/global-cache-config-of-debootstrap)）:
+我司为了加快内部开发和测试人员安装Ubuntu，部署了[apt-cacher-ng](https://www.unix-ag.uni-kl.de/~bloch/acng/)——一种deb包HTTP缓存代理。由于lxc-ubuntu基于deboostrap，可以通过设置环境变量http_proxy来设置deboostrap的缓存代理（请见[Global cache config of debootstrap](http://unix.stackexchange.com/questions/38993/global-cache-config-of-debootstrap)）:
 
 ```sh
 sudo http_proxy="http://192.168.88.10:3142/" \
@@ -139,6 +139,6 @@ sudo lxc-destroy -n precise
 
 * ubuntu-cloud：从Ubuntu云上下载根文件系统镜像。
 * fedora: 它依赖于yum包，通过模板脚本参数-R指定版本号，如19和20都无法创建成功。默认版本号为14，可以继续安装。
-* opensuse：它依赖于zypper，Ubuntu 12.04默认没有zypper包。虽然(ppa:thopiekar/zypper)[https://launchpad.net/~thopiekar/+archive/zypper]提供了zypper，但是创建失败。
+* opensuse：它依赖于zypper，Ubuntu 12.04默认没有zypper包。虽然[ppa:thopiekar/zypper](https://launchpad.net/~thopiekar/+archive/zypper)提供了zypper，但是创建失败。
 * busybox：仅有busybox的容器，默认不能远程登录，可以用于练习简单的命令行操作。
 * sshd：将host os中各个系统目录（/bin, /sbin/和/lib等）以只读方式绑定到容器中，仅运行ssh服务器，支持ssh登录，可用于练习复杂的命令行操作。

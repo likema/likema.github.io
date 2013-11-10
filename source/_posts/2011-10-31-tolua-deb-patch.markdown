@@ -2,7 +2,7 @@
 layout: post
 title: 为tolua的deb包作一个补丁
 comments: true
-categories: [Lua, Debian]
+categories: [Lua, Debian, Linux]
 ---
 
 近日在学习tolua时发现在Kubuntu 11.10 amd64平台下将其链接到so时报告如下错误：

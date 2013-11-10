@@ -2,7 +2,7 @@
 layout: post
 title: PEP 8总结
 comments: true
-categories: Python
+categories: [Python]
 ---
 
 下述内容主要源于[PEP 8 -- Style Guide for Python Code](http://www.python.org/dev/peps/pep-0008/)。

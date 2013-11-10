@@ -2,7 +2,7 @@
 layout: post
 title: Ubuntu 11.10 VirtualBox的Host-only网卡上外网和DHCP永久地址
 comments: true
-categories: [Ubuntu, Dnsmasq, VirtualBox]
+categories: [Ubuntu, Linux, Dnsmasq, VirtualBox]
 ---
 
 VirtualBox支持各种虚拟网络：NAT, Bridge Adapter, Internal Network和Host-only Adapter等。其中Bridged Adapter最为简单和常用，它几乎是0配置，直接桥接有线或无线物理网卡就可以与互联网通信。

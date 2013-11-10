@@ -2,7 +2,7 @@
 layout: post
 title: git-buildpackage示例（二）
 comments: true
-categories: [Git, Debian]
+categories: [Git, Debian, Linux]
 ---
 
 在[《git-buildpackage示例（一）》](/blog/2012/02/19/git-buildpackage-1/)中，我介绍了如何利用git-buildpackage为Ubuntu已有包做一个补丁包的办法。

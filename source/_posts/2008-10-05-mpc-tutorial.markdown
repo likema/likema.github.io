@@ -2,7 +2,7 @@
 layout: post
 title: MakeProjectCreator (MPC) 简介
 comments: true
-categories: [C, C++, Windows]
+categories: [C, C++, Windows, MPC]
 ---
 
 [Makefile, Project, and Workspace Creator (MPC)](http://www.ociweb.com/products/mpc) 原始OCI为网络通信库ACE开发的跨平台工程文件生成工具，它可以生成很多种工程文件，例如Windows平台的Borland Developer Studio, Borland C++ Build 2007, Borland Makefile，Microsoft eMbedded VC3, Microsoft Visual C++ 6/7/71/8/9/10, nmake；Linux平台的automake, make等。
