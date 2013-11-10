@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Dnsmasq | Like的世界]]></title>
+  <link href="http://www.malike.net.cn/blog/categories/dnsmasq/atom.xml" rel="self"/>
+  <link href="http://www.malike.net.cn/"/>
+  <updated>2013-11-11T05:34:01+08:00</updated>
+  <id>http://www.malike.net.cn/</id>
+  <author>
+    <name><![CDATA[Like Ma]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Ubuntu 11.10 VirtualBox的Host-only网卡上外网和DHCP永久地址]]></title>
+    <link href="http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp/"/>
+    <updated>2011-12-20T00:00:00+08:00</updated>
+    <id>http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp</id>
+    <content type="html"><![CDATA[<p>VirtualBox支持各种虚拟网络：NAT, Bridge Adapter, Internal Network和Host-only Adapter等。其中Bridged Adapter最为简单和常用，它几乎是0配置，直接桥接有线或无线物理网卡就可以与互联网通信。</p>
+
+<p>然而，我工作场所内部网和家里内部网的网段不相同，DHCP存在一定租赁时间，如果使用Bridged Adapter并DHCP获取IP地址的时候，虚拟机地址经常会改变。为此，我将笔记本电脑的VirtualBox虚拟机都修改为Host-only Adapter模式。</p>
+
+<p>一个问题是Host-only Adapter（网段为192.168.56.0/24）默认不能与互联网通信。google之后发现网上早有人遇到类似问题，他们给出的解决办法是在/etc/rc.local中加入：</p>
+
+<p><code>sh
+iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
+</code></p>
+
+<p>另一个问题是VirtualBox内置DHCP的IP租赁时间设置，也无法将MAC地址与IP地址静态绑定，这造成虚拟机IP地址每隔一段时间改变一次，给使用带来诸多不方便。另一方面，我也不想静态设置IP地址，因为如果这样做，我必须每安装一次虚拟机都要重新设置IP地址。</p>
+
+<p>以前就听说过dnsmasq，不仅集成DNS、DHCP和TFTP功能，而且占用资源很少，设置也相对简单。</p>
+
+<ul>
+<li>安装dnsmasq</li>
+</ul>
+
+
+<p><code>sh
+sudo apt-get install dnsmasq
+</code></p>
+
+<ul>
+<li>打开/etc/dnsmasq.conf，针对vboxnet0配置DHCP。</li>
+</ul>
+
+
+<p>```plain
+interface=vboxnet0</p>
+
+<h1>192.168.56.1是默认网关（host机器的vboxnet0地址）</h1>
+
+<h1>208.67.222.222和208.67.220.220是DNS地址(这里使用了OpenDNS)</h1>
+
+<p>dhcp-option=vboxnet0,option:dns-server,192.168.56.1,208.67.222.222,208.67.220.220</p>
+
+<h1>192.168.56.2和192.168.56.254为分配地址范围</h1>
+
+<h1>infinite表示IP永远不过期</h1>
+
+<p>dhcp-range=vboxnet0,192.168.56.2,192.168.56.254,infinite
+```</p>
+
+<ul>
+<li>重启动dnsmasq</li>
+</ul>
+
+
+<p><code>sh
+sudo service dnsmasq restart
+</code></p>
+
+<p>当然，dnsmasq也支持MAC地址与IP地址静态绑定。比如，在/etc/dnsmasq.conf中针对MAC地址08:00:27:81:51:85，分配机器名vbox-xp，分配IP地址192.168.56.2</p>
+
+<p><code>plain
+dhcp-host=vbox-xp,08:00:27:81:51:85,192.168.56.2
+</code></p>
+
+<p>最后，不要忘了重启动dnsmasq。</p>
+]]></content>
+  </entry>
+  
+</feed>

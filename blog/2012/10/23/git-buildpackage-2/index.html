@@ -1,0 +1,446 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>git-buildpackage示例（二） - Like的世界</title>
+  <meta name="author" content="Like Ma">
+
+  
+  <meta name="description" content="在《git-buildpackage示例（一）》中，我介绍了如何利用git-buildpackage为Ubuntu已有包做一个补丁包的办法。 当时，我的补丁是基于tolua 5.1.3版本。一段时间后，tolua的作者释放了5.1.4版本。问题出现了，如何将我的补丁合并到5.1.4版本中呢？ &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Like的世界" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-44993010-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Like的世界</a></h1>
+  
+    <h2>个人总结与随想</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:www.malike.net.cn" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Git-buildpackage示例（二）</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-10-23T00:00:00+08:00" pubdate data-updated="true">Oct 23<span>rd</span>, 2012</time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>在<a href="/blog/2012/02/19/git-buildpackage-1/">《git-buildpackage示例（一）》</a>中，我介绍了如何利用git-buildpackage为Ubuntu已有包做一个补丁包的办法。</p>
+
+<p>当时，我的补丁是基于tolua 5.1.3版本。一段时间后，tolua的作者释放了5.1.4版本。问题出现了，如何将我的补丁合并到5.1.4版本中呢？</p>
+
+<p>下面我将继续使用git-buildpackage来解决合并上游新版本的问题：</p>
+
+<ul>
+<li>下载tolua 5.1.4源码包（假设放在git工作目录上层）：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>wget http://www.tecgraf.puc-rio.br/~celes/tolua/tolua-5.1.4.tar.gz
+</span><span class='line'><span class="nb">cd </span>tolua
+</span><span class='line'>git-import-orig -u 5.1.4 ../tolua-5.1.4.tar.gz
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>手动解决遇到的冲突（如src/bin/Makefile）并提交更新：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git commit
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>这时，运行</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git log --format<span class="o">=</span>%d:%s
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>输出：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> (HEAD, master):Merge commit 'upstream/5.1.4'
+</span><span class='line'> (upstream/5.1.4, upstream):Imported Upstream version 5.1.4
+</span><span class='line'> (debian/5.1.3-2):Fix relocation R_X86_64_32 against '.rodata' can not be used when making a shared object
+</span><span class='line'> (debian/5.1.3-1):Imported Debian patch 5.1.3-1
+</span><span class='line'> (upstream/5.1.3):Imported Upstream version 5.1.3</span></code></pre></td></tr></table></div></figure>
+
+
+<p>upstream/5.1.4分支被创建，且将其合并到master分支中。如此，master分支合并完毕，接下来将合并debian的patches。</p>
+
+<ul>
+<li>重整patch-queue：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>gbp-pq rebase
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>手动解决遇到的冲突：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git rm -f src/bin/toluabind.c
+</span><span class='line'>git rebase --continue
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>导出patch-queue（至master分支）</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git clean -df
+</span><span class='line'>gbp-pq <span class="nb">export</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>指定版本号5.1.4-1自动生成snapshot的debian/changelog：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git-dch -a -S -N 5.1.4-1
+</span><span class='line'>git add debian/changelog
+</span><span class='line'>git add debian/patches/0001-mkdir-for-tolua-lib-archive-and-remove-temp-files.patch
+</span><span class='line'>git commit -m <span class="s2">&quot;Update patches from debian/5.1.3-1&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>测试构建新的deb包。为了避免污染当前环境，这里指定git首先导出源码至../tolua-build目录：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git-buildpackage --git-export-dir<span class="o">=</span>../tolua-build --git-ignore-new
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>生成release的版本信息，并构建release的deb包：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git-dch -a -R
+</span><span class='line'>git ci --amend
+</span><span class='line'>git tag debian/5.1.4-1
+</span><span class='line'>git-buildpackage --git-export-dir<span class="o">=</span>../tolua-build --git-ignore-new
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>到此为止，我已经演示了git-buildpackage合并上游版本的过程。不难发现，git-buildpackage充分利用了git的特点，在很大程度上简化了补丁开发和维护的过程。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Like Ma</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-10-23T00:00:00+08:00" pubdate data-updated="true">Oct 23<span>rd</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/debian/'>Debian</a>, <a class='category' href='/blog/categories/git/'>Git</a>, <a class='category' href='/blog/categories/linux/'>Linux</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2/" data-via="" data-counturl="http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/02/19/git-buildpackage-1/" title="Previous Post: git-buildpackage示例（一）">&laquo; git-buildpackage示例（一）</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/07/25/pep8-summary/" title="Next Post: PEP 8总结">PEP 8总结 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/11/10/lxc-tutorial/">LXC简介</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/03/python-constants/">Python常量</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/10/27/customize-python-modules-installation-without-source-files/">定制无源码安装Python模块</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/10/23/flake8-tutorial/">Flake8简介</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/25/pep8-summary/">PEP 8总结</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/likema">@likema</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'likema',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/112910538663131864533?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+<section>
+  <h1>Categories</h1>
+    <ul id="category-list"><li><a href='/blog/categories/c'>C (1)</a></li><li><a href='/blog/categories/c-'>C++ (1)</a></li><li><a href='/blog/categories/debian'>Debian (3)</a></li><li><a href='/blog/categories/dnsmasq'>Dnsmasq (1)</a></li><li><a href='/blog/categories/git'>Git (2)</a></li><li><a href='/blog/categories/linux'>Linux (5)</a></li><li><a href='/blog/categories/lua'>Lua (1)</a></li><li><a href='/blog/categories/lxc'>LXC (1)</a></li><li><a href='/blog/categories/mpc'>MPC (1)</a></li><li><a href='/blog/categories/python'>Python (4)</a></li><li><a href='/blog/categories/ubuntu'>Ubuntu (2)</a></li><li><a href='/blog/categories/virtualbox'>VirtualBox (1)</a></li><li><a href='/blog/categories/windows'>Windows (1)</a></li></ul>
+</section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Like Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'likeworld';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2/';
+        var disqus_url = 'http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

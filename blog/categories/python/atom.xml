@@ -1,0 +1,647 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Python | Like的世界]]></title>
+  <link href="http://www.malike.net.cn/blog/categories/python/atom.xml" rel="self"/>
+  <link href="http://www.malike.net.cn/"/>
+  <updated>2013-11-11T05:34:01+08:00</updated>
+  <id>http://www.malike.net.cn/</id>
+  <author>
+    <name><![CDATA[Like Ma]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Python常量]]></title>
+    <link href="http://www.malike.net.cn/blog/2013/11/03/python-constants/"/>
+    <updated>2013-11-03T00:00:00+08:00</updated>
+    <id>http://www.malike.net.cn/blog/2013/11/03/python-constants</id>
+    <content type="html"><![CDATA[<p>与C/C++不同，Python在语法上并没有定义常量，尽管<a href="/blog/2013/07/25/pep8-summary/">PEP 8</a>定义了常量的命名规范为大写字母和下划线组成。</p>
+
+<p>在实际项目中，常量首次赋值后， 无法阻止其他代码对其进行修改或删除。</p>
+
+<h2>现存的办法</h2>
+
+<p>幸运的是该问题在2001年就有人给出了解决方案<a href="http://code.activestate.com/recipes/65207-constants-in-python/">Constants in Python</a>，基本内容如下：</p>
+
+<p>```python
+class _const:</p>
+
+<pre><code>class ConstError(TypeError):
+    pass
+
+def __setattr__(self, name, value):
+    if self.__dict__.has_key(name):
+        raise self.ConstError, "Can't rebind const instance attribute (%s)" % name
+
+    self.__dict__[name] = value
+</code></pre>
+
+<p>import sys
+sys.modules[<strong>name</strong>] = _const()
+```</p>
+
+<p>其大致含义为：</p>
+
+<ul>
+<li>通过_const的__setattr__对象方法判断该对象是否存在属性name，若存在则抛出自定义异常ConstError，否则创建该属性。</li>
+<li>将_const实例化的对象赋值sys.modules[__name__]，const模块被绑定成_const对象。__name__在首次载入const过程中为'const'，而<a href="http://docs.python.org/2.7/library/sys.html#sys.modules">sys.modules</a>是模块名与已加载模块的dict。</li>
+</ul>
+
+
+<p>如何使用const模块呢？</p>
+
+<p><code>python
+import const
+const.magic = 23
+</code></p>
+
+<p>若再次赋值const.magic，</p>
+
+<p><code>python
+const.magic = 88
+</code></p>
+
+<p>则将抛出ConstError的异常。</p>
+
+<h2>如何避免常量被删除？</h2>
+
+<p>实际项目中，常量并不希望被其他代码删除。在_const类中加入：</p>
+
+<p>```python</p>
+
+<pre><code>def __delattr__(self, name):
+    if self.__dict__.has_key(name):
+        raise self.ConstError, "Can't unbind const const instance attribute (%s)" % name
+
+    raise AttributeError, "const instance has no attribute '%s'" % name
+</code></pre>
+
+<p>```</p>
+
+<p>如此，删除已定义的常量（假设const.magic已经赋值）：</p>
+
+<p><code>python
+del const.magic
+</code></p>
+
+<p>则将抛出ConstError的异常。</p>
+
+<h2>配置文件与常量</h2>
+
+<p>实际项目中，为了让应用程序灵活部署，一般会用配置文件存储应用程序的各种参数；而这些参数通常都以常量语义存在于应用程序中。</p>
+
+<p>在上述代码基础上，根据应用程序的实际情况将常量划分为3类：</p>
+
+<ul>
+<li>特殊含义的数值或字符串，如 ETC_FSTAB = &ldquo;/etc/fstab&rdquo; 。其作用为
+
+<ul>
+<li>避免程序中到处出现类似特殊值，因为人为输入特殊值的低级错误将耗费不必要的调试/测试时间</li>
+<li>另一方面, 神秘数值（magic number），如 LUN_BLOCK_SIZE = 4096，将影响程序的可读性。</li>
+</ul>
+</li>
+<li>应用程序参数的默认值，如 URLOPEN_DEFAULT_TIMEOUT = 15 。其作用主要为配置文件参数的默认值。</li>
+<li>通过配置文件载入的参数，如通过<a href="http://docs.python.org/2/library/configparser.html#ConfigParser.SafeConfigParser">ConfigParser.SafeConfigParser</a>解析形如ini文件的参数。</li>
+</ul>
+
+
+<p>第1和2类常量作为_const类的类属性，第3类常量可以在__init__方法中初始化。如：</p>
+
+<p>```python
+class _const:</p>
+
+<pre><code>ETC_FSTAB = "/etc/fstab"
+LUN_BLOCK_SIZE = 4096
+URLOPEN_DEFAULT_TIMEOUT = 15
+
+def __init__(self):
+    conf = ConfigParser.SafeConfigParser()
+    conf.read(self.CONF_PATH)
+
+    try:
+        self.URLOPEN_TIMEOUT = conf.getint("DEFAULT", "urlopen_timeout")
+    except:
+        self.URLOPEN_TIMEOUT = self.URLOPEN_DEFAULT_TIMEOUT
+
+... ...
+</code></pre>
+
+<p>```</p>
+
+<p>某些情况下，应用程序可能并不希望const模块在被外部调用时绑定新属性（常量），实现如下：</p>
+
+<p>```python</p>
+
+<pre><code>def __init__(self):
+    # Constant definition area
+
+    _const.__setattr__ = _const._setattr_impl
+
+def _setattr_impl(self, name, value):
+    raise self.ConstError, "Can't bind const instance attribute (%s)" % name
+</code></pre>
+
+<p>```</p>
+
+<p>其原理为_const对象初始化完成后将__setattr__设置为禁止绑定属性的实现。若在_const类中实现__setattr__为禁止绑定属性，则__init__也将无法初始化（绑定）对象属性。</p>
+
+<h2>存在的小问题</h2>
+
+<p>该问题并不影响该解决方案的使用，具体请参考:</p>
+
+<p><a href="http://stackoverflow.com/questions/5365562/why-is-the-value-of-name-changing-after-assignment-to-sys-modules-name">http://stackoverflow.com/questions/5365562/why-is-the-value-of-name-changing-after-assignment-to-sys-modules-name</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[定制无源码安装Python模块]]></title>
+    <link href="http://www.malike.net.cn/blog/2013/10/27/customize-python-modules-installation-without-source-files/"/>
+    <updated>2013-10-27T00:00:00+08:00</updated>
+    <id>http://www.malike.net.cn/blog/2013/10/27/customize-python-modules-installation-without-source-files</id>
+    <content type="html"><![CDATA[<p>Python的<a href="http://docs.python.org/2/library/distutils.html">distutils</a>和<a href="https://pypi.python.org/pypi/setuptools">setuptools</a>都是为开源项目设计的，Python模块分发和安装都包含该模块的源代码。实际公司工作多为闭源项目，Python模块的安装是不能包核心源代码的。</p>
+
+<p>过去对distutils和setuptools的一知半解，为了达到闭源的目的，我通过书写Makefile来编译Python源码为.pyc或.pyo，完全绕开distutils和setuptools的限制。权宜之计虽然解决了一时之急，然总是让我追求标准和完美的心感到不安。为此，最近我花了一些时间来阅读distutils文档和部分源代码，终于找到了相对地道的解决办法。</p>
+
+<p>根据<a href="http://docs.python.org/2/distutils/extending.html">Extending Distutils</a>的描述，继承distutils.cmd.Command的子类，如distutils.command.build_py.build_py，并重载已有的方法来达到扩展的目的。</p>
+
+<p>根据<a href="http://docs.python.org/2/distutils/apiref.html#creating-a-new-distutils-command">Creating a new Distutils command</a>描述子类必须定义如下方法：</p>
+
+<ul>
+<li>Command.initialize_options()</li>
+<li>Command.finalize_options()</li>
+<li>Command.run()</li>
+<li>Command.sub_commands()</li>
+</ul>
+
+
+<p>并且命令install由install_lib和install_headers等子命令构成。</p>
+
+<p>我的目的不是扩展Distutils的install命令，而是改变其行为，避免其安装源码。其实，只需要改变install_lib的行为就足够了。</p>
+
+<p>类install_lib存在于/usr/lib/python2.7/distutils/command/install_lib.py文件中，它的方法run源码如下：
+```python</p>
+
+<pre><code>def run(self):
+    # Make sure we have built everything we need first
+    self.build()
+
+    # Install everything: simply dump the entire contents of the build
+    # directory to the installation directory (that's the beauty of
+    # having a build directory!)
+    outfiles = self.install()
+
+    # (Optionally) compile .py to .pyc
+    if outfiles is not None and self.distribution.has_pure_modules():
+        self.byte_compile(outfiles)
+</code></pre>
+
+<p>```</p>
+
+<p>与先编译再安装的直觉相反，编译生成pyc并不发生在build方法中，而是install方法执行后。所以，若重载build方法（实际调用build_py命令），则install和byte_compile都需要修改，工作量较大且复杂度较高。</p>
+
+<p>直接能想到的办法是重载install方法，使其直接编译源码，并返回None，从而使byte_compile不会被执行。</p>
+
+<p>```python
+import os
+from distutils.core import setup
+from distutils.command.install_lib import install_lib
+from distutils import log
+from distutils.dep_util import newer
+from py_compile import compile</p>
+
+<p>class InstallLib(install_lib):</p>
+
+<pre><code>def install(self):
+    for root, dirs, files in os.walk(self.build_dir):
+        current = root.replace(self.build_dir, self.install_dir)
+        for i in dirs:
+            self.mkpath(os.path.join(current, i))
+
+        for i in files:
+            file = os.path.join(root, i)
+            cfile = os.path.join(current, i) + "c"
+            cfile_base = os.path.basename(cfile)
+            if self.force or newer(file, cfile):
+                log.info("byte-compiling %s to %s", file, cfile_base)
+                compile(file, cfile)
+            else:
+                log.debug("skipping byte-compilation of %s", file)
+</code></pre>
+
+<p>setup(cmdclass={&ldquo;install_lib&rdquo;: InstallLib}, name=&ldquo;HelloWorld&rdquo;, version=&ldquo;1.0&rdquo;)
+```</p>
+
+<p>虽然这样做达到了目的，然而仔细思考一下，更简单的办法是等安装完成后，删除目标目录的源码文件（这里仅给出InstallLib的实现，其余部分同上）：</p>
+
+<p>```python
+class InstallLib(install_lib):</p>
+
+<pre><code>def run(self):
+    self.build()
+    outfiles = self.install()
+    if outfiles is not None and self.distribution.has_pure_modules():
+        self.byte_compile(outfiles)
+        for i in outfiles:
+            os.unlink(i)
+</code></pre>
+
+<p>```</p>
+
+<p>如此非常简洁，实际只增加了2行代码，其余皆copy-paste。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Flake8简介]]></title>
+    <link href="http://www.malike.net.cn/blog/2013/10/23/flake8-tutorial/"/>
+    <updated>2013-10-23T00:00:00+08:00</updated>
+    <id>http://www.malike.net.cn/blog/2013/10/23/flake8-tutorial</id>
+    <content type="html"><![CDATA[<p><a href="http://flake8.readthedocs.org/">Flake8</a>包装了下列工具：</p>
+
+<ul>
+<li><a href="https://launchpad.net/pyflakes">PyFlakes</a>：静态检查Python代码逻辑错误的工具。</li>
+<li><a href="http://pep8.readthedocs.org/en/latest/">pep8</a>： 静态检查<a href="/blog/2013/07/25/pep8-summary/">PEP 8</a>编码风格的工具。</li>
+<li><a href="http://nedbatchelder.com/blog/200803/python_code_complexity_microtool.html">Ned Batchelder’s McCabe script</a>：静态分析Python代码复杂度的工具。</li>
+</ul>
+
+
+<p>它综合上述三者的功能，在简化操作的同时，还提供了扩展开发接口。</p>
+
+<h2>安装</h2>
+
+<p>这里仅介绍Ubuntu的安装方法，其他安装方法见Flake8官网。</p>
+
+<ul>
+<li>添加ppa:cjohnston/flake8。Ubuntu 12.04、12.10和13.04官方源仅提供pep8的包，而该PPA不仅提供了最新的python-flake8包，还提供最新的pep8包。Ubuntu 13.10和14.04默认已经提供最新的pep8和python-flake8，所以可以跳过这一步。</li>
+</ul>
+
+
+<p><code>
+sudo apt-add-repository ppa:cjohnston/flake8
+sudo apt-get update
+sudo apt-get -y --force-yes dist-upgrade
+</code></p>
+
+<ul>
+<li>安装python-flake8</li>
+</ul>
+
+
+<p><code>sh
+sudo apt-get install python-flake8
+</code></p>
+
+<h2>使用</h2>
+
+<ul>
+<li>递归检查当前目录的所有Python文件：</li>
+</ul>
+
+
+<p><code>sh
+flake8 .
+</code></p>
+
+<ul>
+<li>检查指定文件</li>
+</ul>
+
+
+<p><code>sh
+flake8 foo.py bar.py
+</code></p>
+
+<ul>
+<li>通过setup.py检查工程的所有Python文件：</li>
+</ul>
+
+
+<p><code>sh
+python setup.py flake8
+</code></p>
+
+<p>为了保证其在其他环境中正确运行，需要将flake8增加到setup_requires中，例如：</p>
+
+<p>```python
+setup(</p>
+
+<pre><code>name="project",
+packages=["project"],
+
+setup_requires=[
+    "flake8"
+]
+</code></pre>
+
+<p>)
+```</p>
+
+<ul>
+<li>由于默认禁用代码条件复杂度检查，需要通过&mdash;max-complexity激活该功能：</li>
+</ul>
+
+
+<p><code>sh
+flake8 --max-complexity 12 .
+</code></p>
+
+<p>该功能对于发现代码过度复杂非常有用，根据Thomas J. McCabe, Sr（<a href="https://en.wikipedia.org/wiki/Cyclomatic_complexity">Cyclomatic complexity</a>的创造者）研究，代码复杂度不宜超过10，而Flake8官网建议值为12。</p>
+
+<h2>配置</h2>
+
+<ul>
+<li>用户相关的配置存在~/.config/flake8中，如：</li>
+</ul>
+
+
+<p><code>ini
+[flake8]
+max-complexity=12
+</code></p>
+
+<p>个人感觉除了代码复杂度因子（max-complexity）外，其他参数的默认值已经很好，基本不需要再作配置。</p>
+
+<ul>
+<li>工程相关的设置，可以存放在工程顶级目录的tox.ini或setup.cfg，格式与用户相关的配置一致。</li>
+</ul>
+
+
+<h2>与Git整合</h2>
+
+<p>在.git/hooks目录中，创建Git的pre-commit钩子脚本，Flake8可以对每次提交的代码进行检查。该脚本如下：</p>
+
+<p>```python</p>
+
+<h1>!/usr/bin/python</h1>
+
+<p>import sys
+from flake8.run import git_hook</p>
+
+<p>COMPLEXITY = 12
+STRICT = True</p>
+
+<p>if <strong>name</strong> == &lsquo;<strong>main</strong>&rsquo;:</p>
+
+<pre><code>sys.exit(git_hook(complexity=COMPLEXITY, strict=STRICT))
+</code></pre>
+
+<p>```</p>
+
+<p>若strict为True，任何warning都将阻挡提交。否则（或缺省），warning仅会被打印到标准输出。</p>
+
+<h2>与vim整合</h2>
+
+<p>这里仅介绍vim插件vim-flake8的安装和配置</p>
+
+<ul>
+<li>安装vim插件pathogen：</li>
+</ul>
+
+
+<p>```sh
+mkdir -p ~/.vim/autoload ~/.vim/bundle
+curl -Sso ~/.vim/autoload/pathogen.vim \</p>
+
+<pre><code>https://raw.github.com/tpope/vim-pathogen/master/autoload/pathogen.vim
+</code></pre>
+
+<p>```</p>
+
+<ul>
+<li>添加下列配置至~/.vimrc中：</li>
+</ul>
+
+
+<p><code>vim
+execute pathogen#infect()
+syntax on
+filetype plugin indent on
+</code></p>
+
+<ul>
+<li>安装vim-flake8：</li>
+</ul>
+
+
+<p><code>sh
+cd ~/.vim/bundle
+git clone git://github.com/nvie/vim-flake8.git
+</code></p>
+
+<p>至此，当vim打开Python源码后，按F7就会执行Flake8对当前文件进行检查。</p>
+
+<h2>插件</h2>
+
+<p>Flake8相比pep8的优势在于其良好的扩展性，pep8 1.4.6尚未支持命名规范的检查，却已有人开发Flake8的插件<a href="https://github.com/flintwork/pep8-naming">pep8-naming</a>来弥补这个缺陷。</p>
+
+<p>pep8-naming处于早期开发阶段，尚无人为其制作deb包。我花时间做了deb包，并上传到我的ppa:likemartinma/python上。通过下述步骤可以轻松安装它：</p>
+
+<p><code>sh
+sudo add-apt-repository ppa:likemartinma/python
+sudo apt-get update
+sudo apt-get -y --force-yes dist-upgrade
+sudo apt-get install pep8-naming
+</code></p>
+
+<p>由于Python部分核心库的函数命令存在“历史遗留”问题，与PEP 8并不保持完全一致，如<a href="http://docs.python.org/2/library/pyexpat.html#xml.parsers.expat.xmlparser.StartElementHandler">xml.parsers.expat.xmlparser.StartElementHandler</a>，这给pep8-naming带来一定的误报困扰。</p>
+
+<p>解决的办法是这样的代码行追加 # noqa 的注释，从避免flake8发出类似warning。</p>
+
+<h2>存在的问题</h2>
+
+<p>由于pep8尚未支持docstring规范的检查，也没有相关Flake8的插件。目前仅能用<a href="https://github.com/GreenSteam/pep257">pep257</a>来完成docstring规范的检查。期待pep257早日衍生成Flake8的插件。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[PEP 8总结]]></title>
+    <link href="http://www.malike.net.cn/blog/2013/07/25/pep8-summary/"/>
+    <updated>2013-07-25T00:00:00+08:00</updated>
+    <id>http://www.malike.net.cn/blog/2013/07/25/pep8-summary</id>
+    <content type="html"><![CDATA[<p>下述内容主要源于<a href="http://www.python.org/dev/peps/pep-0008/">PEP 8 &mdash; Style Guide for Python Code</a>。</p>
+
+<h2>最大的行长度</h2>
+
+<ul>
+<li>所有行不超过79个字符。</li>
+<li>docstring或comment应不超过72字符</li>
+</ul>
+
+
+<h2>补齐</h2>
+
+<ul>
+<li>每个补齐级别为4个空格。</li>
+<li>当一行操作最大行长度时，应尽可能按照各种括号作为纵向对齐的参照物（可以适当增加括号），如：</li>
+</ul>
+
+
+<p>```python
+from bottle import (get, post, delete, error, run, default_app, HTTPError,</p>
+
+<pre><code>                request, response, static_file)
+</code></pre>
+
+<h1>Aligned with opening delimiter</h1>
+
+<p>foo = long_function_name(var_one, var_two,</p>
+
+<pre><code>                     var_three, var_four)
+</code></pre>
+
+<h1>More indentation included to distinguish this from the rest.</h1>
+
+<p>def long_function_name(</p>
+
+<pre><code>    var_one, var_two, var_three,
+    var_four):
+print(var_one)
+</code></pre>
+
+<p>```</p>
+
+<ul>
+<li>多行情况下，关闭括号可以出现在一行开始，如：</li>
+</ul>
+
+
+<p>```python
+my_dict = {</p>
+
+<pre><code>'hello': 'foo',
+'world': 'bar',
+</code></pre>
+
+<p>}</p>
+
+<p>my_list = [</p>
+
+<pre><code>1, 2, 3,
+4, 5, 6,
+</code></pre>
+
+<p>]
+result = some_function_that_takes_arguments(</p>
+
+<pre><code>'a', 'b', 'c',
+'d', 'e', 'f',
+</code></pre>
+
+<p>)
+```</p>
+
+<p>实际工作中，不同开发语言存在不同的补齐风格要求。可以在.vimrc中针对python设置：</p>
+
+<p><code>vim
+autocmd BufRead,BufNewFile *.py set et ts=4 sw=4 sts=4
+</code></p>
+
+<p>仅对python源文件设置4个空格补齐。</p>
+
+<p>当然，更好的办法是在每个python源文件的最后一行追加：</p>
+
+<p>```python</p>
+
+<h1>vim: ts=4 sw=4 sts=4 et:</h1>
+
+<p>```</p>
+
+<p>从而保证vim打开该文件时满足4个空格补齐的要求。</p>
+
+<h2>空行</h2>
+
+<p>顶层函数或类定义的间隔为2行。
+类的方法定义的间隔为1行。</p>
+
+<h2>源文件编码</h2>
+
+<p>Python核心代码应为UTF-8（或ASCII，在Python 2中）。
+源文件若在Python 2中用ASCII或在Python 3中用UTF-8，则不应出现编码声明。</p>
+
+<p>```python</p>
+
+<h1>&ndash;<em>&ndash; coding: utf-8 &ndash;</em>&ndash;</h1>
+
+<p>```</p>
+
+<h2>导入</h2>
+
+<ul>
+<li>每行仅导入一个模块，但每行可以导入一个模块的多个函数:</li>
+</ul>
+
+
+<p><code>python
+import os
+import sys
+from subprocess import Popen, PIPE
+</code></p>
+
+<ul>
+<li>保证所有import在文件的头部，仅在模块注释后面，并先于模块的全局变量和常量。</li>
+<li><p>import应按下列顺序分组：</p>
+
+<ul>
+<li>标准库的导入</li>
+<li>相关第3方库的导入</li>
+<li>本地应用程序/库的导入</li>
+</ul>
+</li>
+</ul>
+
+
+<p>每个分组间空1行
+将类似__all__定义放在所有import后面</p>
+
+<ul>
+<li>绝对导入优于相对导入</li>
+<li>避免导入模块所有的内容（通配方式， from <module> import *)，在__init__.py中导出内部API除外。</li>
+</ul>
+
+
+<h2>表达式和语句中的空格</h2>
+
+<ul>
+<li>括号前后不允许有空格</li>
+<li>操作符号（如=，>和+=等）前后各1个空格</li>
+<li>:和,之前不允许有空格，之后仅1个空格</li>
+<li>函数默认参数的等号（=）前后不允许空格</li>
+</ul>
+
+
+<h2>注释</h2>
+
+<ul>
+<li>为所有公开模块、函数、类和方法写docstring。</li>
+<li>非公开方法的comment应出现在def行之后</li>
+<li><a href="http://www.python.org/dev/peps/pep-0257/">PEP-257</a>描述良好的docstring惯例。多行docstring的第1行后应跟着1个空白行。</li>
+<li>单行docstring可保持关闭的"&ldquo;"在同一行。</li>
+</ul>
+
+
+<h2>命名规范</h2>
+
+<p>尽管Python库代码的命名存在一些混乱，新模块和包（包括第3方框架）应满足下列规范。但已有库若风格不同，应保持原来的内部一致性。</p>
+
+<ul>
+<li>单下划线开头（如：_single_leading_underscore）弱内部使用，类似from M import *不导入类似符号。</li>
+<li>单下划线结尾（如：single_trailing_underscore<em>）用于与Python关键字冲突的情况下，如classs</em>。</li>
+<li>双下划线开头（如：__double_leading_underscore）用于类属性。</li>
+<li>双下划线开头和结构用于特殊对象或属性，如__init__, __import__或__file__。多为语言定义，避免发明类似名字。</li>
+<li>避免使用小写L、大写O和大写I作为单字符变量名。</li>
+<li>模块名应简短、全小写，可包含下划线；包名类似，但不鼓励包含下划线。</li>
+<li>C/C++实现的扩展模块应伴随着提供如面向对象等高级接口的Python模块存在，且其名字以下划线开头（如_socket）</li>
+<li>类名应为驼峰词（CapWords），内部使用的类以下划线开头。</li>
+<li>异常名与类名一样，且应以Error结尾（若该异常确为一个错误）。</li>
+<li>函数名应为小写加下划线。</li>
+<li>总是使用self作为实例方法的第1个参数，总是使用cls作为类方法的第1个参数</li>
+<li>常量名应为大写加下划线（如MAX_OVERFLOW）</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>

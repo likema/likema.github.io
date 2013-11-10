@@ -1,0 +1,636 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Linux | Like的世界]]></title>
+  <link href="http://www.malike.net.cn/blog/categories/linux/atom.xml" rel="self"/>
+  <link href="http://www.malike.net.cn/"/>
+  <updated>2013-11-11T05:34:01+08:00</updated>
+  <id>http://www.malike.net.cn/</id>
+  <author>
+    <name><![CDATA[Like Ma]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[LXC简介]]></title>
+    <link href="http://www.malike.net.cn/blog/2013/11/10/lxc-tutorial/"/>
+    <updated>2013-11-10T00:00:00+08:00</updated>
+    <id>http://www.malike.net.cn/blog/2013/11/10/lxc-tutorial</id>
+    <content type="html"><![CDATA[<p><a href="http://linuxcontainers.org/">LXC</a> (Linux Containters) 是一种基于内核容器属性的用户空间接口。 它被认为介于chroot和完全虚拟化之间，其目标为创建一个不需要独立内核，但近可能接近标准Linux安装的环境。</p>
+
+<p>其特性如下：</p>
+
+<ul>
+<li>内核空间（ipc, uts, mount, pid, network和user)</li>
+<li>支持Apparmor和SELinux</li>
+<li><a href="http://en.wikipedia.org/wiki/Seccomp">seccomp</a>策略</li>
+<li>chroots (使用pivot_root)</li>
+<li><a href="https://www.kernel.org/pub/linux/libs/security/linux-privs/kernel-2.2/capfaq-0.2.txt">Kernel capabilities</a></li>
+<li>支持<a href="http://en.wikipedia.org/wiki/Cgroups">cgroups</a> (Control groups)</li>
+</ul>
+
+
+<p>由于没有完全虚拟化CPU，也没有虚拟化硬盘，其性能是与物理机接近的。实际经验，我发现在LXC中编译C/C++源码（如构建基于C/C++源码的RPM或DEB）的性能是VirtualBox的3倍。强烈建议使用LXC代替KVM和VirtualBox作为RPM或DEB的构建环境。</p>
+
+<p>以下操作基于Ubuntu 12.04，那么需要安装LXC包：</p>
+
+<p><code>sh
+sudo apt-get install -y lxc
+</code></p>
+
+<h2>创建LXC</h2>
+
+<p>以创建一个名为precise的Ubuntu 12.04容器为例。</p>
+
+<p>需要创建一个基础的配置文件。由于创建LXC完成后，不再需要该配置文件（可以删除），故该文件的名字和路径没有特殊要求。这里命名为precise.conf，放在当前路径下：</p>
+
+<p><code>
+lxc.network.type = veth
+lxc.network.flags = up
+lxc.network.name = eth0
+lxc.network.link = lxcbr0
+</code></p>
+
+<p>lxcbr0为由LXC包创建的虚拟网桥，通过ifconfig可以知道其IP地址10.0.3.1，网段10.0.3.1/24，容器将通过lxcbr0与外界通信。</p>
+
+<p>如此，可以开始创建容器了：</p>
+
+<p><code>sh
+sudo lxc-create -n precise -f precise.conf -t ubuntu -- -r precise
+</code></p>
+
+<ul>
+<li>-n指定容器名，这里为precise。</li>
+<li>-f指定基础配置文件，即上一步骤创建的precise.conf。</li>
+<li>-t指定模板名，这里必须为ubuntu（创建Ubuntu 12.04)。每个模板名，对应一个脚本，它们存放在/usr/lib/lxc/templates目录（文件名形如lxc-&lt;模板名>）中。</li>
+<li>&mdash;以后的参数被传递给模板脚本；</li>
+<li>-r为ubuntu模板脚本的参数，表示<a href="http://en.wikipedia.org/w/index.php?title=Ubuntu_(operating_system)#Releases">Ubuntu发行版代号</a>，这里必须为precise（它是12.04的发行代号）。</li>
+</ul>
+
+
+<p>创建过程可能会比较漫长。通过阅读/usr/lib/lxc/templates/lxc-ubuntu，不难发现创建ubuntu容器主要依靠deboostrap来完成。另一方面，变量MIRROR和SECURITY_MIRROR决定了镜像的设置，它们默认为：</p>
+
+<p><code>
+MIRROR=http://archive.ubuntu.com/ubuntu
+SECURITY_MIRROR=http://security.ubuntu.com/ubuntu
+</code></p>
+
+<p>在大陆地区，使用默认镜像的网速较慢。为了加快创建过程，可以将它们都换成大陆或香港的镜像，如<a href="http://ftp.cuhk.edu.hk/pub/Linux/ubuntu">http://ftp.cuhk.edu.hk/pub/Linux/ubuntu</a></p>
+
+<p>具体问题是lxc-ubuntu并没有提供命令行参数来设置MIRROR和SECURITY_MIRROR。在不修改lxc-ubuntu代码的情况下，唯一的办法就是通过设置相关环境变量来达到这个目的，如：</p>
+
+<p>```sh
+sudo MIRROR=&ldquo;<a href="http://ftp.cuhk.edu.hk/pub/Linux/ubuntu">http://ftp.cuhk.edu.hk/pub/Linux/ubuntu</a>&rdquo; \</p>
+
+<pre><code> SECURITY_MIRROR="http://ftp.cuhk.edu.hk/pub/Linux/ubuntu" \
+ lxc-create -n precise -f precise.conf -t ubuntu -- -r precise
+</code></pre>
+
+<p>```</p>
+
+<p>我司为了加快内部开发和测试人员安装Ubuntu，部署了<a href="https://www.unix-ag.uni-kl.de/~bloch/acng/">apt-cacher-ng</a>——一种deb包HTTP缓存代理。由于lxc-ubuntu基于deboostrap，可以通过设置环境变量http_proxy来设置deboostrap的缓存代理（请见<a href="http://unix.stackexchange.com/questions/38993/global-cache-config-of-debootstrap">Global cache config of debootstrap</a>）:</p>
+
+<p>```sh
+sudo http_proxy=&ldquo;<a href="http://192.168.88.10:3142/">http://192.168.88.10:3142/</a>&rdquo; \</p>
+
+<pre><code> MIRROR="http://ftp.cuhk.edu.hk/pub/Linux/ubuntu" \
+ SECURITY_MIRROR="http://ftp.cuhk.edu.hk/pub/Linux/ubuntu" \
+ lxc-create -n precise -f precise.conf -t ubuntu -- -r precise
+</code></pre>
+
+<p>```</p>
+
+<p>如此，在尽可能节约外部带宽的同时，最大限度的加快了创建过程。</p>
+
+<p>上述创建方法，容器的架构将与host os的相同（如amd64）。若需要在amd64的host os上创建i386或i686架构的容器，则需要通过模板脚本的-a参数指定i686，如：</p>
+
+<p><code>sh
+sudo lxc-create -n precise -f precise.conf -t ubuntu -- -r precise -a i686
+</code></p>
+
+<h2>启动LXC</h2>
+
+<p>若需立即启动LXC，则：</p>
+
+<p><code>sh
+sudo lxc-start -n precise
+</code></p>
+
+<p>若需以daemon方式运行，则:</p>
+
+<p><code>sh
+sudo lxc-start -n precise -d
+</code></p>
+
+<p>若需随host os启动而自动启动，则:</p>
+
+<p><code>sh
+sudo ln -s /var/lib/lxc/precise/config /etc/lxc/auto/precise.conf
+</code></p>
+
+<h2>打开LXC控制台</h2>
+
+<p>在没有给容器设置IP时，打开其控制台</p>
+
+<p><code>sh
+sudo lxc-console -n precise
+</code></p>
+
+<p>将看到文本登录界面。 通过按热键ctrl-a和q，可以退出容器控制台。</p>
+
+<p>更多的时候，通过ssh登录将更方便，特别是key认证方式登录。</p>
+
+<h2>停止LXC</h2>
+
+<p>多数情况下，可以通过在guest os（容器）内执行poweroff或shutdown -h now来关闭容器。但有些时候却需要在host os上强行关闭容器，如：</p>
+
+<p><code>sh
+sudo lxc-stop -n precise
+</code></p>
+
+<h2>删除LXC</h2>
+
+<p>容器创建后，配置和数据存放在/var/lib/lxc/precise目录中。执行</p>
+
+<p><code>sh
+sudo lxc-destroy -n precise
+</code></p>
+
+<p>与手动删除该目录效果一样。</p>
+
+<h2>其他模板</h2>
+
+<ul>
+<li>ubuntu-cloud：从Ubuntu云上下载根文件系统镜像。</li>
+<li>fedora: 它依赖于yum包，通过模板脚本参数-R指定版本号，如19和20都无法创建成功。默认版本号为14，可以继续安装。</li>
+<li>opensuse：它依赖于zypper，Ubuntu 12.04默认没有zypper包。虽然<a href="https://launchpad.net/~thopiekar/+archive/zypper">ppa:thopiekar/zypper</a>提供了zypper，但是创建失败。</li>
+<li>busybox：仅有busybox的容器，默认不能远程登录，可以用于练习简单的命令行操作。</li>
+<li>sshd：将host os中各个系统目录（/bin, /sbin/和/lib等）以只读方式绑定到容器中，仅运行ssh服务器，支持ssh登录，可用于练习复杂的命令行操作。</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[git-buildpackage示例（二）]]></title>
+    <link href="http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2/"/>
+    <updated>2012-10-23T00:00:00+08:00</updated>
+    <id>http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2</id>
+    <content type="html"><![CDATA[<p>在<a href="/blog/2012/02/19/git-buildpackage-1/">《git-buildpackage示例（一）》</a>中，我介绍了如何利用git-buildpackage为Ubuntu已有包做一个补丁包的办法。</p>
+
+<p>当时，我的补丁是基于tolua 5.1.3版本。一段时间后，tolua的作者释放了5.1.4版本。问题出现了，如何将我的补丁合并到5.1.4版本中呢？</p>
+
+<p>下面我将继续使用git-buildpackage来解决合并上游新版本的问题：</p>
+
+<ul>
+<li>下载tolua 5.1.4源码包（假设放在git工作目录上层）：</li>
+</ul>
+
+
+<p><code>sh
+wget http://www.tecgraf.puc-rio.br/~celes/tolua/tolua-5.1.4.tar.gz
+cd tolua
+git-import-orig -u 5.1.4 ../tolua-5.1.4.tar.gz
+</code></p>
+
+<ul>
+<li>手动解决遇到的冲突（如src/bin/Makefile）并提交更新：</li>
+</ul>
+
+
+<p><code>sh
+git commit
+</code></p>
+
+<ul>
+<li>这时，运行</li>
+</ul>
+
+
+<p><code>sh
+git log --format=%d:%s
+</code></p>
+
+<p>输出：</p>
+
+<p><code>plain
+ (HEAD, master):Merge commit 'upstream/5.1.4'
+ (upstream/5.1.4, upstream):Imported Upstream version 5.1.4
+ (debian/5.1.3-2):Fix relocation R_X86_64_32 against '.rodata' can not be used when making a shared object
+ (debian/5.1.3-1):Imported Debian patch 5.1.3-1
+ (upstream/5.1.3):Imported Upstream version 5.1.3
+</code></p>
+
+<p>upstream/5.1.4分支被创建，且将其合并到master分支中。如此，master分支合并完毕，接下来将合并debian的patches。</p>
+
+<ul>
+<li>重整patch-queue：</li>
+</ul>
+
+
+<p><code>sh
+gbp-pq rebase
+</code></p>
+
+<p>手动解决遇到的冲突：</p>
+
+<p><code>sh
+git rm -f src/bin/toluabind.c
+git rebase --continue
+</code></p>
+
+<ul>
+<li>导出patch-queue（至master分支）</li>
+</ul>
+
+
+<p><code>sh
+git clean -df
+gbp-pq export
+</code></p>
+
+<ul>
+<li>指定版本号5.1.4-1自动生成snapshot的debian/changelog：</li>
+</ul>
+
+
+<p><code>sh
+git-dch -a -S -N 5.1.4-1
+git add debian/changelog
+git add debian/patches/0001-mkdir-for-tolua-lib-archive-and-remove-temp-files.patch
+git commit -m "Update patches from debian/5.1.3-1"
+</code></p>
+
+<p>测试构建新的deb包。为了避免污染当前环境，这里指定git首先导出源码至../tolua-build目录：</p>
+
+<p><code>sh
+git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
+</code></p>
+
+<ul>
+<li>生成release的版本信息，并构建release的deb包：</li>
+</ul>
+
+
+<p><code>sh
+git-dch -a -R
+git ci --amend
+git tag debian/5.1.4-1
+git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
+</code></p>
+
+<p>到此为止，我已经演示了git-buildpackage合并上游版本的过程。不难发现，git-buildpackage充分利用了git的特点，在很大程度上简化了补丁开发和维护的过程。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[git-buildpackage示例（一）]]></title>
+    <link href="http://www.malike.net.cn/blog/2012/02/19/git-buildpackage-1/"/>
+    <updated>2012-02-19T00:00:00+08:00</updated>
+    <id>http://www.malike.net.cn/blog/2012/02/19/git-buildpackage-1</id>
+    <content type="html"><![CDATA[<p>在《为tolua的deb包作一个补丁》中，我介绍了如何利用quilt为Ubuntu已有包做一个补丁包的办法。可以看出quilt具有一定的版本管理能力，然而与流行版本管理系统相比，功能较弱也不灵活。</p>
+
+<p>从<a href="http://www.debian.org/doc/manuals/maint-guide/">Debian New Maintainers' Guide</a>中，了解到deb包的制作和维护管理已经与现有流行版本管理系统结合在了一块，其中一款工具为git-buildpackage，它将包制作和维护，特别是第三方补丁包维护，与git紧密的结合了起来。</p>
+
+<p>下面仍然以tolua的补丁制作为例，一步一步展示git-buildpackage的基本操作。</p>
+
+<ul>
+<li>安装必要的工具：</li>
+</ul>
+
+
+<p><code>sh
+sudo apt-get install git-buildpackage build-essential debhelper quilt
+</code></p>
+
+<ul>
+<li>下载libtolua-dev的源码（建立upstream目录单独存放Ubuntu的deb源码包是为了保证清洁和正确）：</li>
+</ul>
+
+
+<p><code>sh
+mkdir upstream
+apt-get source libtolua-dev
+</code></p>
+
+<ul>
+<li>导入upsteam的dsc文件（将生成与目录upstream同级的目录tolua）：</li>
+</ul>
+
+
+<p><code>sh
+cd ..
+git-import-dsc upstream/tolua_5.1.3-1.dsc
+cd tolua
+</code></p>
+
+<p>这时，运行</p>
+
+<p><code>sh
+git log --format=%d:%s
+</code></p>
+
+<p>输出：</p>
+
+<p><code>plain
+ (HEAD, debian/5.1.3-1, master):Imported Debian patch 5.1.3-1
+ (upstream/5.1.3, upstream):Imported Upstream version 5.1.3
+</code></p>
+
+<p>从下至上，首条提交导入了tolua 5.1.3的源码，次条提交导入了deb包维护者的deb包文件(debian/*)；并且建立了upstream和master两个分支，标签upstream/5.1.3位于upstream分支上，标签debian/5.1.3-1位于master分支头部。</p>
+
+<p>此外，upstream分支用于维护源码作者的发布版本更新情况，master分支用于维护deb包描述文件及其补丁文件。git-buildpackage工具集的正确运行将依赖于标签upstream/5.1.3和debian/5.1.3-1，不能随意删改。</p>
+
+<ul>
+<li>导入quilt patches到patch queue中——创建patch-queue/master分支，并将debian/patches/*逐一变成该分支的提交，并自动切换到该分支上：</li>
+</ul>
+
+
+<p><code>sh
+gbp-pq import
+</code></p>
+
+<ul>
+<li>执行make后发现构建目标libtolua.a的生成目录lib不存在，这是git只针对文件做版本，所以upstream导入git时，该目录被忽略了。为此，我将src/lib/Makefile中</li>
+</ul>
+
+
+<p>```makefile
+$T: $(OBJS)</p>
+
+<pre><code>$(AR) $@ $(OBJS)
+$(RANLIB) $@
+</code></pre>
+
+<p>```</p>
+
+<p>修改为：</p>
+
+<p>```makefile
+$T: $(OBJS)</p>
+
+<pre><code>mkdir -p $(@D)
+$(AR) $@ $(OBJS)
+$(RANLIB) $@
+</code></pre>
+
+<p>```</p>
+
+<p>这样，它将在每次构建该目标时，创建该目标所在目录。更进一步不难发现，src/bin/tolua_lua.o和src/bin/toluabind.c为受版本控制的中间文件，将影响构建的正确运行。为此，删除这两个文件并提交日志。</p>
+
+<p><code>sh
+git rm -f src/bin/tolua_lua.o src/bin/toluabind.c
+git commit -a -m "mkdir for tolua lib archive and remove temp files"
+</code></p>
+
+<p>此时，可以正确make该工程了。</p>
+
+<ul>
+<li>修复x86_64链接问题，将config文件中，如下内容</li>
+</ul>
+
+
+<p><code>makefile
+CFLAGS= -g $(WARN) $(INC)
+CPPFLAGS= -g $(WARN) $(INC)
+</code></p>
+
+<p>替换为</p>
+
+<p><code>makefile
+CFLAGS= -fPIC -O2 -pipe -g $(WARN) $(INC)
+CPPFLAGS= -fPIC -O2 -pipe  -g $(WARN) $(INC)
+</code></p>
+
+<p>并提交日志：</p>
+
+<p><code>sh
+git commit -a -m "Fix relocation R_X86_64_32 against '.rodata' erro for shared object."
+</code></p>
+
+<ul>
+<li>导出patch-queue——将其分支提交逐一转化为debian/patches目录下的补丁文件（为保证正确运行，清理掉中间文件）：</li>
+</ul>
+
+
+<p><code>sh
+git clean -df
+gbp-pq export
+</code></p>
+
+<ul>
+<li>指定版本号5.1.3-2自动生成snapshot的debian/changelog：</li>
+</ul>
+
+
+<p><code>sh
+git-dch -S -a -N 5.1.3-2
+</code></p>
+
+<p>debian/changelog的新增内容如下：</p>
+
+<p>```plain
+tolua (5.1.3-2~1.gbp896bed) UNRELEASED; urgency=low</p>
+
+<p>  <strong> SNAPSHOT build @896bede5a4eb6f3967cdfe94ea2ef419235e7183 </strong></p>
+
+<ul>
+<li>UNRELEASED</li>
+</ul>
+
+
+<p> &mdash; Like Ma   Sun, 19 Feb 2012 01:07:06 +0800
+```</p>
+
+<p>提交相关修改：</p>
+
+<p>```sh
+git add debian/changelog \</p>
+
+<pre><code>    debian/patches/series \
+    debian/patches/0001-mkdir-for-tolua-lib-archive-and-remove-temp-files.patch \
+    debian/patches/0002-Fix-relocation-R_X86_64_32-against-.rodata-can-not-b.patch
+</code></pre>
+
+<p>git commit -m &ldquo;Fix relocation R_X86_64_32 against &lsquo;.rodata&rsquo; error for shared object&rdquo;
+```</p>
+
+<p>测试构建新的deb包。为了避免污染当前环境，这里指定git首先导出源码至../tolua-build目录：</p>
+
+<p><code>sh
+git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
+</code></p>
+
+<p>可以看出，上述debian/changelog新增信息，除版本号5.1.3-2外（新包的版本信息），并无实在意义，仅用于测试deb包的构建。</p>
+
+<ul>
+<li>生成release的版本信息，并构建release的deb包：</li>
+</ul>
+
+
+<p><code>sh
+git checkout src/bin/tolua_lua.o src/bin/toluabind.c
+git-dch -R -a
+git commit -a --amend
+git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
+git tag debian/5.1.3-2
+</code></p>
+
+<p>注意，前面仅仅在patch-queue分支上删除的两个中间文件，并未在master分支上删除它们，所以重新checkout它们以保证后续构建的正确运行。</p>
+
+<p>这里的关键命令git-dch -R -a自动生成了release的版本信息，当然我们也可以根据需要再修改它们。最后一条命令，给master分支的HEAD加上标签debian/5.1.3-2，git-buildpackage将依赖于它才能继续正确工作。</p>
+
+<p>到此为止，我已经演示了git-buildpackage的补丁制作过程，可以观察../tolua-build目录中生成的文件，它们就是我们可以用于发布的deb包源码文件，形式上与ubuntu/debian中apt-get source得到的一样。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Ubuntu 11.10 VirtualBox的Host-only网卡上外网和DHCP永久地址]]></title>
+    <link href="http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp/"/>
+    <updated>2011-12-20T00:00:00+08:00</updated>
+    <id>http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp</id>
+    <content type="html"><![CDATA[<p>VirtualBox支持各种虚拟网络：NAT, Bridge Adapter, Internal Network和Host-only Adapter等。其中Bridged Adapter最为简单和常用，它几乎是0配置，直接桥接有线或无线物理网卡就可以与互联网通信。</p>
+
+<p>然而，我工作场所内部网和家里内部网的网段不相同，DHCP存在一定租赁时间，如果使用Bridged Adapter并DHCP获取IP地址的时候，虚拟机地址经常会改变。为此，我将笔记本电脑的VirtualBox虚拟机都修改为Host-only Adapter模式。</p>
+
+<p>一个问题是Host-only Adapter（网段为192.168.56.0/24）默认不能与互联网通信。google之后发现网上早有人遇到类似问题，他们给出的解决办法是在/etc/rc.local中加入：</p>
+
+<p><code>sh
+iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
+</code></p>
+
+<p>另一个问题是VirtualBox内置DHCP的IP租赁时间设置，也无法将MAC地址与IP地址静态绑定，这造成虚拟机IP地址每隔一段时间改变一次，给使用带来诸多不方便。另一方面，我也不想静态设置IP地址，因为如果这样做，我必须每安装一次虚拟机都要重新设置IP地址。</p>
+
+<p>以前就听说过dnsmasq，不仅集成DNS、DHCP和TFTP功能，而且占用资源很少，设置也相对简单。</p>
+
+<ul>
+<li>安装dnsmasq</li>
+</ul>
+
+
+<p><code>sh
+sudo apt-get install dnsmasq
+</code></p>
+
+<ul>
+<li>打开/etc/dnsmasq.conf，针对vboxnet0配置DHCP。</li>
+</ul>
+
+
+<p>```plain
+interface=vboxnet0</p>
+
+<h1>192.168.56.1是默认网关（host机器的vboxnet0地址）</h1>
+
+<h1>208.67.222.222和208.67.220.220是DNS地址(这里使用了OpenDNS)</h1>
+
+<p>dhcp-option=vboxnet0,option:dns-server,192.168.56.1,208.67.222.222,208.67.220.220</p>
+
+<h1>192.168.56.2和192.168.56.254为分配地址范围</h1>
+
+<h1>infinite表示IP永远不过期</h1>
+
+<p>dhcp-range=vboxnet0,192.168.56.2,192.168.56.254,infinite
+```</p>
+
+<ul>
+<li>重启动dnsmasq</li>
+</ul>
+
+
+<p><code>sh
+sudo service dnsmasq restart
+</code></p>
+
+<p>当然，dnsmasq也支持MAC地址与IP地址静态绑定。比如，在/etc/dnsmasq.conf中针对MAC地址08:00:27:81:51:85，分配机器名vbox-xp，分配IP地址192.168.56.2</p>
+
+<p><code>plain
+dhcp-host=vbox-xp,08:00:27:81:51:85,192.168.56.2
+</code></p>
+
+<p>最后，不要忘了重启动dnsmasq。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[为tolua的deb包作一个补丁]]></title>
+    <link href="http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch/"/>
+    <updated>2011-10-31T00:00:00+08:00</updated>
+    <id>http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch</id>
+    <content type="html"><![CDATA[<p>近日在学习tolua时发现在Kubuntu 11.10 amd64平台下将其链接到so时报告如下错误：</p>
+
+<blockquote><p>relocation R_X86_64_32 against &lsquo;.rodata&rsquo; can not be used when making a shared object; recompile with -fPIC</p></blockquote>
+
+<p>为此，我决定在其原deb基础上加一个补丁，这样生成的新包可以安装到其他开发机器上，省去了每次重编译tolua的重复劳动。</p>
+
+<p>为构建和修改deb安装必要的工具（配置quilt）：</p>
+
+<pre><code>sudo apt-get install build-essential debhelper quilt
+</code></pre>
+
+<p>下载libtolua-dev的源码，创建补丁add-fpic-O2-for-amd64.patch，并将config文件加入其中：</p>
+
+<pre><code>apt-get source libtolua-dev
+cd tolua-5.1.3
+mkdir -p debian/patches
+quilt new add-fpic-O2-for-amd64.patch
+quilt add config
+</code></pre>
+
+<p>将config文件中，如下内容</p>
+
+<p><code>makefile
+CFLAGS = -g $(WARN) $(INC)
+CPPFLAGS = -g $(WARN) $(INC)
+</code></p>
+
+<p>替换为</p>
+
+<p><code>makefile
+CFLAGS = -fPIC -O2 -pipe -g $(WARN) $(INC)
+CPPFLAGS = -fPIC -O2 -pipe  -g $(WARN) $(INC)
+CFLAGS = -fPIC -O2 -pipe -g $(WARN) $(INC)
+</code></p>
+
+<p>生成补丁add-fpic-O2-for-amd64.patch</p>
+
+<pre><code>quilt refresh
+</code></pre>
+
+<p>为补丁增加描述信息</p>
+
+<pre><code>quilt header -e
+</code></pre>
+
+<p>其具体内容如下：</p>
+
+<pre><code>Description: Fix relocation R_X86_64_32 against '.rodata' error for shared object.
+Author: Like Ma &lt;likemartinma@gmail.com&gt;
+
+  * config: add -fPIC -O2 -pipe to CFLAGS and CPPFLAGS
+</code></pre>
+
+<p>通过执行</p>
+
+<pre><code>dch -R
+</code></pre>
+
+<p>在debian/changelog顶部增加日志信息：</p>
+
+<pre><code>tolua (5.1.3-2) unstable; urgency=low
+
+  * Fix relocation R_X86_64_32 against '.rodata' error for shared object.
+
+-- Like Ma &lt;likemartinma@gmail.com&gt; Mon, 31 Oct 2011 15:23:09 +0800
+</code></pre>
+
+<p>构建libtolua-dev_5.1.3-2_amd64.deb:</p>
+
+<pre><code>dpkg-buildpackage -d -uc -us -rfakeroot
+</code></pre>
+]]></content>
+  </entry>
+  
+</feed>
