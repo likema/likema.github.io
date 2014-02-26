@@ -61,7 +61,7 @@ autocmd BufRead,BufNewFile *.py set et ts=4 sw=4 sts=4
 当然，更好的办法是在每个python源文件的最后一行追加：
 
 ```python
-# vim: ts=4 sw=4 sts=4 et:
+# vim: set ts=4 sw=4 sts=4 et:
 ```
 
 从而保证vim打开该文件时满足4个空格补齐的要求。
