@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2014-02-26T10:43:22+08:00</updated>
+  <updated>2014-02-26T23:25:33+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -532,7 +532,7 @@
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sudo apt-add-repository ppa:cjohnston/flake8
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo add-apt-repository ppa:likemartinma/python
 </span><span class='line'>sudo apt-get update
 </span><span class='line'>sudo apt-get -y --force-yes dist-upgrade</span></code></pre></td></tr></table></div></figure>
 
