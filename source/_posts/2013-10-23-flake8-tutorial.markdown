@@ -20,7 +20,7 @@ categories: [Python]
 * 添加ppa:cjohnston/flake8。Ubuntu 12.04、12.10和13.04官方源仅提供pep8的包，而该PPA不仅提供了最新的python-flake8包，还提供最新的pep8包。Ubuntu 13.10和14.04默认已经提供最新的pep8和python-flake8，所以可以跳过这一步。
 
 ```
-sudo apt-add-repository ppa:cjohnston/flake8
+sudo add-apt-repository ppa:likemartinma/python
 sudo apt-get update
 sudo apt-get -y --force-yes dist-upgrade
 ```
