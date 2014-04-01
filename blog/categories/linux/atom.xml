@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Linux | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/linux/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2014-02-26T23:25:33+08:00</updated>
+  <updated>2014-04-01T18:42:04+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,129 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[利用SSH限制rsync的访问目录]]></title>
+    <link href="http://www.malike.net.cn/blog/2014/04/01/restrict-ssh-access-to-rsync/"/>
+    <updated>2014-04-01T00:00:00+08:00</updated>
+    <id>http://www.malike.net.cn/blog/2014/04/01/restrict-ssh-access-to-rsync</id>
+    <content type="html"><![CDATA[<p>我经常使用VPS来共享数据给朋友同事。由于VPS通常内存较小，不太适合安装ftp服务器；而http服务器常常只有下载的功能；更重要是某些数据较大，每天可能都在改变，需要增量同步上传或下载。</p>
+
+<p>rsync是这类场景的良好选择。一方面，通过SSH服务器来工作，它不常驻内存，节约了VPS内存使用；另一方面，它优秀的二进制增量同步功能，不仅减少了同步时间，也节约了VPS有限的带宽。</p>
+
+<p>在实际使用过程中，我遇到了下述问题：</p>
+
+<ul>
+<li>针对某些目录，某些用户仅能读（下载）;</li>
+<li>针对某些目录，某些用户仅能写（上传）;</li>
+<li>具有读或写权限的用户不能登录SSH，也不能执行任何程序;</li>
+<li>具有读或写权限的用户不能访问其他目录。</li>
+</ul>
+
+
+<p>诚然，这些问题可以通过操作系统用户相对复杂的权限控制（包括目录基本权限和ACL以及SELinux等）。然而，通过搜索和学习，我发现强大的SSH早已具备这样的接口：</p>
+
+<ul>
+<li>通过密钥对，简化用户使用，让用户彻底摆脱密码的记忆（当然用户加密私钥，还是要自己记密码的）；</li>
+<li>通过~/.ssh/authorized_keys的command选项（通过<a href="http://man.he.net/man5/authorized_keys">man authorized_keys</a>阅读详细内容），设置脚本过滤掉业务上无效的指令；</li>
+<li>还是通过command选项，限制不同密钥有不同权限，如密钥A只能读，密钥B只能写。</li>
+</ul>
+
+
+<p>下面，我将通过具体示例来解释command选项:</p>
+
+<h2>限制用户仅能读</h2>
+
+<p>```sh</p>
+
+<h1>!/bin/sh</h1>
+
+<p>DATA_DIR=/home/share/data</p>
+
+<p>case &ldquo;$SSH_ORIGINAL_COMMAND&rdquo; in
+rsync\ &mdash;server*)</p>
+
+<pre><code>    TARGET=`echo "$SSH_ORIGINAL_COMMAND" | awk '{ print $NF }'`
+    if echo "$SSH_ORIGINAL_COMMAND" | grep -q " --sender " &amp;&amp; [ "$TARGET" = $DATA_DIR ]; then
+            $SSH_ORIGINAL_COMMAND
+    else
+            echo "Rejected"
+    fi
+    ;;
+</code></pre>
+
+<p>*)</p>
+
+<pre><code>    echo "Rejected"
+    ;;
+</code></pre>
+
+<p>esac
+```</p>
+
+<p>该脚本（存储在文件/usr/local/bin/validate_pull_share）限制用户share仅能下载$DATA_DIR的文件, 它需要跟公钥配置在服务器的/home/share/.ssh/authorized_keys，如：</p>
+
+<p><code>
+command="/usr/local/bin/validate_pull_share" ssh-rsa &lt;用户公钥A&gt;
+</code></p>
+
+<ul>
+<li>command选项用于指定脚本，该脚本可以过滤一些远程命令（禁止执行），它相当于远程命令的前置脚本。</li>
+<li>$SSH_ORIGINAL_COMMAND是sshd传递给command脚本环境变量，表示ssh客户端需要远程执行的命令。</li>
+<li>第6行限制仅能执行rsync服务端指令。</li>
+<li>第7行获取$SSH_ORIGINAL_COMMAND的最后一个参数（这里没有考虑有空格的目录），这个参数在这里是rsync需要访问的目录$TARGET.</li>
+<li>第8行为命令合法性判断, 由两个条件组成：
+
+<ul>
+<li>判断&mdash;sender参数是否存在于$SSH_ORIGINAL_COMMAND中，&mdash;sender表示该命令为下载命令；</li>
+<li>判断下载目录$TARGET是否与规定的目录一致。</li>
+</ul>
+</li>
+</ul>
+
+
+<h2>限制用户仅能写</h2>
+
+<p>```sh</p>
+
+<h1>!/bin/sh</h1>
+
+<p>DATA_DIR=/home/share/data</p>
+
+<p>case &ldquo;$SSH_ORIGINAL_COMMAND&rdquo; in
+rsync\ &mdash;server*)</p>
+
+<pre><code>    TARGET=`echo "$SSH_ORIGINAL_COMMAND" | awk '{ print $NF }'`
+    if ! echo "$SSH_ORIGINAL_COMMAND" | grep -q " --sender " &amp;&amp; [ "$TARGET" = $DATA_DIR ]; then
+            $SSH_ORIGINAL_COMMAND
+    else
+            echo "Rejected"
+    fi
+    ;;
+</code></pre>
+
+<p>*)</p>
+
+<pre><code>    echo "Rejected"
+    ;;
+</code></pre>
+
+<p>esac
+```</p>
+
+<p>实际仅与读限制脚本相差一行（第行），仅允许没有&mdash;sender参数的命令（即上传命令）。</p>
+
+<p>该脚本（存储在文件/usr/local/bin/validate_push_share）同样需要跟另一个公钥配置在服务器的/home/share/.ssh/authorized_keys，如：</p>
+
+<p><code>
+command="/usr/local/bin/validate_pull_share" ssh-rsa &lt;用户公钥B&gt;
+</code></p>
+
+<h2>总结</h2>
+
+<p>通过上述脚本和配置实现了不同密钥访问同一目录的不同权限控制。还可以在这些脚本基础上扩展到多个目录或文件的访问控制。以及访问时间的控制，如某时段只能读，另外时段只能写；避免正在写数据的时候，有用户读数据造成数据不一致的问题。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[LXC简介]]></title>
@@ -551,85 +674,6 @@ dhcp-host=vbox-xp,08:00:27:81:51:85,192.168.56.2
 </code></p>
 
 <p>最后，不要忘了重启动dnsmasq。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[为tolua的deb包作一个补丁]]></title>
-    <link href="http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch/"/>
-    <updated>2011-10-31T00:00:00+08:00</updated>
-    <id>http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch</id>
-    <content type="html"><![CDATA[<p>近日在学习tolua时发现在Kubuntu 11.10 amd64平台下将其链接到so时报告如下错误：</p>
-
-<blockquote><p>relocation R_X86_64_32 against &lsquo;.rodata&rsquo; can not be used when making a shared object; recompile with -fPIC</p></blockquote>
-
-<p>为此，我决定在其原deb基础上加一个补丁，这样生成的新包可以安装到其他开发机器上，省去了每次重编译tolua的重复劳动。</p>
-
-<p>为构建和修改deb安装必要的工具（配置quilt）：</p>
-
-<pre><code>sudo apt-get install build-essential debhelper quilt
-</code></pre>
-
-<p>下载libtolua-dev的源码，创建补丁add-fpic-O2-for-amd64.patch，并将config文件加入其中：</p>
-
-<pre><code>apt-get source libtolua-dev
-cd tolua-5.1.3
-mkdir -p debian/patches
-quilt new add-fpic-O2-for-amd64.patch
-quilt add config
-</code></pre>
-
-<p>将config文件中，如下内容</p>
-
-<p><code>makefile
-CFLAGS = -g $(WARN) $(INC)
-CPPFLAGS = -g $(WARN) $(INC)
-</code></p>
-
-<p>替换为</p>
-
-<p><code>makefile
-CFLAGS = -fPIC -O2 -pipe -g $(WARN) $(INC)
-CPPFLAGS = -fPIC -O2 -pipe  -g $(WARN) $(INC)
-CFLAGS = -fPIC -O2 -pipe -g $(WARN) $(INC)
-</code></p>
-
-<p>生成补丁add-fpic-O2-for-amd64.patch</p>
-
-<pre><code>quilt refresh
-</code></pre>
-
-<p>为补丁增加描述信息</p>
-
-<pre><code>quilt header -e
-</code></pre>
-
-<p>其具体内容如下：</p>
-
-<pre><code>Description: Fix relocation R_X86_64_32 against '.rodata' error for shared object.
-Author: Like Ma &lt;likemartinma@gmail.com&gt;
-
-  * config: add -fPIC -O2 -pipe to CFLAGS and CPPFLAGS
-</code></pre>
-
-<p>通过执行</p>
-
-<pre><code>dch -R
-</code></pre>
-
-<p>在debian/changelog顶部增加日志信息：</p>
-
-<pre><code>tolua (5.1.3-2) unstable; urgency=low
-
-  * Fix relocation R_X86_64_32 against '.rodata' error for shared object.
-
--- Like Ma &lt;likemartinma@gmail.com&gt; Mon, 31 Oct 2011 15:23:09 +0800
-</code></pre>
-
-<p>构建libtolua-dev_5.1.3-2_amd64.deb:</p>
-
-<pre><code>dpkg-buildpackage -d -uc -us -rfakeroot
-</code></pre>
 ]]></content>
   </entry>
   
