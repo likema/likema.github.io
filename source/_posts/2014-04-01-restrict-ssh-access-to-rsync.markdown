@@ -83,7 +83,7 @@ rsync\ --server*)
 esac
 ```
 
-实际仅与读限制脚本相差一行（第行），仅允许没有--sender参数的命令（即上传命令）。
+实际仅与读限制脚本相差一行（第8行），仅允许没有--sender参数的命令（即上传命令）。
 
 
 该脚本（存储在文件/usr/local/bin/validate_push_share）同样需要跟另一个公钥配置在服务器的/home/share/.ssh/authorized_keys，如：
