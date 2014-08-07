@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Linux | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/linux/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2014-04-02T11:02:06+08:00</updated>
+  <updated>2014-08-08T04:11:24+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,80 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Rinse简介——Debian/Ubuntu中创建RPM安装环境]]></title>
+    <link href="http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial/"/>
+    <updated>2014-07-15T20:34:58+08:00</updated>
+    <id>http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial</id>
+    <content type="html"><![CDATA[<p><a href="http://collab-maint.alioth.debian.org/rinse/">Rinse</a>是一个Debian环境中创建RPM发行版本（如CentOS，Scientific Linux和openSUSE）的工具。你可以利用它轻松创建各种RPM发行版本的chroot环境。</p>
+
+<p>以下基于Ubuntu 12.04 amd64，主要以创建CentOS 6 x86_64为例。</p>
+
+<h2>安装Rinse</h2>
+
+<p><code>sh
+sudo apt-get install -y rinse
+</code></p>
+
+<h2>创建CentOS 6</h2>
+
+<p><code>sh
+sudo rinse --distribution centos-6 --arch amd64 --directory centos-6
+</code></p>
+
+<p>运行该命令将创建CentOS 6 amd64于当前工作目录的centos-6目录中。其中，</p>
+
+<ul>
+<li>&mdash;distribution指定发行版本，类似还可以centos-{4,5}， fedora-core-{4,5,6,7,8,9}和opensuse-{10.1,10.2,10.3,11.0,11.1,12.1}等。可以下述命令获取：</li>
+</ul>
+
+
+<p><code>sh
+rinse --list-distributions
+</code></p>
+
+<p>具体对应于/etc/rinse/*.packages的模板名，它们主要包含RPM包列表。换一句话说，你根据需要定制自己的模板。另一方面，你也可以通过&mdash;pkgs-dir指定不同于/etc/rinse的模板目录。</p>
+
+<ul>
+<li>&mdash;arch指定架构，amd64表示64位架构，i386表示32位架构。缺省为i386.</li>
+<li>&mdash;directory指定为安装目录，安装结束后便可以chroot该目录了。</li>
+</ul>
+
+
+<p>另外，需要额外安装某些包，可以通过指定&mdash;add-pkg-list来完成。</p>
+
+<h2>配置RPM缓存</h2>
+
+<p>rinse默认使用/var/rinse/cache作为缓存目录，它大大缩短了重复运行同样命令的时间。具体通过：</p>
+
+<ul>
+<li>&mdash;cache 0指禁用缓存，缺省为1</li>
+<li>&mdash;cache-dir指定不同于/var/rinse/cache作为缓存目录。</li>
+<li>&mdash;clean-cache指清楚缓存</li>
+</ul>
+
+
+<h2>定制安装后执行脚本</h2>
+
+<p>&mdash;after-post-install, &mdash;before-post-install和&mdash;post-install顾名思义，需要指出的是&mdash;post-install默认执行/usr/lib/rinse/<distribution>/post-install.sh.</p>
+
+<h2>如何提高安装速度？</h2>
+
+<p>通过修改/etc/rinse/rinse.conf中对应发行版的镜像地址可以加速安装，如CentOS 6 x86_64的镜像地址可以修改为</p>
+
+<pre><code>http://centos.ustc.edu.cn/centos/6/os/x86_64/CentOS/
+</code></pre>
+
+<p>也可以通过&mdash;config指定不同于/etc/rinse/rinse.conf的配置文件。</p>
+
+<p>若内网存在HTTP cache服务器（如Squid)，还可以设置环境变量http_proxy来缓存rpm以及加速安装，如：</p>
+
+<p><code>sh
+sudo http_proxy=http://&lt;http proxy address&gt; rinse --distribution centos-6 --arch amd64 --directory centos-6
+</code></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[利用SSH限制rsync的访问目录]]></title>
@@ -606,74 +680,6 @@ git tag debian/5.1.3-2
 <p>这里的关键命令git-dch -R -a自动生成了release的版本信息，当然我们也可以根据需要再修改它们。最后一条命令，给master分支的HEAD加上标签debian/5.1.3-2，git-buildpackage将依赖于它才能继续正确工作。</p>
 
 <p>到此为止，我已经演示了git-buildpackage的补丁制作过程，可以观察../tolua-build目录中生成的文件，它们就是我们可以用于发布的deb包源码文件，形式上与ubuntu/debian中apt-get source得到的一样。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Ubuntu 11.10 VirtualBox的Host-only网卡上外网和DHCP永久地址]]></title>
-    <link href="http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp/"/>
-    <updated>2011-12-20T00:00:00+08:00</updated>
-    <id>http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp</id>
-    <content type="html"><![CDATA[<p>VirtualBox支持各种虚拟网络：NAT, Bridge Adapter, Internal Network和Host-only Adapter等。其中Bridged Adapter最为简单和常用，它几乎是0配置，直接桥接有线或无线物理网卡就可以与互联网通信。</p>
-
-<p>然而，我工作场所内部网和家里内部网的网段不相同，DHCP存在一定租赁时间，如果使用Bridged Adapter并DHCP获取IP地址的时候，虚拟机地址经常会改变。为此，我将笔记本电脑的VirtualBox虚拟机都修改为Host-only Adapter模式。</p>
-
-<p>一个问题是Host-only Adapter（网段为192.168.56.0/24）默认不能与互联网通信。google之后发现网上早有人遇到类似问题，他们给出的解决办法是在/etc/rc.local中加入：</p>
-
-<p><code>sh
-iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
-</code></p>
-
-<p>另一个问题是VirtualBox内置DHCP的IP租赁时间设置，也无法将MAC地址与IP地址静态绑定，这造成虚拟机IP地址每隔一段时间改变一次，给使用带来诸多不方便。另一方面，我也不想静态设置IP地址，因为如果这样做，我必须每安装一次虚拟机都要重新设置IP地址。</p>
-
-<p>以前就听说过dnsmasq，不仅集成DNS、DHCP和TFTP功能，而且占用资源很少，设置也相对简单。</p>
-
-<ul>
-<li>安装dnsmasq</li>
-</ul>
-
-
-<p><code>sh
-sudo apt-get install dnsmasq
-</code></p>
-
-<ul>
-<li>打开/etc/dnsmasq.conf，针对vboxnet0配置DHCP。</li>
-</ul>
-
-
-<p>```plain
-interface=vboxnet0</p>
-
-<h1>192.168.56.1是默认网关（host机器的vboxnet0地址）</h1>
-
-<h1>208.67.222.222和208.67.220.220是DNS地址(这里使用了OpenDNS)</h1>
-
-<p>dhcp-option=vboxnet0,option:dns-server,192.168.56.1,208.67.222.222,208.67.220.220</p>
-
-<h1>192.168.56.2和192.168.56.254为分配地址范围</h1>
-
-<h1>infinite表示IP永远不过期</h1>
-
-<p>dhcp-range=vboxnet0,192.168.56.2,192.168.56.254,infinite
-```</p>
-
-<ul>
-<li>重启动dnsmasq</li>
-</ul>
-
-
-<p><code>sh
-sudo service dnsmasq restart
-</code></p>
-
-<p>当然，dnsmasq也支持MAC地址与IP地址静态绑定。比如，在/etc/dnsmasq.conf中针对MAC地址08:00:27:81:51:85，分配机器名vbox-xp，分配IP地址192.168.56.2</p>
-
-<p><code>plain
-dhcp-host=vbox-xp,08:00:27:81:51:85,192.168.56.2
-</code></p>
-
-<p>最后，不要忘了重启动dnsmasq。</p>
 ]]></content>
   </entry>
   

@@ -9,7 +9,7 @@
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="我经常使用VPS来共享数据给朋友同事。由于VPS通常内存较小，不太适合安装ftp服务器；而http服务器常常只有下载的功能；更重要是某些数据较大，每天可能都在改变，需要增量同步上传或下载。 rsync是这类场景的良好选择。一方面，通过SSH服务器来工作，它不常驻内存，节约了VPS内存使用；另一方面 &hellip;">
+  <meta name="description" content="Rinse是一个Debian环境中创建RPM发行版本（如CentOS，Scientific Linux和openSUSE）的工具。你可以利用它轻松创建各种RPM发行版本的chroot环境。 以下基于Ubuntu 12.04 amd64，主要以创建CentOS 6 x86_64为例。 安装Rinse &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,114 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/07/15/rinse-tutorial/">Rinse简介——Debian/Ubuntu中创建RPM安装环境</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-07-15T20:34:58+08:00" pubdate data-updated="true">Jul 15<span>th</span>, 2014</time>
+        
+           | <a href="/blog/2014/07/15/rinse-tutorial/#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="http://collab-maint.alioth.debian.org/rinse/">Rinse</a>是一个Debian环境中创建RPM发行版本（如CentOS，Scientific Linux和openSUSE）的工具。你可以利用它轻松创建各种RPM发行版本的chroot环境。</p>
+
+<p>以下基于Ubuntu 12.04 amd64，主要以创建CentOS 6 x86_64为例。</p>
+
+<h2>安装Rinse</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo apt-get install -y rinse
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>创建CentOS 6</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo rinse --distribution centos-6 --arch amd64 --directory centos-6
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>运行该命令将创建CentOS 6 amd64于当前工作目录的centos-6目录中。其中，</p>
+
+<ul>
+<li>&mdash;distribution指定发行版本，类似还可以centos-{4,5}， fedora-core-{4,5,6,7,8,9}和opensuse-{10.1,10.2,10.3,11.0,11.1,12.1}等。可以下述命令获取：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>rinse --list-distributions
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>具体对应于/etc/rinse/*.packages的模板名，它们主要包含RPM包列表。换一句话说，你根据需要定制自己的模板。另一方面，你也可以通过&mdash;pkgs-dir指定不同于/etc/rinse的模板目录。</p>
+
+<ul>
+<li>&mdash;arch指定架构，amd64表示64位架构，i386表示32位架构。缺省为i386.</li>
+<li>&mdash;directory指定为安装目录，安装结束后便可以chroot该目录了。</li>
+</ul>
+
+
+<p>另外，需要额外安装某些包，可以通过指定&mdash;add-pkg-list来完成。</p>
+
+<h2>配置RPM缓存</h2>
+
+<p>rinse默认使用/var/rinse/cache作为缓存目录，它大大缩短了重复运行同样命令的时间。具体通过：</p>
+
+<ul>
+<li>&mdash;cache 0指禁用缓存，缺省为1</li>
+<li>&mdash;cache-dir指定不同于/var/rinse/cache作为缓存目录。</li>
+<li>&mdash;clean-cache指清楚缓存</li>
+</ul>
+
+
+<h2>定制安装后执行脚本</h2>
+
+<p>&mdash;after-post-install, &mdash;before-post-install和&mdash;post-install顾名思义，需要指出的是&mdash;post-install默认执行/usr/lib/rinse/<distribution>/post-install.sh.</p>
+
+<h2>如何提高安装速度？</h2>
+
+<p>通过修改/etc/rinse/rinse.conf中对应发行版的镜像地址可以加速安装，如CentOS 6 x86_64的镜像地址可以修改为</p>
+
+<pre><code>http://centos.ustc.edu.cn/centos/6/os/x86_64/CentOS/
+</code></pre>
+
+<p>也可以通过&mdash;config指定不同于/etc/rinse/rinse.conf的配置文件。</p>
+
+<p>若内网存在HTTP cache服务器（如Squid)，还可以设置环境变量http_proxy来缓存rpm以及加速安装，如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo <span class="nv">http_proxy</span><span class="o">=</span>http://&lt;http proxy address&gt; rinse --distribution centos-6 --arch amd64 --directory centos-6
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1855,120 +1963,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/10/31/tolua-deb-patch/">为tolua的deb包作一个补丁</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-10-31T00:00:00+08:00" pubdate data-updated="true"></time>
-        
-           | <a href="/blog/2011/10/31/tolua-deb-patch/#disqus_thread"
-             data-disqus-identifier="http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>近日在学习tolua时发现在Kubuntu 11.10 amd64平台下将其链接到so时报告如下错误：</p>
-
-<blockquote><p>relocation R_X86_64_32 against &lsquo;.rodata&rsquo; can not be used when making a shared object; recompile with -fPIC</p></blockquote>
-
-<p>为此，我决定在其原deb基础上加一个补丁，这样生成的新包可以安装到其他开发机器上，省去了每次重编译tolua的重复劳动。</p>
-
-<p>为构建和修改deb安装必要的工具（配置quilt）：</p>
-
-<pre><code>sudo apt-get install build-essential debhelper quilt
-</code></pre>
-
-<p>下载libtolua-dev的源码，创建补丁add-fpic-O2-for-amd64.patch，并将config文件加入其中：</p>
-
-<pre><code>apt-get source libtolua-dev
-cd tolua-5.1.3
-mkdir -p debian/patches
-quilt new add-fpic-O2-for-amd64.patch
-quilt add config
-</code></pre>
-
-<p>将config文件中，如下内容</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nv">CFLAGS</span> <span class="o">=</span> -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
-</span><span class='line'><span class="nv">CPPFLAGS</span> <span class="o">=</span> -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>替换为</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nv">CFLAGS</span> <span class="o">=</span> -fPIC -O2 -pipe -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
-</span><span class='line'><span class="nv">CPPFLAGS</span> <span class="o">=</span> -fPIC -O2 -pipe  -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
-</span><span class='line'><span class="nv">CFLAGS</span> <span class="o">=</span> -fPIC -O2 -pipe -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>生成补丁add-fpic-O2-for-amd64.patch</p>
-
-<pre><code>quilt refresh
-</code></pre>
-
-<p>为补丁增加描述信息</p>
-
-<pre><code>quilt header -e
-</code></pre>
-
-<p>其具体内容如下：</p>
-
-<pre><code>Description: Fix relocation R_X86_64_32 against '.rodata' error for shared object.
-Author: Like Ma &lt;likemartinma@gmail.com&gt;
-
-  * config: add -fPIC -O2 -pipe to CFLAGS and CPPFLAGS
-</code></pre>
-
-<p>通过执行</p>
-
-<pre><code>dch -R
-</code></pre>
-
-<p>在debian/changelog顶部增加日志信息：</p>
-
-<pre><code>tolua (5.1.3-2) unstable; urgency=low
-
-  * Fix relocation R_X86_64_32 against '.rodata' error for shared object.
-
--- Like Ma &lt;likemartinma@gmail.com&gt; Mon, 31 Oct 2011 15:23:09 +0800
-</code></pre>
-
-<p>构建libtolua-dev_5.1.3-2_amd64.deb:</p>
-
-<pre><code>dpkg-buildpackage -d -uc -us -rfakeroot
-</code></pre>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -1984,6 +1978,10 @@ Author: Like Ma &lt;likemartinma@gmail.com&gt;
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/07/15/rinse-tutorial/">Rinse简介——Debian/Ubuntu中创建RPM安装环境</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/04/01/restrict-ssh-access-to-rsync/">利用SSH限制rsync的访问目录</a>
       </li>
     
@@ -1997,10 +1995,6 @@ Author: Like Ma &lt;likemartinma@gmail.com&gt;
     
       <li class="post">
         <a href="/blog/2013/10/27/customize-python-modules-installation-without-source-files/">定制无源码安装Python模块</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/10/23/flake8-tutorial/">Flake8简介</a>
       </li>
     
   </ul>
@@ -2049,7 +2043,7 @@ Author: Like Ma &lt;likemartinma@gmail.com&gt;
 
 <section>
   <h1>Categories</h1>
-    <ul id="category-list"><li><a href='/blog/categories/c'>C (1)</a></li><li><a href='/blog/categories/c-'>C++ (1)</a></li><li><a href='/blog/categories/debian'>Debian (3)</a></li><li><a href='/blog/categories/dnsmasq'>Dnsmasq (1)</a></li><li><a href='/blog/categories/git'>Git (2)</a></li><li><a href='/blog/categories/linux'>Linux (6)</a></li><li><a href='/blog/categories/lua'>Lua (1)</a></li><li><a href='/blog/categories/lxc'>LXC (1)</a></li><li><a href='/blog/categories/mpc'>MPC (1)</a></li><li><a href='/blog/categories/python'>Python (4)</a></li><li><a href='/blog/categories/ubuntu'>Ubuntu (2)</a></li><li><a href='/blog/categories/virtualbox'>VirtualBox (1)</a></li><li><a href='/blog/categories/windows'>Windows (1)</a></li></ul>
+    <ul id="category-list"><li><a href='/blog/categories/c'>C (1)</a></li><li><a href='/blog/categories/c-'>C++ (1)</a></li><li><a href='/blog/categories/debian'>Debian (4)</a></li><li><a href='/blog/categories/dnsmasq'>Dnsmasq (1)</a></li><li><a href='/blog/categories/git'>Git (2)</a></li><li><a href='/blog/categories/linux'>Linux (7)</a></li><li><a href='/blog/categories/lua'>Lua (1)</a></li><li><a href='/blog/categories/lxc'>LXC (1)</a></li><li><a href='/blog/categories/mpc'>MPC (1)</a></li><li><a href='/blog/categories/python'>Python (4)</a></li><li><a href='/blog/categories/ubuntu'>Ubuntu (3)</a></li><li><a href='/blog/categories/virtualbox'>VirtualBox (1)</a></li><li><a href='/blog/categories/windows'>Windows (1)</a></li></ul>
 </section>
 
   
