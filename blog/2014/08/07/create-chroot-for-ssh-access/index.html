@@ -5,11 +5,12 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Category: C - Like的世界</title>
+  <title>创建通过SSH访问的chroot - Like的世界</title>
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="Category: C">
+  <meta name="description" content="我的工作环境是Ubuntu，然而经常需要CentOS来编译或测试。一般存在3种解决办法： 创建VirtualBox或KVM虚拟机： 优点：部署容易，且可以运行各种应用（如Oracle）。
+缺点：运行速度相对LXC和chroot慢，特别是I/O. 创建CentOS的LXC： 优点：运行速度快， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +19,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://www.malike.net.cnblog/categories/c">
+  <link rel="canonical" href="http://www.malike.net.cn/blog/2014/08/07/create-chroot-for-ssh-access">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Like的世界" type="application/atom+xml">
@@ -77,36 +78,190 @@
   <div id="main">
     <div id="content">
       <div>
-<article role="article">
+<article class="hentry" role="article">
   
   <header>
-    <h1 class="entry-title">Category: C</h1>
+    
+      <h1 class="entry-title">创建通过SSH访问的chroot</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-08-07T18:09:48+08:00" pubdate data-updated="true">Aug 7<span>th</span>, 2014</time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn">Comments</a>
+        
+      </p>
     
   </header>
-  
-  <div id="blog-archives" class="category">
 
 
+<div class="entry-content"><p>我的工作环境是Ubuntu，然而经常需要CentOS来编译或测试。一般存在3种解决办法：</p>
 
-  
-  <h2>2008</h2>
+<ul>
+<li>创建VirtualBox或KVM虚拟机：
 
-<article>
-  
-<h1><a href="/blog/2008/10/05/mpc-tutorial/">MakeProjectCreator (MPC) 简介</a></h1>
-<time datetime="2008-10-05T00:00:00+08:00" pubdate><span class='month'>Oct</span> <span class='day'>05</span> <span class='year'>2008</span></time>
+<ul>
+<li>优点：部署容易，且可以运行各种应用（如Oracle）。</li>
+<li>缺点：运行速度相对LXC和chroot慢，特别是I/O.</li>
+</ul>
+</li>
+<li>创建CentOS的LXC：
 
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/c/'>C</a>, <a class='category' href='/blog/categories/c-plus-plus/'>C++</a>, <a class='category' href='/blog/categories/mpc/'>MPC</a>, <a class='category' href='/blog/categories/windows/'>Windows</a></span>
-</footer>
+<ul>
+<li>优点：运行速度快，且具有独立IP，可以通过SSH访问。</li>
+<li>缺点: 需要修改启动脚本。</li>
+</ul>
+</li>
+<li>创建CentOS的chroot：
+
+<ul>
+<li>优点：不需要修改任何配置。</li>
+<li>缺点：无法直接通过SSH访问，且需要root权限才能运行chroot。</li>
+</ul>
+</li>
+</ul>
 
 
-</article>
+<h2>创建CentOS的chroot</h2>
 
+<p>具体参看<a href="/blog/2014/07/15/rinse-tutorial/">Rinse简介</a></p>
+
+<h2>创建SSH用户（或组）</h2>
+
+<p>在当前OS环境中，创建用户centos6.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo useradd -m -s /bin/bash centos6
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>获取centos6的uid和gid</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>id -u centos6
+</span><span class='line'>id -g centos6
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在chroot环境中创建同名用户，且保持uid和gid相同。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo chroot /var/lib/centos-6 /bin/bash
+</span><span class='line'>groupadd -g &lt;gid&gt; centos6
+</span><span class='line'>useradd -s /bin/bash -m -u &lt;uid&gt; -g centos6 centos6
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>配置sshd</h2>
+
+<p>将下述内容追加至/etc/ssh/sshd_config</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>Match group centos6
+</span><span class='line'>  ChrootDirectory /var/lib/centos-6
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样保证centos6组的用户登录ssh时，chroot至/var/lib/centos-6目录中。</p>
+
+<h2>配置dev, proc和sysfs</h2>
+
+<p>chroot环境中rpm安装和卸载的前/后置脚本依赖dev, proc和sysfs，否则可能将造成安装和卸载错误。</p>
+
+<p>在/etc/fstab中，增加proc和sysfs的挂载选项</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>proc /var/lib/centos-6/proc proc  defaults      0 0
+</span><span class='line'>none /var/lib/centos-6/sys  sysfs defaults      0 0
+</span><span class='line'>/dev /var/lib/centos-6/dev  none  defaults,bind 0 0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>配置ssh密钥登录</h2>
+
+<p>chroot的ssh密钥登录与常规情况的唯一区别在于公钥应存放在当前OS环境（而非chroot环境）的~/.ssh/authorized_keys，因为sshd在执行chroot之前需要检查公钥是否正确。</p>
+
+<p>因此，本例中应该存放在当前OS的/home/centos-6/.ssh/authorized_keys.</p>
 </div>
 
+
+  <footer>
+    <p class="meta">
+      
   
+
+<span class="byline author vcard">Posted by <span class="fn">Like Ma</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-08-07T18:09:48+08:00" pubdate data-updated="true">Aug 7<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/linux/'>Linux</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.malike.net.cn/blog/2014/08/07/create-chroot-for-ssh-access/" data-via="" data-counturl="http://www.malike.net.cn/blog/2014/08/07/create-chroot-for-ssh-access/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/07/15/rinse-tutorial/" title="Previous Post: Rinse简介——Debian/Ubuntu中创建RPM安装环境">&laquo; Rinse简介——Debian/Ubuntu中创建RPM安装环境</a>
+      
+      
+    </p>
+  </footer>
 </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
 
 </div>
 
@@ -203,7 +358,10 @@
       var disqus_shortname = 'likeworld';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.malike.net.cn/blog/2014/08/07/create-chroot-for-ssh-access/';
+        var disqus_url = 'http://www.malike.net.cn/blog/2014/08/07/create-chroot-for-ssh-access/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
