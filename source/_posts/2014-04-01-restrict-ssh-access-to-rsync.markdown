@@ -2,7 +2,7 @@
 layout: post
 title: 利用SSH限制rsync的访问目录
 comments: true
-categories: [Linux]
+categories: [Linux, SSH]
 ---
 
 我经常使用VPS来共享数据给朋友同事。由于VPS通常内存较小，不太适合安装ftp服务器；而http服务器常常只有下载的功能；更重要是某些数据较大，每天可能都在改变，需要增量同步上传或下载。
