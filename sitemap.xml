@@ -44,7 +44,7 @@
     </url>
     <url>
         <loc>http://www.malike.net.cn/blog/2014/04/01/restrict-ssh-access-to-rsync/</loc>
-        <lastmod>2014-04-02T11:01:37+08:00</lastmod>
+        <lastmod>2014-10-27T01:53:18+08:00</lastmod>
     </url>
     <url>
         <loc>http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial/</loc>
@@ -52,11 +52,15 @@
     </url>
     <url>
         <loc>http://www.malike.net.cn/blog/2014/08/07/create-chroot-for-ssh-access/</loc>
-        <lastmod>2014-08-11T12:02:18+08:00</lastmod>
+        <lastmod>2014-10-27T01:53:23+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://www.malike.net.cn/blog/2014/10/27/ssh-tunnel-tutorial/</loc>
+        <lastmod>2014-10-27T04:09:33+08:00</lastmod>
     </url>
     <url>
         <loc>http://www.malike.net.cn/blog/archives/</loc>
-        <lastmod>2014-08-11T12:02:18+08:00</lastmod>
+        <lastmod>2014-10-27T04:09:33+08:00</lastmod>
     </url>
     <url>
         <loc>http://www.malike.net.cn/blog/categories/</loc>
@@ -64,7 +68,7 @@
     </url>
     <url>
         <loc>http://www.malike.net.cn/</loc>
-        <lastmod>2014-08-11T12:02:18+08:00</lastmod>
+        <lastmod>2014-10-27T04:09:33+08:00</lastmod>
     </url>
     <url>
         <loc>http://www.malike.net.cn/robots.txt</loc>
