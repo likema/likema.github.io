@@ -1,0 +1,1007 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Like的世界</title>
+  <meta name="author" content="Like Ma">
+
+  
+  <meta name="description" content="在《为tolua的deb包作一个补丁》中，我介绍了如何利用quilt为Ubuntu已有包做一个补丁包的办法。可以看出quilt具有一定的版本管理能力，然而与流行版本管理系统相比，功能较弱也不灵活。 从Debian New Maintainers&#8217; Guide中， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.malike.net.cn/blog/page/2">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Like的世界" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-44993010-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Like的世界</a></h1>
+  
+    <h2>个人总结与随想</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:www.malike.net.cn" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/02/19/git-buildpackage-1/">Git-buildpackage示例（一）</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-02-19T00:00:00+08:00" pubdate data-updated="true"></time>
+        
+           | <a href="/blog/2012/02/19/git-buildpackage-1/#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn/blog/2012/02/19/git-buildpackage-1/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在《为tolua的deb包作一个补丁》中，我介绍了如何利用quilt为Ubuntu已有包做一个补丁包的办法。可以看出quilt具有一定的版本管理能力，然而与流行版本管理系统相比，功能较弱也不灵活。</p>
+
+<p>从<a href="http://www.debian.org/doc/manuals/maint-guide/">Debian New Maintainers&#8217; Guide</a>中，了解到deb包的制作和维护管理已经与现有流行版本管理系统结合在了一块，其中一款工具为git-buildpackage，它将包制作和维护，特别是第三方补丁包维护，与git紧密的结合了起来。</p>
+
+<p>下面仍然以tolua的补丁制作为例，一步一步展示git-buildpackage的基本操作。</p>
+
+<ul>
+<li>安装必要的工具：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo apt-get install git-buildpackage build-essential debhelper quilt
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>下载libtolua-dev的源码（建立upstream目录单独存放Ubuntu的deb源码包是为了保证清洁和正确）：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>mkdir upstream
+</span><span class='line'>apt-get <span class="nb">source </span>libtolua-dev
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>导入upsteam的dsc文件（将生成与目录upstream同级的目录tolua）：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">cd</span> ..
+</span><span class='line'>git-import-dsc upstream/tolua_5.1.3-1.dsc
+</span><span class='line'><span class="nb">cd </span>tolua
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这时，运行</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git log --format<span class="o">=</span>%d:%s
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>输出：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> (HEAD, debian/5.1.3-1, master):Imported Debian patch 5.1.3-1
+</span><span class='line'> (upstream/5.1.3, upstream):Imported Upstream version 5.1.3</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从下至上，首条提交导入了tolua 5.1.3的源码，次条提交导入了deb包维护者的deb包文件(debian/*)；并且建立了upstream和master两个分支，标签upstream/5.1.3位于upstream分支上，标签debian/5.1.3-1位于master分支头部。</p>
+
+<p>此外，upstream分支用于维护源码作者的发布版本更新情况，master分支用于维护deb包描述文件及其补丁文件。git-buildpackage工具集的正确运行将依赖于标签upstream/5.1.3和debian/5.1.3-1，不能随意删改。</p>
+
+<ul>
+<li>导入quilt patches到patch queue中——创建patch-queue/master分支，并将debian/patches/*逐一变成该分支的提交，并自动切换到该分支上：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>gbp-pq import
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>执行make后发现构建目标libtolua.a的生成目录lib不存在，这是git只针对文件做版本，所以upstream导入git时，该目录被忽略了。为此，我将src/lib/Makefile中</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nf">$T</span><span class="o">:</span> <span class="m">$(OBJS)</span>
+</span><span class='line'>  <span class="k">$(</span>AR<span class="k">)</span> <span class="nv">$@</span> <span class="k">$(</span>OBJS<span class="k">)</span>
+</span><span class='line'>  <span class="k">$(</span>RANLIB<span class="k">)</span> <span class="nv">$@</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>修改为：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nf">$T</span><span class="o">:</span> <span class="m">$(OBJS)</span>
+</span><span class='line'>  mkdir -p <span class="k">$(</span>@D<span class="k">)</span>
+</span><span class='line'>  <span class="k">$(</span>AR<span class="k">)</span> <span class="nv">$@</span> <span class="k">$(</span>OBJS<span class="k">)</span>
+</span><span class='line'>  <span class="k">$(</span>RANLIB<span class="k">)</span> <span class="nv">$@</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样，它将在每次构建该目标时，创建该目标所在目录。更进一步不难发现，src/bin/tolua_lua.o和src/bin/toluabind.c为受版本控制的中间文件，将影响构建的正确运行。为此，删除这两个文件并提交日志。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git rm -f src/bin/tolua_lua.o src/bin/toluabind.c
+</span><span class='line'>git commit -a -m <span class="s2">&quot;mkdir for tolua lib archive and remove temp files&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>此时，可以正确make该工程了。</p>
+
+<ul>
+<li>修复x86_64链接问题，将config文件中，如下内容</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nv">CFLAGS</span><span class="o">=</span> -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
+</span><span class='line'><span class="nv">CPPFLAGS</span><span class="o">=</span> -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>替换为</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nv">CFLAGS</span><span class="o">=</span> -fPIC -O2 -pipe -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
+</span><span class='line'><span class="nv">CPPFLAGS</span><span class="o">=</span> -fPIC -O2 -pipe  -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>并提交日志：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git commit -a -m <span class="s2">&quot;Fix relocation R_X86_64_32 against &#39;.rodata&#39; erro for shared object.&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>导出patch-queue——将其分支提交逐一转化为debian/patches目录下的补丁文件（为保证正确运行，清理掉中间文件）：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git clean -df
+</span><span class='line'>gbp-pq <span class="nb">export</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>指定版本号5.1.3-2自动生成snapshot的debian/changelog：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git-dch -S -a -N 5.1.3-2
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>debian/changelog的新增内容如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>tolua (5.1.3-2~1.gbp896bed) UNRELEASED; urgency=low
+</span><span class='line'>
+</span><span class='line'>  ** SNAPSHOT build @896bede5a4eb6f3967cdfe94ea2ef419235e7183 **
+</span><span class='line'>
+</span><span class='line'>  * UNRELEASED
+</span><span class='line'>
+</span><span class='line'> -- Like Ma   Sun, 19 Feb 2012 01:07:06 +0800</span></code></pre></td></tr></table></div></figure>
+
+
+<p>提交相关修改：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git add debian/changelog <span class="se">\</span>
+</span><span class='line'>      debian/patches/series <span class="se">\</span>
+</span><span class='line'>      debian/patches/0001-mkdir-for-tolua-lib-archive-and-remove-temp-files.patch <span class="se">\</span>
+</span><span class='line'>      debian/patches/0002-Fix-relocation-R_X86_64_32-against-.rodata-can-not-b.patch
+</span><span class='line'>git commit -m <span class="s2">&quot;Fix relocation R_X86_64_32 against &#39;.rodata&#39; error for shared object&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>测试构建新的deb包。为了避免污染当前环境，这里指定git首先导出源码至../tolua-build目录：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git-buildpackage --git-export-dir<span class="o">=</span>../tolua-build --git-ignore-new
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以看出，上述debian/changelog新增信息，除版本号5.1.3-2外（新包的版本信息），并无实在意义，仅用于测试deb包的构建。</p>
+
+<ul>
+<li>生成release的版本信息，并构建release的deb包：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git checkout src/bin/tolua_lua.o src/bin/toluabind.c
+</span><span class='line'>git-dch -R -a
+</span><span class='line'>git commit -a --amend
+</span><span class='line'>git-buildpackage --git-export-dir<span class="o">=</span>../tolua-build --git-ignore-new
+</span><span class='line'>git tag debian/5.1.3-2
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意，前面仅仅在patch-queue分支上删除的两个中间文件，并未在master分支上删除它们，所以重新checkout它们以保证后续构建的正确运行。</p>
+
+<p>这里的关键命令git-dch -R -a自动生成了release的版本信息，当然我们也可以根据需要再修改它们。最后一条命令，给master分支的HEAD加上标签debian/5.1.3-2，git-buildpackage将依赖于它才能继续正确工作。</p>
+
+<p>到此为止，我已经演示了git-buildpackage的补丁制作过程，可以观察../tolua-build目录中生成的文件，它们就是我们可以用于发布的deb包源码文件，形式上与ubuntu/debian中apt-get source得到的一样。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/12/20/vbox-hostonly-dhcp/">Ubuntu 11.10 VirtualBox的Host-only网卡上外网和DHCP永久地址</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-12-20T00:00:00+08:00" pubdate data-updated="true"></time>
+        
+           | <a href="/blog/2011/12/20/vbox-hostonly-dhcp/#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>VirtualBox支持各种虚拟网络：NAT, Bridge Adapter, Internal Network和Host-only Adapter等。其中Bridged Adapter最为简单和常用，它几乎是0配置，直接桥接有线或无线物理网卡就可以与互联网通信。</p>
+
+<p>然而，我工作场所内部网和家里内部网的网段不相同，DHCP存在一定租赁时间，如果使用Bridged Adapter并DHCP获取IP地址的时候，虚拟机地址经常会改变。为此，我将笔记本电脑的VirtualBox虚拟机都修改为Host-only Adapter模式。</p>
+
+<p>一个问题是Host-only Adapter（网段为192.168.56.0/24）默认不能与互联网通信。google之后发现网上早有人遇到类似问题，他们给出的解决办法是在/etc/rc.local中加入：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>另一个问题是VirtualBox内置DHCP的IP租赁时间设置，也无法将MAC地址与IP地址静态绑定，这造成虚拟机IP地址每隔一段时间改变一次，给使用带来诸多不方便。另一方面，我也不想静态设置IP地址，因为如果这样做，我必须每安装一次虚拟机都要重新设置IP地址。</p>
+
+<p>以前就听说过dnsmasq，不仅集成DNS、DHCP和TFTP功能，而且占用资源很少，设置也相对简单。</p>
+
+<ul>
+<li>安装dnsmasq</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo apt-get install dnsmasq
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>打开/etc/dnsmasq.conf，针对vboxnet0配置DHCP。</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>interface=vboxnet0
+</span><span class='line'>
+</span><span class='line'># 192.168.56.1是默认网关（host机器的vboxnet0地址）
+</span><span class='line'># 208.67.222.222和208.67.220.220是DNS地址(这里使用了OpenDNS)
+</span><span class='line'>dhcp-option=vboxnet0,option:dns-server,192.168.56.1,208.67.222.222,208.67.220.220
+</span><span class='line'>
+</span><span class='line'># 192.168.56.2和192.168.56.254为分配地址范围
+</span><span class='line'># infinite表示IP永远不过期
+</span><span class='line'>dhcp-range=vboxnet0,192.168.56.2,192.168.56.254,infinite</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>重启动dnsmasq</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo service dnsmasq restart
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当然，dnsmasq也支持MAC地址与IP地址静态绑定。比如，在/etc/dnsmasq.conf中针对MAC地址08:00:27:81:51:85，分配机器名vbox-xp，分配IP地址192.168.56.2</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dhcp-host=vbox-xp,08:00:27:81:51:85,192.168.56.2</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最后，不要忘了重启动dnsmasq。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/10/31/tolua-deb-patch/">为tolua的deb包作一个补丁</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-10-31T00:00:00+08:00" pubdate data-updated="true"></time>
+        
+           | <a href="/blog/2011/10/31/tolua-deb-patch/#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>近日在学习tolua时发现在Kubuntu 11.10 amd64平台下将其链接到so时报告如下错误：</p>
+
+<blockquote><p>relocation R_X86_64_32 against &lsquo;.rodata&rsquo; can not be used when making a shared object; recompile with -fPIC</p></blockquote>
+
+<p>为此，我决定在其原deb基础上加一个补丁，这样生成的新包可以安装到其他开发机器上，省去了每次重编译tolua的重复劳动。</p>
+
+<p>为构建和修改deb安装必要的工具（配置quilt）：</p>
+
+<pre><code>sudo apt-get install build-essential debhelper quilt
+</code></pre>
+
+<p>下载libtolua-dev的源码，创建补丁add-fpic-O2-for-amd64.patch，并将config文件加入其中：</p>
+
+<pre><code>apt-get source libtolua-dev
+cd tolua-5.1.3
+mkdir -p debian/patches
+quilt new add-fpic-O2-for-amd64.patch
+quilt add config
+</code></pre>
+
+<p>将config文件中，如下内容</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nv">CFLAGS</span> <span class="o">=</span> -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
+</span><span class='line'><span class="nv">CPPFLAGS</span> <span class="o">=</span> -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>替换为</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nv">CFLAGS</span> <span class="o">=</span> -fPIC -O2 -pipe -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
+</span><span class='line'><span class="nv">CPPFLAGS</span> <span class="o">=</span> -fPIC -O2 -pipe  -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
+</span><span class='line'><span class="nv">CFLAGS</span> <span class="o">=</span> -fPIC -O2 -pipe -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>生成补丁add-fpic-O2-for-amd64.patch</p>
+
+<pre><code>quilt refresh
+</code></pre>
+
+<p>为补丁增加描述信息</p>
+
+<pre><code>quilt header -e
+</code></pre>
+
+<p>其具体内容如下：</p>
+
+<pre><code>Description: Fix relocation R_X86_64_32 against '.rodata' error for shared object.
+Author: Like Ma &lt;likemartinma@gmail.com&gt;
+
+  * config: add -fPIC -O2 -pipe to CFLAGS and CPPFLAGS
+</code></pre>
+
+<p>通过执行</p>
+
+<pre><code>dch -R
+</code></pre>
+
+<p>在debian/changelog顶部增加日志信息：</p>
+
+<pre><code>tolua (5.1.3-2) unstable; urgency=low
+
+  * Fix relocation R_X86_64_32 against '.rodata' error for shared object.
+
+-- Like Ma &lt;likemartinma@gmail.com&gt; Mon, 31 Oct 2011 15:23:09 +0800
+</code></pre>
+
+<p>构建libtolua-dev_5.1.3-2_amd64.deb:</p>
+
+<pre><code>dpkg-buildpackage -d -uc -us -rfakeroot
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2008/10/05/mpc-tutorial/">MakeProjectCreator (MPC) 简介</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2008-10-05T00:00:00+08:00" pubdate data-updated="true"></time>
+        
+           | <a href="/blog/2008/10/05/mpc-tutorial/#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn/blog/2008/10/05/mpc-tutorial/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="http://www.ociweb.com/products/mpc">Makefile, Project, and Workspace Creator (MPC)</a> 原始OCI为网络通信库ACE开发的跨平台工程文件生成工具，它可以生成很多种工程文件，例如Windows平台的Borland Developer Studio, Borland C++ Build 2007, Borland Makefile，Microsoft eMbedded VC3, Microsoft Visual C++ 6/7/71/8/9/10, nmake；Linux平台的automake, make等。</p>
+
+<p>下面将以Windows平台的nmake和vc9为例介绍MPC的使用方法。首先，我们需要下载</p>
+
+<ol>
+<li><a href="http://www.activestate.com/activeperl">ActivePerl</a>，双击执行安装;</li>
+<li><a href="http://download.ociweb.com/MPC/">MPC</a>，以解压到C:盘为例，设置系统环境变量MPC_ROOT为C:\MPC，以及将%MPC_ROOT%追加系统环境变量PATH。当然，你也可以通过双击执行C:\MPC\registry.pl将生成工程文件的功能注册到右键菜单中。</li>
+</ol>
+
+
+<h2>一、一个Hello World工程</h2>
+
+<p>首先，建立目录helloworld，并且在这个目录下且创建helloworld.cpp，内容如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="kt">int</span> <span class="n">main</span> <span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Hello World!&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后，创建MPC工程文件helloworld.mpc，内容如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>project {
+</span><span class='line'>  exename = helloworld
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最后，打开Visual Studio 2008 Command Prompt（也可以用VS2003或2005的），进入helloworld的目录, 然后输入</p>
+
+<pre><code>mwc.pl -type nmake
+</code></pre>
+
+<p>就生成了格式为nmake的Makefile，它默认包含两个配置Debug和Release。让我们编译一下Debug版本：</p>
+
+<pre><code>nmake CFG="Win32 Debug"
+</code></pre>
+
+<p>你会发现helloworld.exe就生成在当前目录。</p>
+
+<p>或许你希望debug和release生成的exe分别放在debug和release目录，修改一下MPC文件</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>project {
+</span><span class='line'>  exename = helloworld
+</span><span class='line'>  specific (nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
+</span><span class='line'>      Debug::install = debug
+</span><span class='line'>      Release::install = release
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>或许你更喜欢用IDE，让我们生成VS2008的工程文件吧：</p>
+
+<pre><code>mwc.pl -type vc9
+</code></pre>
+
+<h2>二、一个简单dll工程</h2>
+
+<p>首先，建立目录hellodll，并且在这个目录下且创建hellodll.h，内容如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#ifndef HELLO_DLL_H</span>
+</span><span class='line'><span class="cp">#define HELLO_DLL_H</span>
+</span><span class='line'>
+</span><span class='line'><span class="cp">#ifdef HELLO_BUILD_DLL</span>
+</span><span class='line'><span class="cp">#   define HELLO_Export __declspec(dllexport)</span>
+</span><span class='line'><span class="cp">#else</span>
+</span><span class='line'><span class="cp">#   define HELLO_Export __declspec(dllimport)</span>
+</span><span class='line'><span class="cp">#endif </span><span class="cm">/* HELLO_BUILD_DLL */</span><span class="cp"></span>
+</span><span class='line'>
+</span><span class='line'><span class="cp">#ifdef __cplusplus</span>
+</span><span class='line'><span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="p">{</span>
+</span><span class='line'><span class="cp">#endif </span><span class="cm">/* __cplusplus */</span><span class="cp"></span>
+</span><span class='line'>
+</span><span class='line'><span class="n">HELLO_Export</span> <span class="kt">void</span> <span class="n">print_hello</span> <span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'><span class="cp">#ifdef __cplusplus</span>
+</span><span class='line'><span class="p">}</span> <span class="cm">/* extern &quot;C&quot; */</span>
+</span><span class='line'><span class="cp">#endif </span><span class="cm">/* __cplusplus */</span><span class="cp"></span>
+</span><span class='line'>
+</span><span class='line'><span class="cp">#endif </span><span class="cm">/* HELLO_DLL_H */</span><span class="cp"></span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后，创建文件hellodll.cpp，内容如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &quot;hellodll.h&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">void</span> <span class="nf">print_hello</span> <span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Hello World!&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最后，创建文件hellodll.mpc，内容如下</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>project {
+</span><span class='line'>  sharedname = hello
+</span><span class='line'>  dynamicflags += HELLO_BUILD_DLL
+</span><span class='line'>  specific(nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
+</span><span class='line'>      Debug::dllout = debug
+</span><span class='line'>      Release::dllout = release
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>之后，执行如下命令，可以生成Debug和Release的dll。注意Debug的dll是hellod.dll。</p>
+
+<pre><code>mwc.pl -type nmake
+nmake
+nmake CFG="Win32 Release"
+</code></pre>
+
+<p>接下来，我们做一个工程来驱动这个dll</p>
+
+<h2>三、hello dll的测试工程</h2>
+
+<p>首先，在原来的目录hellodll下建立文件hellowtest.cpp，内容如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &quot;hellodll.h&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">print_hello</span> <span class="p">();</span>
+</span><span class='line'>    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后，创建文件hellotest.mpc，内容如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>project {
+</span><span class='line'>  after += hellodll
+</span><span class='line'>  exename = hellotest
+</span><span class='line'>  libs += hello
+</span><span class='line'>
+</span><span class='line'>  Source_Files {
+</span><span class='line'>      hellotest.cpp
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>  specific(nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
+</span><span class='line'>      Debug::libpaths = debug
+</span><span class='line'>      Debug::install = debug
+</span><span class='line'>      Release::libpaths = Release
+</span><span class='line'>      Release::install = Release
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意到helloworld.mpc和hellotest.mpc的差异吗？后者的after语句表示hellotest.mpc依赖于hellodll.mpc，必须在其后编译。另外，我在后者增加了Source_Files块，顾名思义，其作用是指定工程源文件(cpp和c)列表。如果没有它，MPC默认会将hellotest.mpc所在目录的所有源文件作为这个工程的源文件，这显然不是我们希望看到的；同理，需要在hellodll.mpc增加Source_Files块，修改后的内容如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>project {
+</span><span class='line'>  sharedname = hello
+</span><span class='line'>  dynamicflags += HELLO_BUILD_DLL
+</span><span class='line'>
+</span><span class='line'>  Source_Files {
+</span><span class='line'>      hellodll.cpp
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>  specific (nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
+</span><span class='line'>      Debug::dllout = debug
+</span><span class='line'>      Release::dllout = Release
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>类似Source_Files块，还有Header_Files, Inline_Files和Resoure_Files等，具体可以查看MPC官方文档。
+最后，重新执行一下</p>
+
+<pre><code>mwc.pl -type nmake
+nmake
+nmake CFG="Win32 Release"
+</code></pre>
+
+<p>关于MPC更多的内容和细节可以下载<a href="http://downloads.ociweb.com/MPC/docs/html/MakeProjectCreator.html">OCI的《TAO开发指南》的MPC样章</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/10/27/ssh-tunnel-tutorial/">SSH隧道简介</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/08/07/create-chroot-for-ssh-access/">创建通过SSH访问的chroot</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/07/15/rinse-tutorial/">Rinse简介——Debian/Ubuntu中创建RPM安装环境</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/04/01/restrict-ssh-access-to-rsync/">利用SSH限制rsync的访问目录</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/10/lxc-tutorial/">LXC简介</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating&#8230;</li>
+  </ul>
+  
+  <a href="https://github.com/likema">@likema</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'likema',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/112910538663131864533?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+<section>
+  <h1>Categories</h1>
+    <ul id="category-list"><li><a href='/blog/categories/c'>C (1)</a></li><li><a href='/blog/categories/c-'>C++ (1)</a></li><li><a href='/blog/categories/debian'>Debian (4)</a></li><li><a href='/blog/categories/dnsmasq'>Dnsmasq (1)</a></li><li><a href='/blog/categories/git'>Git (2)</a></li><li><a href='/blog/categories/linux'>Linux (9)</a></li><li><a href='/blog/categories/lua'>Lua (1)</a></li><li><a href='/blog/categories/lxc'>LXC (1)</a></li><li><a href='/blog/categories/mpc'>MPC (1)</a></li><li><a href='/blog/categories/proxy'>Proxy (1)</a></li><li><a href='/blog/categories/python'>Python (4)</a></li><li><a href='/blog/categories/ssh'>SSH (3)</a></li><li><a href='/blog/categories/ubuntu'>Ubuntu (3)</a></li><li><a href='/blog/categories/virtualbox'>VirtualBox (1)</a></li><li><a href='/blog/categories/windows'>Windows (1)</a></li></ul>
+</section>
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Like Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'likeworld';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

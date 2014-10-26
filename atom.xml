@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2014-02-26T10:34:37+08:00</updated>
+  <updated>2014-10-27T04:13:06+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,387 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[SSH隧道简介]]></title>
+    <link href="http://www.malike.net.cn/blog/2014/10/27/ssh-tunnel-tutorial/"/>
+    <updated>2014-10-27T00:00:00+08:00</updated>
+    <id>http://www.malike.net.cn/blog/2014/10/27/ssh-tunnel-tutorial</id>
+    <content type="html"><![CDATA[<p>SSH的功能非常强大，日常除了用于命令行远程登录服务器。它还具有神奇的隧道（tunnel）功能（也被称为SSH代理），可用于加密访问本地或远程主机的服务。</p>
+
+<p>通常，SSH代理具有3种方式：</p>
+
+<h2>SSH（正向）代理</h2>
+
+<p>通过参数-L [bind_address:]port:remote_host:remote_port，将指定本地（客户端）端口转发至远程端口上。</p>
+
+<p><img src="http://www.malike.net.cn/images/ssh-tunnel-proxy.png" alt="SSH Proxy" /></p>
+
+<p>如上图， hosta无法直接访问hostb，但它能直接SSH登录gateway；如此通过gateway，将hosta的端口X转发至hostb的端口Y上。相当于端口X和端口Y之间建立了加密隧道。</p>
+
+<p>一般来说，端口Y为hostb上某服务的监听端口。当建立隧道后，hosta将监听端口X。应用程序访问hosta的端口X，等同于访问hostb的端口Y。对于应用程序，hostb端口Y对应的服务就如同运行在hosta上。</p>
+
+<p>日常工作中，客户的网络常由于信息安全而被网关（或防火墙）隔离。当我们的软件在客户网络中某服务器发生问题时，我们常需奔赴客户现场进行调试。若客户存在某机器安装了SSH服务器，且能被外部访问。就可以利用SSH正向代理的方法，快速简便的登录被隔离的服务器并进行应用调试。</p>
+
+<h2>SSH反向代理</h2>
+
+<p>通过参数-R [bind_address:]port:remote_host:remote_port，将指定远程端口转发至本地（客户端）端口上。</p>
+
+<p><img src="http://www.malike.net.cn/images/ssh-tunnel-reverse-proxy.png" alt="SSH Reverse Proxy" /></p>
+
+<p>如上图，hosta在防火墙内，无法被hostb直接访问。但它能直接SSH登录hostb；如此通过hostb，将hostb的端口X转发至hosta的端口Y上。该方法与SSH正向代理类似，所不同的是该隧道的访问方向是从服务端（hostb）至客户端(hosta），故被称为反向代理。</p>
+
+<p>其应用场景也与SSH正向代理类似，所不同的是若客户不存在可供外部访问的SSH服务器时，我们可以在外网建设一个SSH服务器给客户的被隔离服务器来建立隧道。如此，我们可以访问自己的SSH服务器对应端口来调试客户服务器的应用。</p>
+
+<p>更进一步，客户内网甚至不能访问外网，此时可利用客户内网一台笔记本（或台式机，它可以访问目标服务器）USB接上3G/4G手机来达到访问外部SSH服务器的目的。</p>
+
+<p><img src="http://www.malike.net.cn/images/ssh-tunnel-reverse-proxy-mobile.png" alt="SSH Reverse Proxy Mobile" /></p>
+
+<h2>SSH动态代理</h2>
+
+<p>通过参数-D [bind_address:]port，利用远程服务器为访问出口，在本地建立SOCKS 4/5代理服务器。</p>
+
+<p>可以形象描绘为将本地应用的端口（SOCKS客户端端口），动态转发至远程。</p>
+
+<p><img src="http://www.malike.net.cn/images/ssh-tunnel-dynamic-proxy.png" alt="SSH Dynamic Proxy" /></p>
+
+<p>该功能广为人知的应用场景为翻墙。如上图，在国外租用VPS（hostb），客户端（hosta）通过SSH动态代理端口X（SOCKS 4/5的端口）便可以访问被GFW封锁的网络。</p>
+
+<p>这种翻墙放大的优势在于</p>
+
+<ul>
+<li>低成本：国外廉价低配置VPS基本满足个人翻墙需求。</li>
+<li>服务端0配置：服务端只需要安装SSH服务端。</li>
+<li>客户端配置简单：客户端需要安装SSH客户端，以及一条命令。</li>
+<li>加密隧道：保证网络访问的数据安全。</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[创建通过SSH访问的chroot]]></title>
+    <link href="http://www.malike.net.cn/blog/2014/08/07/create-chroot-for-ssh-access/"/>
+    <updated>2014-08-07T18:09:48+08:00</updated>
+    <id>http://www.malike.net.cn/blog/2014/08/07/create-chroot-for-ssh-access</id>
+    <content type="html"><![CDATA[<p>我的工作环境是Ubuntu，然而经常需要CentOS来编译或测试。一般存在3种解决办法：</p>
+
+<ul>
+<li>创建VirtualBox或KVM虚拟机：
+
+<ul>
+<li>优点：部署容易，且可以运行各种应用（如Oracle）。</li>
+<li>缺点：运行速度相对LXC和chroot慢，特别是I/O.</li>
+</ul>
+</li>
+<li>创建CentOS的LXC：
+
+<ul>
+<li>优点：运行速度快，且具有独立IP，可以通过SSH访问。</li>
+<li>缺点: 需要修改启动脚本。</li>
+</ul>
+</li>
+<li>创建CentOS的chroot：
+
+<ul>
+<li>优点：不需要修改任何配置。</li>
+<li>缺点：无法直接通过SSH访问，且需要root权限才能运行chroot。</li>
+</ul>
+</li>
+</ul>
+
+
+<h2>创建CentOS的chroot</h2>
+
+<p>具体参看<a href="http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial/">Rinse简介</a></p>
+
+<h2>创建SSH用户（或组）</h2>
+
+<p>在当前OS环境中，创建用户centos6.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo useradd -m -s /bin/bash centos6
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>获取centos6的uid和gid</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>id -u centos6
+</span><span class='line'>id -g centos6
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在chroot环境中创建同名用户，且保持uid和gid相同。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo chroot /var/lib/centos-6 /bin/bash
+</span><span class='line'>groupadd -g &lt;gid&gt; centos6
+</span><span class='line'>useradd -s /bin/bash -m -u &lt;uid&gt; -g centos6 centos6
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>配置sshd</h2>
+
+<p>将下述内容追加至/etc/ssh/sshd_config</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>Match group centos6
+</span><span class='line'>  ChrootDirectory /var/lib/centos-6
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样保证centos6组的用户登录ssh时，chroot至/var/lib/centos-6目录中。</p>
+
+<h2>配置dev, proc和sysfs</h2>
+
+<p>chroot环境中rpm安装和卸载的前/后置脚本依赖dev, proc和sysfs，否则可能将造成安装和卸载错误。</p>
+
+<p>在/etc/fstab中，增加proc和sysfs的挂载选项</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>proc /var/lib/centos-6/proc proc  defaults      0 0
+</span><span class='line'>none /var/lib/centos-6/sys  sysfs defaults      0 0
+</span><span class='line'>/dev /var/lib/centos-6/dev  none  defaults,bind 0 0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>配置ssh密钥登录</h2>
+
+<p>chroot的ssh密钥登录与常规情况的唯一区别在于公钥应存放在当前OS环境（而非chroot环境）的~/.ssh/authorized_keys，因为sshd在执行chroot之前需要检查公钥是否正确。</p>
+
+<p>因此，本例中应该存放在当前OS的/home/centos-6/.ssh/authorized_keys.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Rinse简介——Debian/Ubuntu中创建RPM安装环境]]></title>
+    <link href="http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial/"/>
+    <updated>2014-07-15T20:34:58+08:00</updated>
+    <id>http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial</id>
+    <content type="html"><![CDATA[<p><a href="http://collab-maint.alioth.debian.org/rinse/">Rinse</a>是一个Debian环境中创建RPM发行版本（如CentOS，Scientific Linux和openSUSE）的工具。你可以利用它轻松创建各种RPM发行版本的chroot环境。</p>
+
+<p>以下基于Ubuntu 12.04 amd64，主要以创建CentOS 6 x86_64为例。</p>
+
+<h2>安装Rinse</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo apt-get install -y rinse
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>创建CentOS 6</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo rinse --distribution centos-6 --arch amd64 --directory centos-6
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>运行该命令将创建CentOS 6 amd64于当前工作目录的centos-6目录中。其中，</p>
+
+<ul>
+<li>&mdash;distribution指定发行版本，类似还可以centos-{4,5}， fedora-core-{4,5,6,7,8,9}和opensuse-{10.1,10.2,10.3,11.0,11.1,12.1}等。可以下述命令获取：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>rinse --list-distributions
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>具体对应于/etc/rinse/*.packages的模板名，它们主要包含RPM包列表。换一句话说，你根据需要定制自己的模板。另一方面，你也可以通过&mdash;pkgs-dir指定不同于/etc/rinse的模板目录。</p>
+
+<ul>
+<li>&mdash;arch指定架构，amd64表示64位架构，i386表示32位架构。缺省为i386.</li>
+<li>&mdash;directory指定为安装目录，安装结束后便可以chroot该目录了。</li>
+</ul>
+
+
+<p>另外，需要额外安装某些包，可以通过指定&mdash;add-pkg-list来完成。</p>
+
+<h2>配置RPM缓存</h2>
+
+<p>rinse默认使用/var/rinse/cache作为缓存目录，它大大缩短了重复运行同样命令的时间。具体通过：</p>
+
+<ul>
+<li>&mdash;cache 0指禁用缓存，缺省为1</li>
+<li>&mdash;cache-dir指定不同于/var/rinse/cache作为缓存目录。</li>
+<li>&mdash;clean-cache指清楚缓存</li>
+</ul>
+
+
+<h2>定制安装后执行脚本</h2>
+
+<p>&mdash;after-post-install, &mdash;before-post-install和&mdash;post-install顾名思义，需要指出的是&mdash;post-install默认执行/usr/lib/rinse/<distribution>/post-install.sh.</p>
+
+<h2>如何提高安装速度？</h2>
+
+<p>通过修改/etc/rinse/rinse.conf中对应发行版的镜像地址可以加速安装，如CentOS 6 x86_64的镜像地址可以修改为</p>
+
+<pre><code>http://centos.ustc.edu.cn/centos/6/os/x86_64/CentOS/
+</code></pre>
+
+<p>也可以通过&mdash;config指定不同于/etc/rinse/rinse.conf的配置文件。</p>
+
+<p>若内网存在HTTP cache服务器（如Squid)，还可以设置环境变量http_proxy来缓存rpm以及加速安装，如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo <span class="nv">http_proxy</span><span class="o">=</span>http://&lt;http proxy address&gt; rinse --distribution centos-6 --arch amd64 --directory centos-6
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[利用SSH限制rsync的访问目录]]></title>
+    <link href="http://www.malike.net.cn/blog/2014/04/01/restrict-ssh-access-to-rsync/"/>
+    <updated>2014-04-01T00:00:00+08:00</updated>
+    <id>http://www.malike.net.cn/blog/2014/04/01/restrict-ssh-access-to-rsync</id>
+    <content type="html"><![CDATA[<p>我经常使用VPS来共享数据给朋友同事。由于VPS通常内存较小，不太适合安装ftp服务器；而http服务器常常只有下载的功能；更重要是某些数据较大，每天可能都在改变，需要增量同步上传或下载。</p>
+
+<p>rsync是这类场景的良好选择。一方面，通过SSH服务器来工作，它不常驻内存，节约了VPS内存使用；另一方面，它优秀的二进制增量同步功能，不仅减少了同步时间，也节约了VPS有限的带宽。</p>
+
+<p>在实际使用过程中，我遇到了下述问题：</p>
+
+<ul>
+<li>针对某些目录，某些用户仅能读（下载）;</li>
+<li>针对某些目录，某些用户仅能写（上传）;</li>
+<li>具有读或写权限的用户不能登录SSH，也不能执行任何程序;</li>
+<li>具有读或写权限的用户不能访问其他目录。</li>
+</ul>
+
+
+<p>诚然，这些问题可以通过操作系统用户相对复杂的权限控制（包括目录基本权限和ACL以及SELinux等）。然而，通过搜索和学习，我发现强大的SSH早已具备这样的接口：</p>
+
+<ul>
+<li>通过密钥对，简化用户使用，让用户彻底摆脱密码的记忆（当然用户加密私钥，还是要自己记密码的）；</li>
+<li>通过~/.ssh/authorized_keys的command选项（通过<a href="http://man.he.net/man5/authorized_keys">man authorized_keys</a>阅读详细内容），设置脚本过滤掉业务上无效的指令；</li>
+<li>还是通过command选项，限制不同密钥有不同权限，如密钥A只能读，密钥B只能写。</li>
+</ul>
+
+
+<p>下面，我将通过具体示例来解释command选项:</p>
+
+<h2>限制用户仅能读</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="c">#!/bin/sh</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">DATA_DIR</span><span class="o">=</span>/home/share/data
+</span><span class='line'>
+</span><span class='line'><span class="k">case</span> <span class="s2">&quot;$SSH_ORIGINAL_COMMAND&quot;</span> in
+</span><span class='line'>rsync<span class="se">\ </span>--server*<span class="o">)</span>
+</span><span class='line'>        <span class="nv">TARGET</span><span class="o">=</span><span class="sb">`</span><span class="nb">echo</span> <span class="s2">&quot;$SSH_ORIGINAL_COMMAND&quot;</span> | awk <span class="s1">&#39;{ print $NF }&#39;</span><span class="sb">`</span>
+</span><span class='line'>        <span class="k">if </span><span class="nb">echo</span> <span class="s2">&quot;$SSH_ORIGINAL_COMMAND&quot;</span> | grep -q <span class="s2">&quot; --sender &quot;</span> <span class="o">&amp;&amp;</span> <span class="o">[</span> <span class="s2">&quot;$TARGET&quot;</span> <span class="o">=</span> <span class="nv">$DATA_DIR</span> <span class="o">]</span>; <span class="k">then</span>
+</span><span class='line'>                <span class="nv">$SSH_ORIGINAL_COMMAND</span>
+</span><span class='line'>        <span class="k">else</span>
+</span><span class='line'><span class="k">                </span><span class="nb">echo</span> <span class="s2">&quot;Rejected&quot;</span>
+</span><span class='line'>        <span class="k">fi</span>
+</span><span class='line'>        ;;
+</span><span class='line'>*<span class="o">)</span>
+</span><span class='line'>        <span class="nb">echo</span> <span class="s2">&quot;Rejected&quot;</span>
+</span><span class='line'>        ;;
+</span><span class='line'><span class="k">esac</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>该脚本（存储在文件/usr/local/bin/validate_pull_share）限制用户share仅能下载$DATA_DIR的文件, 它需要跟公钥配置在服务器的/home/share/.ssh/authorized_keys，如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">command</span><span class="o">=</span><span class="s2">&quot;/usr/local/bin/validate_pull_share&quot;</span> ssh-rsa &lt;用户公钥A&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>command选项用于指定脚本，该脚本可以过滤一些远程命令（禁止执行），它相当于远程命令的前置脚本。</li>
+<li>$SSH_ORIGINAL_COMMAND是sshd传递给command脚本环境变量，表示ssh客户端需要远程执行的命令。</li>
+<li>第6行限制仅能执行rsync服务端指令。</li>
+<li>第7行获取$SSH_ORIGINAL_COMMAND的最后一个参数（这里没有考虑有空格的目录），这个参数在这里是rsync需要访问的目录$TARGET.</li>
+<li>第8行为命令合法性判断, 由两个条件组成：
+
+<ul>
+<li>判断&mdash;sender参数是否存在于$SSH_ORIGINAL_COMMAND中，&mdash;sender表示该命令为下载命令；</li>
+<li>判断下载目录$TARGET是否与规定的目录一致。</li>
+</ul>
+</li>
+</ul>
+
+
+<h2>限制用户仅能写</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="c">#!/bin/sh</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">DATA_DIR</span><span class="o">=</span>/home/share/data
+</span><span class='line'>
+</span><span class='line'><span class="k">case</span> <span class="s2">&quot;$SSH_ORIGINAL_COMMAND&quot;</span> in
+</span><span class='line'>rsync<span class="se">\ </span>--server*<span class="o">)</span>
+</span><span class='line'>        <span class="nv">TARGET</span><span class="o">=</span><span class="sb">`</span><span class="nb">echo</span> <span class="s2">&quot;$SSH_ORIGINAL_COMMAND&quot;</span> | awk <span class="s1">&#39;{ print $NF }&#39;</span><span class="sb">`</span>
+</span><span class='line'>        <span class="k">if</span> ! <span class="nb">echo</span> <span class="s2">&quot;$SSH_ORIGINAL_COMMAND&quot;</span> | grep -q <span class="s2">&quot; --sender &quot;</span> <span class="o">&amp;&amp;</span> <span class="o">[</span> <span class="s2">&quot;$TARGET&quot;</span> <span class="o">=</span> <span class="nv">$DATA_DIR</span> <span class="o">]</span>; <span class="k">then</span>
+</span><span class='line'>                <span class="nv">$SSH_ORIGINAL_COMMAND</span>
+</span><span class='line'>        <span class="k">else</span>
+</span><span class='line'><span class="k">                </span><span class="nb">echo</span> <span class="s2">&quot;Rejected&quot;</span>
+</span><span class='line'>        <span class="k">fi</span>
+</span><span class='line'>        ;;
+</span><span class='line'>*<span class="o">)</span>
+</span><span class='line'>        <span class="nb">echo</span> <span class="s2">&quot;Rejected&quot;</span>
+</span><span class='line'>        ;;
+</span><span class='line'><span class="k">esac</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>实际仅与读限制脚本相差一行（第8行），仅允许没有&mdash;sender参数的命令（即上传命令）。</p>
+
+<p>该脚本（存储在文件/usr/local/bin/validate_push_share）同样需要跟另一个公钥配置在服务器的/home/share/.ssh/authorized_keys，如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">command</span><span class="o">=</span><span class="s2">&quot;/usr/local/bin/validate_pull_share&quot;</span> ssh-rsa &lt;用户公钥B&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>总结</h2>
+
+<p>通过上述脚本和配置实现了不同密钥访问同一目录的不同权限控制。还可以在这些脚本基础上扩展到多个目录或文件的访问控制。以及访问时间的控制，如某时段只能读，另外时段只能写；避免正在写数据的时候，有用户读数据造成数据不一致的问题。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[LXC简介]]></title>
@@ -532,7 +913,7 @@
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sudo apt-add-repository ppa:cjohnston/flake8
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo add-apt-repository ppa:likemartinma/python
 </span><span class='line'>sudo apt-get update
 </span><span class='line'>sudo apt-get -y --force-yes dist-upgrade</span></code></pre></td></tr></table></div></figure>
 
@@ -831,7 +1212,7 @@
 <p>当然，更好的办法是在每个python源文件的最后一行追加：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c"># vim: ts=4 sw=4 sts=4 et:</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c"># vim: set ts=4 sw=4 sts=4 et:</span>
 </span></code></pre></td></tr></table></div></figure>
 
 

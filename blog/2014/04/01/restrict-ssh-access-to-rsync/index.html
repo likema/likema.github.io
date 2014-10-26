@@ -1,0 +1,456 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>利用SSH限制rsync的访问目录 - Like的世界</title>
+  <meta name="author" content="Like Ma">
+
+  
+  <meta name="description" content="我经常使用VPS来共享数据给朋友同事。由于VPS通常内存较小，不太适合安装ftp服务器；而http服务器常常只有下载的功能；更重要是某些数据较大，每天可能都在改变，需要增量同步上传或下载。 rsync是这类场景的良好选择。一方面，通过SSH服务器来工作，它不常驻内存，节约了VPS内存使用；另一方面 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.malike.net.cn/blog/2014/04/01/restrict-ssh-access-to-rsync">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Like的世界" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-44993010-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Like的世界</a></h1>
+  
+    <h2>个人总结与随想</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:www.malike.net.cn" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">利用SSH限制rsync的访问目录</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-04-01T00:00:00+08:00" pubdate data-updated="true"></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>我经常使用VPS来共享数据给朋友同事。由于VPS通常内存较小，不太适合安装ftp服务器；而http服务器常常只有下载的功能；更重要是某些数据较大，每天可能都在改变，需要增量同步上传或下载。</p>
+
+<p>rsync是这类场景的良好选择。一方面，通过SSH服务器来工作，它不常驻内存，节约了VPS内存使用；另一方面，它优秀的二进制增量同步功能，不仅减少了同步时间，也节约了VPS有限的带宽。</p>
+
+<p>在实际使用过程中，我遇到了下述问题：</p>
+
+<ul>
+<li>针对某些目录，某些用户仅能读（下载）;</li>
+<li>针对某些目录，某些用户仅能写（上传）;</li>
+<li>具有读或写权限的用户不能登录SSH，也不能执行任何程序;</li>
+<li>具有读或写权限的用户不能访问其他目录。</li>
+</ul>
+
+
+<p>诚然，这些问题可以通过操作系统用户相对复杂的权限控制（包括目录基本权限和ACL以及SELinux等）。然而，通过搜索和学习，我发现强大的SSH早已具备这样的接口：</p>
+
+<ul>
+<li>通过密钥对，简化用户使用，让用户彻底摆脱密码的记忆（当然用户加密私钥，还是要自己记密码的）；</li>
+<li>通过~/.ssh/authorized_keys的command选项（通过<a href="http://man.he.net/man5/authorized_keys">man authorized_keys</a>阅读详细内容），设置脚本过滤掉业务上无效的指令；</li>
+<li>还是通过command选项，限制不同密钥有不同权限，如密钥A只能读，密钥B只能写。</li>
+</ul>
+
+
+<p>下面，我将通过具体示例来解释command选项:</p>
+
+<h2>限制用户仅能读</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="c">#!/bin/sh</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">DATA_DIR</span><span class="o">=</span>/home/share/data
+</span><span class='line'>
+</span><span class='line'><span class="k">case</span> <span class="s2">&quot;$SSH_ORIGINAL_COMMAND&quot;</span> in
+</span><span class='line'>rsync<span class="se">\ </span>--server*<span class="o">)</span>
+</span><span class='line'>        <span class="nv">TARGET</span><span class="o">=</span><span class="sb">`</span><span class="nb">echo</span> <span class="s2">&quot;$SSH_ORIGINAL_COMMAND&quot;</span> | awk <span class="s1">&#39;{ print $NF }&#39;</span><span class="sb">`</span>
+</span><span class='line'>        <span class="k">if </span><span class="nb">echo</span> <span class="s2">&quot;$SSH_ORIGINAL_COMMAND&quot;</span> | grep -q <span class="s2">&quot; --sender &quot;</span> <span class="o">&amp;&amp;</span> <span class="o">[</span> <span class="s2">&quot;$TARGET&quot;</span> <span class="o">=</span> <span class="nv">$DATA_DIR</span> <span class="o">]</span>; <span class="k">then</span>
+</span><span class='line'>                <span class="nv">$SSH_ORIGINAL_COMMAND</span>
+</span><span class='line'>        <span class="k">else</span>
+</span><span class='line'><span class="k">                </span><span class="nb">echo</span> <span class="s2">&quot;Rejected&quot;</span>
+</span><span class='line'>        <span class="k">fi</span>
+</span><span class='line'>        ;;
+</span><span class='line'>*<span class="o">)</span>
+</span><span class='line'>        <span class="nb">echo</span> <span class="s2">&quot;Rejected&quot;</span>
+</span><span class='line'>        ;;
+</span><span class='line'><span class="k">esac</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>该脚本（存储在文件/usr/local/bin/validate_pull_share）限制用户share仅能下载$DATA_DIR的文件, 它需要跟公钥配置在服务器的/home/share/.ssh/authorized_keys，如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">command</span><span class="o">=</span><span class="s2">&quot;/usr/local/bin/validate_pull_share&quot;</span> ssh-rsa &lt;用户公钥A&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>command选项用于指定脚本，该脚本可以过滤一些远程命令（禁止执行），它相当于远程命令的前置脚本。</li>
+<li>$SSH_ORIGINAL_COMMAND是sshd传递给command脚本环境变量，表示ssh客户端需要远程执行的命令。</li>
+<li>第6行限制仅能执行rsync服务端指令。</li>
+<li>第7行获取$SSH_ORIGINAL_COMMAND的最后一个参数（这里没有考虑有空格的目录），这个参数在这里是rsync需要访问的目录$TARGET.</li>
+<li>第8行为命令合法性判断, 由两个条件组成：
+
+<ul>
+<li>判断&mdash;sender参数是否存在于$SSH_ORIGINAL_COMMAND中，&mdash;sender表示该命令为下载命令；</li>
+<li>判断下载目录$TARGET是否与规定的目录一致。</li>
+</ul>
+</li>
+</ul>
+
+
+<h2>限制用户仅能写</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="c">#!/bin/sh</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">DATA_DIR</span><span class="o">=</span>/home/share/data
+</span><span class='line'>
+</span><span class='line'><span class="k">case</span> <span class="s2">&quot;$SSH_ORIGINAL_COMMAND&quot;</span> in
+</span><span class='line'>rsync<span class="se">\ </span>--server*<span class="o">)</span>
+</span><span class='line'>        <span class="nv">TARGET</span><span class="o">=</span><span class="sb">`</span><span class="nb">echo</span> <span class="s2">&quot;$SSH_ORIGINAL_COMMAND&quot;</span> | awk <span class="s1">&#39;{ print $NF }&#39;</span><span class="sb">`</span>
+</span><span class='line'>        <span class="k">if</span> ! <span class="nb">echo</span> <span class="s2">&quot;$SSH_ORIGINAL_COMMAND&quot;</span> | grep -q <span class="s2">&quot; --sender &quot;</span> <span class="o">&amp;&amp;</span> <span class="o">[</span> <span class="s2">&quot;$TARGET&quot;</span> <span class="o">=</span> <span class="nv">$DATA_DIR</span> <span class="o">]</span>; <span class="k">then</span>
+</span><span class='line'>                <span class="nv">$SSH_ORIGINAL_COMMAND</span>
+</span><span class='line'>        <span class="k">else</span>
+</span><span class='line'><span class="k">                </span><span class="nb">echo</span> <span class="s2">&quot;Rejected&quot;</span>
+</span><span class='line'>        <span class="k">fi</span>
+</span><span class='line'>        ;;
+</span><span class='line'>*<span class="o">)</span>
+</span><span class='line'>        <span class="nb">echo</span> <span class="s2">&quot;Rejected&quot;</span>
+</span><span class='line'>        ;;
+</span><span class='line'><span class="k">esac</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>实际仅与读限制脚本相差一行（第8行），仅允许没有&mdash;sender参数的命令（即上传命令）。</p>
+
+<p>该脚本（存储在文件/usr/local/bin/validate_push_share）同样需要跟另一个公钥配置在服务器的/home/share/.ssh/authorized_keys，如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">command</span><span class="o">=</span><span class="s2">&quot;/usr/local/bin/validate_pull_share&quot;</span> ssh-rsa &lt;用户公钥B&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>总结</h2>
+
+<p>通过上述脚本和配置实现了不同密钥访问同一目录的不同权限控制。还可以在这些脚本基础上扩展到多个目录或文件的访问控制。以及访问时间的控制，如某时段只能读，另外时段只能写；避免正在写数据的时候，有用户读数据造成数据不一致的问题。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Like Ma</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-04-01T00:00:00+08:00" pubdate data-updated="true"></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/linux/'>Linux</a>, <a class='category' href='/blog/categories/ssh/'>SSH</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.malike.net.cn/blog/2014/04/01/restrict-ssh-access-to-rsync/" data-via="" data-counturl="http://www.malike.net.cn/blog/2014/04/01/restrict-ssh-access-to-rsync/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/11/10/lxc-tutorial/" title="Previous Post: LXC简介">&laquo; LXC简介</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/07/15/rinse-tutorial/" title="Next Post: Rinse简介——Debian/Ubuntu中创建RPM安装环境">Rinse简介——Debian/Ubuntu中创建RPM安装环境 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/10/27/ssh-tunnel-tutorial/">SSH隧道简介</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/08/07/create-chroot-for-ssh-access/">创建通过SSH访问的chroot</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/07/15/rinse-tutorial/">Rinse简介——Debian/Ubuntu中创建RPM安装环境</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/04/01/restrict-ssh-access-to-rsync/">利用SSH限制rsync的访问目录</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/10/lxc-tutorial/">LXC简介</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/likema">@likema</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'likema',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/112910538663131864533?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+<section>
+  <h1>Categories</h1>
+    <ul id="category-list"><li><a href='/blog/categories/c'>C (1)</a></li><li><a href='/blog/categories/c-'>C++ (1)</a></li><li><a href='/blog/categories/debian'>Debian (4)</a></li><li><a href='/blog/categories/dnsmasq'>Dnsmasq (1)</a></li><li><a href='/blog/categories/git'>Git (2)</a></li><li><a href='/blog/categories/linux'>Linux (9)</a></li><li><a href='/blog/categories/lua'>Lua (1)</a></li><li><a href='/blog/categories/lxc'>LXC (1)</a></li><li><a href='/blog/categories/mpc'>MPC (1)</a></li><li><a href='/blog/categories/proxy'>Proxy (1)</a></li><li><a href='/blog/categories/python'>Python (4)</a></li><li><a href='/blog/categories/ssh'>SSH (3)</a></li><li><a href='/blog/categories/ubuntu'>Ubuntu (3)</a></li><li><a href='/blog/categories/virtualbox'>VirtualBox (1)</a></li><li><a href='/blog/categories/windows'>Windows (1)</a></li></ul>
+</section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Like Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'likeworld';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.malike.net.cn/blog/2014/04/01/restrict-ssh-access-to-rsync/';
+        var disqus_url = 'http://www.malike.net.cn/blog/2014/04/01/restrict-ssh-access-to-rsync/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

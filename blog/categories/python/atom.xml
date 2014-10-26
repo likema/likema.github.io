@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Python | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/python/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2014-02-26T10:34:37+08:00</updated>
+  <updated>2014-10-27T04:13:06+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -280,7 +280,7 @@ class InstallLib(install_lib):</p>
 
 
 <p><code>
-sudo apt-add-repository ppa:cjohnston/flake8
+sudo add-apt-repository ppa:likemartinma/python
 sudo apt-get update
 sudo apt-get -y --force-yes dist-upgrade
 </code></p>
@@ -545,7 +545,7 @@ autocmd BufRead,BufNewFile *.py set et ts=4 sw=4 sts=4
 
 <p>```python</p>
 
-<h1>vim: ts=4 sw=4 sts=4 et:</h1>
+<h1>vim: set ts=4 sw=4 sts=4 et:</h1>
 
 <p>```</p>
 
