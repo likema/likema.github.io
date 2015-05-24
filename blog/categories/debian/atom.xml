@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Debian | Like的世界]]></title>
+  <title><![CDATA[Category: debian | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/debian/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2015-05-25T02:50:34+08:00</updated>
+  <updated>2015-05-25T02:53:16+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -24,51 +24,48 @@
 
 <h2>安装Rinse</h2>
 
-<p><code>sh
-sudo apt-get install -y rinse
-</code></p>
+<pre><code class="sh">sudo apt-get install -y rinse
+</code></pre>
 
 <h2>创建CentOS 6</h2>
 
-<p><code>sh
-sudo rinse --distribution centos-6 --arch amd64 --directory centos-6
-</code></p>
+<pre><code class="sh">sudo rinse --distribution centos-6 --arch amd64 --directory centos-6
+</code></pre>
 
 <p>运行该命令将创建CentOS 6 amd64于当前工作目录的centos-6目录中。其中，</p>
 
 <ul>
-<li>&mdash;distribution指定发行版本，类似还可以centos-{4,5}， fedora-core-{4,5,6,7,8,9}和opensuse-{10.1,10.2,10.3,11.0,11.1,12.1}等。可以下述命令获取：</li>
+<li>&ndash;distribution指定发行版本，类似还可以centos-{4,5}， fedora-core-{4,5,6,7,8,9}和opensuse-{10.1,10.2,10.3,11.0,11.1,12.1}等。可以下述命令获取：</li>
 </ul>
 
 
-<p><code>sh
-rinse --list-distributions
-</code></p>
+<pre><code class="sh">rinse --list-distributions
+</code></pre>
 
-<p>具体对应于/etc/rinse/*.packages的模板名，它们主要包含RPM包列表。换一句话说，你根据需要定制自己的模板。另一方面，你也可以通过&mdash;pkgs-dir指定不同于/etc/rinse的模板目录。</p>
+<p>具体对应于/etc/rinse/*.packages的模板名，它们主要包含RPM包列表。换一句话说，你根据需要定制自己的模板。另一方面，你也可以通过&ndash;pkgs-dir指定不同于/etc/rinse的模板目录。</p>
 
 <ul>
-<li>&mdash;arch指定架构，amd64表示64位架构，i386表示32位架构。缺省为i386.</li>
-<li>&mdash;directory指定为安装目录，安装结束后便可以chroot该目录了。</li>
+<li>&ndash;arch指定架构，amd64表示64位架构，i386表示32位架构。缺省为i386.</li>
+<li>&ndash;directory指定为安装目录，安装结束后便可以chroot该目录了。</li>
 </ul>
 
 
-<p>另外，需要额外安装某些包，可以通过指定&mdash;add-pkg-list来完成。</p>
+<p>另外，需要额外安装某些包，可以通过指定&ndash;add-pkg-list来完成。</p>
 
 <h2>配置RPM缓存</h2>
 
 <p>rinse默认使用/var/rinse/cache作为缓存目录，它大大缩短了重复运行同样命令的时间。具体通过：</p>
 
 <ul>
-<li>&mdash;cache 0指禁用缓存，缺省为1</li>
-<li>&mdash;cache-dir指定不同于/var/rinse/cache作为缓存目录。</li>
-<li>&mdash;clean-cache指清楚缓存</li>
+<li>&ndash;cache 0指禁用缓存，缺省为1</li>
+<li>&ndash;cache-dir指定不同于/var/rinse/cache作为缓存目录。</li>
+<li>&ndash;clean-cache指清楚缓存</li>
 </ul>
 
 
 <h2>定制安装后执行脚本</h2>
 
-<p>&mdash;after-post-install, &mdash;before-post-install和&mdash;post-install顾名思义，需要指出的是&mdash;post-install默认执行/usr/lib/rinse/<distribution>/post-install.sh.</p>
+<p>&ndash;after-post-install, &ndash;before-post-install和&ndash;post-install顾名思义，需要指出的是&ndash;post-install默认执行/usr/lib/rinse/<distribution>/post-install.sh.</p>
 
 <h2>如何提高安装速度？</h2>
 
@@ -77,13 +74,12 @@ rinse --list-distributions
 <pre><code>http://centos.ustc.edu.cn/centos/6/os/x86_64/CentOS/
 </code></pre>
 
-<p>也可以通过&mdash;config指定不同于/etc/rinse/rinse.conf的配置文件。</p>
+<p>也可以通过&ndash;config指定不同于/etc/rinse/rinse.conf的配置文件。</p>
 
 <p>若内网存在HTTP cache服务器（如Squid)，还可以设置环境变量http_proxy来缓存rpm以及加速安装，如：</p>
 
-<p><code>sh
-sudo http_proxy=http://&lt;http proxy address&gt; rinse --distribution centos-6 --arch amd64 --directory centos-6
-</code></p>
+<pre><code class="sh">sudo http_proxy=http://&lt;http proxy address&gt; rinse --distribution centos-6 --arch amd64 --directory centos-6
+</code></pre>
 ]]></content>
   </entry>
   
@@ -103,39 +99,35 @@ sudo http_proxy=http://&lt;http proxy address&gt; rinse --distribution centos-6 
 </ul>
 
 
-<p><code>sh
-wget http://www.tecgraf.puc-rio.br/~celes/tolua/tolua-5.1.4.tar.gz
+<pre><code class="sh">wget http://www.tecgraf.puc-rio.br/~celes/tolua/tolua-5.1.4.tar.gz
 cd tolua
 git-import-orig -u 5.1.4 ../tolua-5.1.4.tar.gz
-</code></p>
+</code></pre>
 
 <ul>
 <li>手动解决遇到的冲突（如src/bin/Makefile）并提交更新：</li>
 </ul>
 
 
-<p><code>sh
-git commit
-</code></p>
+<pre><code class="sh">git commit
+</code></pre>
 
 <ul>
 <li>这时，运行</li>
 </ul>
 
 
-<p><code>sh
-git log --format=%d:%s
-</code></p>
+<pre><code class="sh">git log --format=%d:%s
+</code></pre>
 
 <p>输出：</p>
 
-<p><code>plain
- (HEAD, master):Merge commit 'upstream/5.1.4'
+<pre><code class="plain"> (HEAD, master):Merge commit 'upstream/5.1.4'
  (upstream/5.1.4, upstream):Imported Upstream version 5.1.4
  (debian/5.1.3-2):Fix relocation R_X86_64_32 against '.rodata' can not be used when making a shared object
  (debian/5.1.3-1):Imported Debian patch 5.1.3-1
  (upstream/5.1.3):Imported Upstream version 5.1.3
-</code></p>
+</code></pre>
 
 <p>upstream/5.1.4分支被创建，且将其合并到master分支中。如此，master分支合并完毕，接下来将合并debian的patches。</p>
 
@@ -144,56 +136,50 @@ git log --format=%d:%s
 </ul>
 
 
-<p><code>sh
-gbp-pq rebase
-</code></p>
+<pre><code class="sh">gbp-pq rebase
+</code></pre>
 
 <p>手动解决遇到的冲突：</p>
 
-<p><code>sh
-git rm -f src/bin/toluabind.c
+<pre><code class="sh">git rm -f src/bin/toluabind.c
 git rebase --continue
-</code></p>
+</code></pre>
 
 <ul>
 <li>导出patch-queue（至master分支）</li>
 </ul>
 
 
-<p><code>sh
-git clean -df
+<pre><code class="sh">git clean -df
 gbp-pq export
-</code></p>
+</code></pre>
 
 <ul>
 <li>指定版本号5.1.4-1自动生成snapshot的debian/changelog：</li>
 </ul>
 
 
-<p><code>sh
-git-dch -a -S -N 5.1.4-1
+<pre><code class="sh">git-dch -a -S -N 5.1.4-1
 git add debian/changelog
 git add debian/patches/0001-mkdir-for-tolua-lib-archive-and-remove-temp-files.patch
 git commit -m "Update patches from debian/5.1.3-1"
-</code></p>
+</code></pre>
 
 <p>测试构建新的deb包。为了避免污染当前环境，这里指定git首先导出源码至../tolua-build目录：</p>
 
-<p><code>sh
-git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
-</code></p>
+<pre><code class="sh">git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
+</code></pre>
 
 <ul>
 <li>生成release的版本信息，并构建release的deb包：</li>
 </ul>
 
 
-<p><code>sh
-git-dch -a -R
+<pre><code class="sh">git-dch -a -R
 git ci --amend
 git tag debian/5.1.4-1
 git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
-</code></p>
+</code></pre>
 
 <p>到此为止，我已经演示了git-buildpackage合并上游版本的过程。不难发现，git-buildpackage充分利用了git的特点，在很大程度上简化了补丁开发和维护的过程。</p>
 ]]></content>
@@ -215,43 +201,38 @@ git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
 </ul>
 
 
-<p><code>sh
-sudo apt-get install git-buildpackage build-essential debhelper quilt
-</code></p>
+<pre><code class="sh">sudo apt-get install git-buildpackage build-essential debhelper quilt
+</code></pre>
 
 <ul>
 <li>下载libtolua-dev的源码（建立upstream目录单独存放Ubuntu的deb源码包是为了保证清洁和正确）：</li>
 </ul>
 
 
-<p><code>sh
-mkdir upstream
+<pre><code class="sh">mkdir upstream
 apt-get source libtolua-dev
-</code></p>
+</code></pre>
 
 <ul>
 <li>导入upsteam的dsc文件（将生成与目录upstream同级的目录tolua）：</li>
 </ul>
 
 
-<p><code>sh
-cd ..
+<pre><code class="sh">cd ..
 git-import-dsc upstream/tolua_5.1.3-1.dsc
 cd tolua
-</code></p>
+</code></pre>
 
 <p>这时，运行</p>
 
-<p><code>sh
-git log --format=%d:%s
-</code></p>
+<pre><code class="sh">git log --format=%d:%s
+</code></pre>
 
 <p>输出：</p>
 
-<p><code>plain
- (HEAD, debian/5.1.3-1, master):Imported Debian patch 5.1.3-1
+<pre><code class="plain"> (HEAD, debian/5.1.3-1, master):Imported Debian patch 5.1.3-1
  (upstream/5.1.3, upstream):Imported Upstream version 5.1.3
-</code></p>
+</code></pre>
 
 <p>从下至上，首条提交导入了tolua 5.1.3的源码，次条提交导入了deb包维护者的deb包文件(debian/*)；并且建立了upstream和master两个分支，标签upstream/5.1.3位于upstream分支上，标签debian/5.1.3-1位于master分支头部。</p>
 
@@ -262,42 +243,32 @@ git log --format=%d:%s
 </ul>
 
 
-<p><code>sh
-gbp-pq import
-</code></p>
+<pre><code class="sh">gbp-pq import
+</code></pre>
 
 <ul>
 <li>执行make后发现构建目标libtolua.a的生成目录lib不存在，这是git只针对文件做版本，所以upstream导入git时，该目录被忽略了。为此，我将src/lib/Makefile中</li>
 </ul>
 
 
-<p>```makefile
-$T: $(OBJS)</p>
-
-<pre><code>$(AR) $@ $(OBJS)
-$(RANLIB) $@
+<pre><code class="makefile">$T: $(OBJS)
+    $(AR) $@ $(OBJS)
+    $(RANLIB) $@
 </code></pre>
-
-<p>```</p>
 
 <p>修改为：</p>
 
-<p>```makefile
-$T: $(OBJS)</p>
-
-<pre><code>mkdir -p $(@D)
-$(AR) $@ $(OBJS)
-$(RANLIB) $@
+<pre><code class="makefile">$T: $(OBJS)
+    mkdir -p $(@D)
+    $(AR) $@ $(OBJS)
+    $(RANLIB) $@
 </code></pre>
-
-<p>```</p>
 
 <p>这样，它将在每次构建该目标时，创建该目标所在目录。更进一步不难发现，src/bin/tolua_lua.o和src/bin/toluabind.c为受版本控制的中间文件，将影响构建的正确运行。为此，删除这两个文件并提交日志。</p>
 
-<p><code>sh
-git rm -f src/bin/tolua_lua.o src/bin/toluabind.c
+<pre><code class="sh">git rm -f src/bin/tolua_lua.o src/bin/toluabind.c
 git commit -a -m "mkdir for tolua lib archive and remove temp files"
-</code></p>
+</code></pre>
 
 <p>此时，可以正确make该工程了。</p>
 
@@ -306,76 +277,62 @@ git commit -a -m "mkdir for tolua lib archive and remove temp files"
 </ul>
 
 
-<p><code>makefile
-CFLAGS= -g $(WARN) $(INC)
+<pre><code class="makefile">CFLAGS= -g $(WARN) $(INC)
 CPPFLAGS= -g $(WARN) $(INC)
-</code></p>
+</code></pre>
 
 <p>替换为</p>
 
-<p><code>makefile
-CFLAGS= -fPIC -O2 -pipe -g $(WARN) $(INC)
+<pre><code class="makefile">CFLAGS= -fPIC -O2 -pipe -g $(WARN) $(INC)
 CPPFLAGS= -fPIC -O2 -pipe  -g $(WARN) $(INC)
-</code></p>
+</code></pre>
 
 <p>并提交日志：</p>
 
-<p><code>sh
-git commit -a -m "Fix relocation R_X86_64_32 against '.rodata' erro for shared object."
-</code></p>
+<pre><code class="sh">git commit -a -m "Fix relocation R_X86_64_32 against '.rodata' erro for shared object."
+</code></pre>
 
 <ul>
 <li>导出patch-queue——将其分支提交逐一转化为debian/patches目录下的补丁文件（为保证正确运行，清理掉中间文件）：</li>
 </ul>
 
 
-<p><code>sh
-git clean -df
+<pre><code class="sh">git clean -df
 gbp-pq export
-</code></p>
+</code></pre>
 
 <ul>
 <li>指定版本号5.1.3-2自动生成snapshot的debian/changelog：</li>
 </ul>
 
 
-<p><code>sh
-git-dch -S -a -N 5.1.3-2
-</code></p>
+<pre><code class="sh">git-dch -S -a -N 5.1.3-2
+</code></pre>
 
 <p>debian/changelog的新增内容如下：</p>
 
-<p>```plain
-tolua (5.1.3-2~1.gbp896bed) UNRELEASED; urgency=low</p>
+<pre><code class="plain">tolua (5.1.3-2~1.gbp896bed) UNRELEASED; urgency=low
 
-<p>  <strong> SNAPSHOT build @896bede5a4eb6f3967cdfe94ea2ef419235e7183 </strong></p>
+  ** SNAPSHOT build @896bede5a4eb6f3967cdfe94ea2ef419235e7183 **
 
-<ul>
-<li>UNRELEASED</li>
-</ul>
+  * UNRELEASED
 
-
-<p> &mdash; Like Ma   Sun, 19 Feb 2012 01:07:06 +0800
-```</p>
+ -- Like Ma   Sun, 19 Feb 2012 01:07:06 +0800
+</code></pre>
 
 <p>提交相关修改：</p>
 
-<p>```sh
-git add debian/changelog \</p>
-
-<pre><code>    debian/patches/series \
-    debian/patches/0001-mkdir-for-tolua-lib-archive-and-remove-temp-files.patch \
-    debian/patches/0002-Fix-relocation-R_X86_64_32-against-.rodata-can-not-b.patch
+<pre><code class="sh">git add debian/changelog \
+        debian/patches/series \
+        debian/patches/0001-mkdir-for-tolua-lib-archive-and-remove-temp-files.patch \
+        debian/patches/0002-Fix-relocation-R_X86_64_32-against-.rodata-can-not-b.patch
+git commit -m "Fix relocation R_X86_64_32 against '.rodata' error for shared object"
 </code></pre>
-
-<p>git commit -m &ldquo;Fix relocation R_X86_64_32 against &lsquo;.rodata&rsquo; error for shared object&rdquo;
-```</p>
 
 <p>测试构建新的deb包。为了避免污染当前环境，这里指定git首先导出源码至../tolua-build目录：</p>
 
-<p><code>sh
-git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
-</code></p>
+<pre><code class="sh">git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
+</code></pre>
 
 <p>可以看出，上述debian/changelog新增信息，除版本号5.1.3-2外（新包的版本信息），并无实在意义，仅用于测试deb包的构建。</p>
 
@@ -384,13 +341,12 @@ git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
 </ul>
 
 
-<p><code>sh
-git checkout src/bin/tolua_lua.o src/bin/toluabind.c
+<pre><code class="sh">git checkout src/bin/tolua_lua.o src/bin/toluabind.c
 git-dch -R -a
 git commit -a --amend
 git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
 git tag debian/5.1.3-2
-</code></p>
+</code></pre>
 
 <p>注意，前面仅仅在patch-queue分支上删除的两个中间文件，并未在master分支上删除它们，所以重新checkout它们以保证后续构建的正确运行。</p>
 
@@ -427,18 +383,16 @@ quilt add config
 
 <p>将config文件中，如下内容</p>
 
-<p><code>makefile
-CFLAGS = -g $(WARN) $(INC)
+<pre><code class="makefile">CFLAGS = -g $(WARN) $(INC)
 CPPFLAGS = -g $(WARN) $(INC)
-</code></p>
+</code></pre>
 
 <p>替换为</p>
 
-<p><code>makefile
-CFLAGS = -fPIC -O2 -pipe -g $(WARN) $(INC)
+<pre><code class="makefile">CFLAGS = -fPIC -O2 -pipe -g $(WARN) $(INC)
 CPPFLAGS = -fPIC -O2 -pipe  -g $(WARN) $(INC)
 CFLAGS = -fPIC -O2 -pipe -g $(WARN) $(INC)
-</code></p>
+</code></pre>
 
 <p>生成补丁add-fpic-O2-for-amd64.patch</p>
 

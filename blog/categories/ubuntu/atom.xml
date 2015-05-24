@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Ubuntu | Like的世界]]></title>
+  <title><![CDATA[Category: ubuntu | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/ubuntu/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2015-05-25T02:50:34+08:00</updated>
+  <updated>2015-05-25T02:53:16+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -22,9 +22,8 @@
 
 <h2>命令选项</h2>
 
-<p><code>bash
-autossh [-V] [-M port[:echo_port]] [-f] [SSH_OPTIONS]
-</code></p>
+<pre><code class="bash">autossh [-V] [-M port[:echo_port]] [-f] [SSH_OPTIONS]
+</code></pre>
 
 <ul>
 <li><p><strong>-M port[:echo_port]</strong> 指定监控端口（和echo端口，默认为前者加1）。</p>
@@ -53,22 +52,20 @@ autossh [-V] [-M port[:echo_port]] [-f] [SSH_OPTIONS]
 
 <p>基于Ubuntu 12.04或14.04，以SSH动态代理（即SSH翻墙）为例。init script和Upstart都可以将autossh变成服务，然Upstart的<em>respawn</em>容错能力更强，它能在服务进程掉线，重新启动该服务。</p>
 
-<p>```</p>
+<pre><code># autossh
 
-<h1>autossh</h1>
+description "autossh daemon"
 
-<p>description &ldquo;autossh daemon&rdquo;</p>
+start on (net-device-up IFACE=eth0 or net-device-up IFACE=wlan0)
+stop on (net-device-down IFACE=eth0 and net-device-down IFACE=wlan0)
 
-<p>start on (net-device-up IFACE=eth0 or net-device-up IFACE=wlan0)
-stop on (net-device-down IFACE=eth0 and net-device-down IFACE=wlan0)</p>
+respawn
 
-<p>respawn</p>
+setuid like
+setgid like
 
-<p>setuid like
-setgid like</p>
-
-<p>exec /usr/bin/autossh -M64000 -q -N -D localhost:12348 sshproxy
-```</p>
+exec /usr/bin/autossh -M64000 -q -N -D localhost:12348 sshproxy
+</code></pre>
 
 <ul>
 <li><em>setuid</em>和<em>setgid</em>为了让autossh运行在指定的用户和用户组上。</li>
@@ -82,28 +79,23 @@ setgid like</p>
 
 <p>仍以SSH动态代理为例：</p>
 
-<p>```</p>
+<pre><code># sshproxy
 
-<h1>sshproxy</h1>
+description "ssh proxy"
 
-<p>description &ldquo;ssh proxy&rdquo;</p>
+start on (net-device-up IFACE=eth0 or net-device-up IFACE=wlan0)
+stop on (net-device-down IFACE=eth0 and net-device-down IFACE=wlan0)
 
-<p>start on (net-device-up IFACE=eth0 or net-device-up IFACE=wlan0)
-stop on (net-device-down IFACE=eth0 and net-device-down IFACE=wlan0)</p>
+respawn
 
-<p>respawn</p>
+setuid like
+setgid like
 
-<p>setuid like
-setgid like</p>
-
-<p>exec /usr/bin/ssh \</p>
-
-<pre><code>-oServerAliveInterval=300 \
--oServerAliveCountMax=2 \
--q -N -D localhost:12348 sshproxy
+exec /usr/bin/ssh \
+    -oServerAliveInterval=300 \
+    -oServerAliveCountMax=2 \
+    -q -N -D localhost:12348 sshproxy
 </code></pre>
-
-<p>```</p>
 ]]></content>
   </entry>
   
@@ -118,51 +110,48 @@ setgid like</p>
 
 <h2>安装Rinse</h2>
 
-<p><code>sh
-sudo apt-get install -y rinse
-</code></p>
+<pre><code class="sh">sudo apt-get install -y rinse
+</code></pre>
 
 <h2>创建CentOS 6</h2>
 
-<p><code>sh
-sudo rinse --distribution centos-6 --arch amd64 --directory centos-6
-</code></p>
+<pre><code class="sh">sudo rinse --distribution centos-6 --arch amd64 --directory centos-6
+</code></pre>
 
 <p>运行该命令将创建CentOS 6 amd64于当前工作目录的centos-6目录中。其中，</p>
 
 <ul>
-<li>&mdash;distribution指定发行版本，类似还可以centos-{4,5}， fedora-core-{4,5,6,7,8,9}和opensuse-{10.1,10.2,10.3,11.0,11.1,12.1}等。可以下述命令获取：</li>
+<li>&ndash;distribution指定发行版本，类似还可以centos-{4,5}， fedora-core-{4,5,6,7,8,9}和opensuse-{10.1,10.2,10.3,11.0,11.1,12.1}等。可以下述命令获取：</li>
 </ul>
 
 
-<p><code>sh
-rinse --list-distributions
-</code></p>
+<pre><code class="sh">rinse --list-distributions
+</code></pre>
 
-<p>具体对应于/etc/rinse/*.packages的模板名，它们主要包含RPM包列表。换一句话说，你根据需要定制自己的模板。另一方面，你也可以通过&mdash;pkgs-dir指定不同于/etc/rinse的模板目录。</p>
+<p>具体对应于/etc/rinse/*.packages的模板名，它们主要包含RPM包列表。换一句话说，你根据需要定制自己的模板。另一方面，你也可以通过&ndash;pkgs-dir指定不同于/etc/rinse的模板目录。</p>
 
 <ul>
-<li>&mdash;arch指定架构，amd64表示64位架构，i386表示32位架构。缺省为i386.</li>
-<li>&mdash;directory指定为安装目录，安装结束后便可以chroot该目录了。</li>
+<li>&ndash;arch指定架构，amd64表示64位架构，i386表示32位架构。缺省为i386.</li>
+<li>&ndash;directory指定为安装目录，安装结束后便可以chroot该目录了。</li>
 </ul>
 
 
-<p>另外，需要额外安装某些包，可以通过指定&mdash;add-pkg-list来完成。</p>
+<p>另外，需要额外安装某些包，可以通过指定&ndash;add-pkg-list来完成。</p>
 
 <h2>配置RPM缓存</h2>
 
 <p>rinse默认使用/var/rinse/cache作为缓存目录，它大大缩短了重复运行同样命令的时间。具体通过：</p>
 
 <ul>
-<li>&mdash;cache 0指禁用缓存，缺省为1</li>
-<li>&mdash;cache-dir指定不同于/var/rinse/cache作为缓存目录。</li>
-<li>&mdash;clean-cache指清楚缓存</li>
+<li>&ndash;cache 0指禁用缓存，缺省为1</li>
+<li>&ndash;cache-dir指定不同于/var/rinse/cache作为缓存目录。</li>
+<li>&ndash;clean-cache指清楚缓存</li>
 </ul>
 
 
 <h2>定制安装后执行脚本</h2>
 
-<p>&mdash;after-post-install, &mdash;before-post-install和&mdash;post-install顾名思义，需要指出的是&mdash;post-install默认执行/usr/lib/rinse/<distribution>/post-install.sh.</p>
+<p>&ndash;after-post-install, &ndash;before-post-install和&ndash;post-install顾名思义，需要指出的是&ndash;post-install默认执行/usr/lib/rinse/<distribution>/post-install.sh.</p>
 
 <h2>如何提高安装速度？</h2>
 
@@ -171,13 +160,12 @@ rinse --list-distributions
 <pre><code>http://centos.ustc.edu.cn/centos/6/os/x86_64/CentOS/
 </code></pre>
 
-<p>也可以通过&mdash;config指定不同于/etc/rinse/rinse.conf的配置文件。</p>
+<p>也可以通过&ndash;config指定不同于/etc/rinse/rinse.conf的配置文件。</p>
 
 <p>若内网存在HTTP cache服务器（如Squid)，还可以设置环境变量http_proxy来缓存rpm以及加速安装，如：</p>
 
-<p><code>sh
-sudo http_proxy=http://&lt;http proxy address&gt; rinse --distribution centos-6 --arch amd64 --directory centos-6
-</code></p>
+<pre><code class="sh">sudo http_proxy=http://&lt;http proxy address&gt; rinse --distribution centos-6 --arch amd64 --directory centos-6
+</code></pre>
 ]]></content>
   </entry>
   
@@ -204,9 +192,8 @@ sudo http_proxy=http://&lt;http proxy address&gt; rinse --distribution centos-6 
 
 <p>以下操作基于Ubuntu 12.04，那么需要安装LXC包：</p>
 
-<p><code>sh
-sudo apt-get install -y lxc
-</code></p>
+<pre><code class="sh">sudo apt-get install -y lxc
+</code></pre>
 
 <h2>创建LXC</h2>
 
@@ -214,97 +201,81 @@ sudo apt-get install -y lxc
 
 <p>需要创建一个基础的配置文件。由于创建LXC完成后，不再需要该配置文件（可以删除），故该文件的名字和路径没有特殊要求。这里命名为precise.conf，放在当前路径下：</p>
 
-<p><code>
-lxc.network.type = veth
+<pre><code>lxc.network.type = veth
 lxc.network.flags = up
 lxc.network.name = eth0
 lxc.network.link = lxcbr0
-</code></p>
+</code></pre>
 
 <p>lxcbr0为由LXC包创建的虚拟网桥，通过ifconfig可以知道其IP地址10.0.3.1，网段10.0.3.1/24，容器将通过lxcbr0与外界通信。</p>
 
 <p>如此，可以开始创建容器了：</p>
 
-<p><code>sh
-sudo lxc-create -n precise -f precise.conf -t ubuntu -- -r precise
-</code></p>
+<pre><code class="sh">sudo lxc-create -n precise -f precise.conf -t ubuntu -- -r precise
+</code></pre>
 
 <ul>
 <li>-n指定容器名，这里为precise。</li>
 <li>-f指定基础配置文件，即上一步骤创建的precise.conf。</li>
 <li>-t指定模板名，这里必须为ubuntu（创建Ubuntu 12.04)。每个模板名，对应一个脚本，它们存放在/usr/lib/lxc/templates目录（文件名形如lxc-&lt;模板名>）中。</li>
-<li>&mdash;以后的参数被传递给模板脚本；</li>
+<li>&ndash;以后的参数被传递给模板脚本；</li>
 <li>-r为ubuntu模板脚本的参数，表示<a href="http://en.wikipedia.org/w/index.php?title=Ubuntu_(operating_system)#Releases">Ubuntu发行版代号</a>，这里必须为precise（它是12.04的发行代号）。</li>
 </ul>
 
 
 <p>创建过程可能会比较漫长。通过阅读/usr/lib/lxc/templates/lxc-ubuntu，不难发现创建ubuntu容器主要依靠deboostrap来完成。另一方面，变量MIRROR和SECURITY_MIRROR决定了镜像的设置，它们默认为：</p>
 
-<p><code>
-MIRROR=http://archive.ubuntu.com/ubuntu
+<pre><code>MIRROR=http://archive.ubuntu.com/ubuntu
 SECURITY_MIRROR=http://security.ubuntu.com/ubuntu
-</code></p>
+</code></pre>
 
 <p>在大陆地区，使用默认镜像的网速较慢。为了加快创建过程，可以将它们都换成大陆或香港的镜像，如<a href="http://ftp.cuhk.edu.hk/pub/Linux/ubuntu">http://ftp.cuhk.edu.hk/pub/Linux/ubuntu</a></p>
 
 <p>具体问题是lxc-ubuntu并没有提供命令行参数来设置MIRROR和SECURITY_MIRROR。在不修改lxc-ubuntu代码的情况下，唯一的办法就是通过设置相关环境变量来达到这个目的，如：</p>
 
-<p>```sh
-sudo MIRROR=&ldquo;<a href="http://ftp.cuhk.edu.hk/pub/Linux/ubuntu">http://ftp.cuhk.edu.hk/pub/Linux/ubuntu</a>&rdquo; \</p>
-
-<pre><code> SECURITY_MIRROR="http://ftp.cuhk.edu.hk/pub/Linux/ubuntu" \
- lxc-create -n precise -f precise.conf -t ubuntu -- -r precise
+<pre><code class="sh">sudo MIRROR="http://ftp.cuhk.edu.hk/pub/Linux/ubuntu" \
+     SECURITY_MIRROR="http://ftp.cuhk.edu.hk/pub/Linux/ubuntu" \
+     lxc-create -n precise -f precise.conf -t ubuntu -- -r precise
 </code></pre>
-
-<p>```</p>
 
 <p>我司为了加快内部开发和测试人员安装Ubuntu，部署了<a href="https://www.unix-ag.uni-kl.de/~bloch/acng/">apt-cacher-ng</a>——一种deb包HTTP缓存代理。由于lxc-ubuntu基于deboostrap，可以通过设置环境变量http_proxy来设置deboostrap的缓存代理（请见<a href="http://unix.stackexchange.com/questions/38993/global-cache-config-of-debootstrap">Global cache config of debootstrap</a>）:</p>
 
-<p>```sh
-sudo http_proxy=&ldquo;<a href="http://192.168.88.10:3142/">http://192.168.88.10:3142/</a>&rdquo; \</p>
-
-<pre><code> MIRROR="http://ftp.cuhk.edu.hk/pub/Linux/ubuntu" \
- SECURITY_MIRROR="http://ftp.cuhk.edu.hk/pub/Linux/ubuntu" \
- lxc-create -n precise -f precise.conf -t ubuntu -- -r precise
+<pre><code class="sh">sudo http_proxy="http://192.168.88.10:3142/" \
+     MIRROR="http://ftp.cuhk.edu.hk/pub/Linux/ubuntu" \
+     SECURITY_MIRROR="http://ftp.cuhk.edu.hk/pub/Linux/ubuntu" \
+     lxc-create -n precise -f precise.conf -t ubuntu -- -r precise
 </code></pre>
-
-<p>```</p>
 
 <p>如此，在尽可能节约外部带宽的同时，最大限度的加快了创建过程。</p>
 
 <p>上述创建方法，容器的架构将与host os的相同（如amd64）。若需要在amd64的host os上创建i386或i686架构的容器，则需要通过模板脚本的-a参数指定i686，如：</p>
 
-<p><code>sh
-sudo lxc-create -n precise -f precise.conf -t ubuntu -- -r precise -a i686
-</code></p>
+<pre><code class="sh">sudo lxc-create -n precise -f precise.conf -t ubuntu -- -r precise -a i686
+</code></pre>
 
 <h2>启动LXC</h2>
 
 <p>若需立即启动LXC，则：</p>
 
-<p><code>sh
-sudo lxc-start -n precise
-</code></p>
+<pre><code class="sh">sudo lxc-start -n precise
+</code></pre>
 
 <p>若需以daemon方式运行，则:</p>
 
-<p><code>sh
-sudo lxc-start -n precise -d
-</code></p>
+<pre><code class="sh">sudo lxc-start -n precise -d
+</code></pre>
 
 <p>若需随host os启动而自动启动，则:</p>
 
-<p><code>sh
-sudo ln -s /var/lib/lxc/precise/config /etc/lxc/auto/precise.conf
-</code></p>
+<pre><code class="sh">sudo ln -s /var/lib/lxc/precise/config /etc/lxc/auto/precise.conf
+</code></pre>
 
 <h2>打开LXC控制台</h2>
 
 <p>在没有给容器设置IP时，打开其控制台</p>
 
-<p><code>sh
-sudo lxc-console -n precise
-</code></p>
+<pre><code class="sh">sudo lxc-console -n precise
+</code></pre>
 
 <p>将看到文本登录界面。 通过按热键ctrl-a和q，可以退出容器控制台。</p>
 
@@ -314,17 +285,15 @@ sudo lxc-console -n precise
 
 <p>多数情况下，可以通过在guest os（容器）内执行poweroff或shutdown -h now来关闭容器。但有些时候却需要在host os上强行关闭容器，如：</p>
 
-<p><code>sh
-sudo lxc-stop -n precise
-</code></p>
+<pre><code class="sh">sudo lxc-stop -n precise
+</code></pre>
 
 <h2>删除LXC</h2>
 
 <p>容器创建后，配置和数据存放在/var/lib/lxc/precise目录中。执行</p>
 
-<p><code>sh
-sudo lxc-destroy -n precise
-</code></p>
+<pre><code class="sh">sudo lxc-destroy -n precise
+</code></pre>
 
 <p>与手动删除该目录效果一样。</p>
 
@@ -352,9 +321,8 @@ sudo lxc-destroy -n precise
 
 <p>一个问题是Host-only Adapter（网段为192.168.56.0/24）默认不能与互联网通信。google之后发现网上早有人遇到类似问题，他们给出的解决办法是在/etc/rc.local中加入：</p>
 
-<p><code>sh
-iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
-</code></p>
+<pre><code class="sh">iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
+</code></pre>
 
 <p>另一个问题是VirtualBox内置DHCP的IP租赁时间设置，也无法将MAC地址与IP地址静态绑定，这造成虚拟机IP地址每隔一段时间改变一次，给使用带来诸多不方便。另一方面，我也不想静态设置IP地址，因为如果这样做，我必须每安装一次虚拟机都要重新设置IP地址。</p>
 
@@ -365,45 +333,37 @@ iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
 </ul>
 
 
-<p><code>sh
-sudo apt-get install dnsmasq
-</code></p>
+<pre><code class="sh">sudo apt-get install dnsmasq
+</code></pre>
 
 <ul>
 <li>打开/etc/dnsmasq.conf，针对vboxnet0配置DHCP。</li>
 </ul>
 
 
-<p>```plain
-interface=vboxnet0</p>
+<pre><code class="plain">interface=vboxnet0
 
-<h1>192.168.56.1是默认网关（host机器的vboxnet0地址）</h1>
+# 192.168.56.1是默认网关（host机器的vboxnet0地址）
+# 208.67.222.222和208.67.220.220是DNS地址(这里使用了OpenDNS)
+dhcp-option=vboxnet0,option:dns-server,192.168.56.1,208.67.222.222,208.67.220.220
 
-<h1>208.67.222.222和208.67.220.220是DNS地址(这里使用了OpenDNS)</h1>
-
-<p>dhcp-option=vboxnet0,option:dns-server,192.168.56.1,208.67.222.222,208.67.220.220</p>
-
-<h1>192.168.56.2和192.168.56.254为分配地址范围</h1>
-
-<h1>infinite表示IP永远不过期</h1>
-
-<p>dhcp-range=vboxnet0,192.168.56.2,192.168.56.254,infinite
-```</p>
+# 192.168.56.2和192.168.56.254为分配地址范围
+# infinite表示IP永远不过期
+dhcp-range=vboxnet0,192.168.56.2,192.168.56.254,infinite
+</code></pre>
 
 <ul>
 <li>重启动dnsmasq</li>
 </ul>
 
 
-<p><code>sh
-sudo service dnsmasq restart
-</code></p>
+<pre><code class="sh">sudo service dnsmasq restart
+</code></pre>
 
 <p>当然，dnsmasq也支持MAC地址与IP地址静态绑定。比如，在/etc/dnsmasq.conf中针对MAC地址08:00:27:81:51:85，分配机器名vbox-xp，分配IP地址192.168.56.2</p>
 
-<p><code>plain
-dhcp-host=vbox-xp,08:00:27:81:51:85,192.168.56.2
-</code></p>
+<pre><code class="plain">dhcp-host=vbox-xp,08:00:27:81:51:85,192.168.56.2
+</code></pre>
 
 <p>最后，不要忘了重启动dnsmasq。</p>
 ]]></content>

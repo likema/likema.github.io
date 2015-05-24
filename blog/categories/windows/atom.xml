@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Windows | Like的世界]]></title>
+  <title><![CDATA[Category: windows | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/windows/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2015-05-25T02:50:34+08:00</updated>
+  <updated>2015-05-25T02:53:16+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -32,26 +32,18 @@
 
 <p>首先，建立目录helloworld，并且在这个目录下且创建helloworld.cpp，内容如下：</p>
 
-<p>```cpp
-int main ()
-{</p>
-
-<pre><code>std::cout &lt;&lt; "Hello World!" &lt;&lt; std::endl;
+<pre><code class="cpp">int main ()
+{
+    std::cout &lt;&lt; "Hello World!" &lt;&lt; std::endl;
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>然后，创建MPC工程文件helloworld.mpc，内容如下：</p>
 
-<p>```plain
-project {</p>
-
-<pre><code>exename = helloworld
+<pre><code class="plain">project {
+    exename = helloworld
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>最后，打开Visual Studio 2008 Command Prompt（也可以用VS2003或2005的），进入helloworld的目录, 然后输入</p>
 
@@ -67,18 +59,14 @@ project {</p>
 
 <p>或许你希望debug和release生成的exe分别放在debug和release目录，修改一下MPC文件</p>
 
-<p>```plain
-project {</p>
-
-<pre><code>exename = helloworld
-specific (nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
-    Debug::install = debug
-    Release::install = release
+<pre><code class="plain">project {
+    exename = helloworld
+    specific (nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
+        Debug::install = debug
+        Release::install = release
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>或许你更喜欢用IDE，让我们生成VS2008的工程文件吧：</p>
 
@@ -89,70 +77,49 @@ specific (nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
 
 <p>首先，建立目录hellodll，并且在这个目录下且创建hellodll.h，内容如下：</p>
 
-<p>```c</p>
+<pre><code class="c">#ifndef HELLO_DLL_H
+#define HELLO_DLL_H
 
-<h1>ifndef HELLO_DLL_H</h1>
+#ifdef HELLO_BUILD_DLL
+#   define HELLO_Export __declspec(dllexport)
+#else
+#   define HELLO_Export __declspec(dllimport)
+#endif /* HELLO_BUILD_DLL */
 
-<h1>define HELLO_DLL_H</h1>
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
-<h1>ifdef HELLO_BUILD_DLL</h1>
+HELLO_Export void print_hello ();
 
-<h1>define HELLO_Export __declspec(dllexport)</h1>
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */
 
-<h1>else</h1>
-
-<h1>define HELLO_Export __declspec(dllimport)</h1>
-
-<h1>endif /<em> HELLO_BUILD_DLL </em>/</h1>
-
-<h1>ifdef __cplusplus</h1>
-
-<p>extern &ldquo;C&rdquo; {</p>
-
-<h1>endif /<em> __cplusplus </em>/</h1>
-
-<p>HELLO_Export void print_hello ();</p>
-
-<h1>ifdef __cplusplus</h1>
-
-<p>} /<em> extern &ldquo;C&rdquo; </em>/</p>
-
-<h1>endif /<em> __cplusplus </em>/</h1>
-
-<h1>endif /<em> HELLO_DLL_H </em>/</h1>
-
-<p>```</p>
+#endif /* HELLO_DLL_H */
+</code></pre>
 
 <p>然后，创建文件hellodll.cpp，内容如下：</p>
 
-<p>```c</p>
+<pre><code class="c">#include "hellodll.h"
 
-<h1>include &ldquo;hellodll.h&rdquo;</h1>
-
-<p>void print_hello ()
-{</p>
-
-<pre><code>std::cout &lt;&lt; "Hello World!" &lt;&lt; std::endl;
-</code></pre>
-
-<p>}
-```</p>
-
-<p>最后，创建文件hellodll.mpc，内容如下</p>
-
-<p>```plain
-project {</p>
-
-<pre><code>sharedname = hello
-dynamicflags += HELLO_BUILD_DLL
-specific(nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
-    Debug::dllout = debug
-    Release::dllout = release
+void print_hello ()
+{
+    std::cout &lt;&lt; "Hello World!" &lt;&lt; std::endl;
 }
 </code></pre>
 
-<p>}
-```</p>
+<p>最后，创建文件hellodll.mpc，内容如下</p>
+
+<pre><code class="plain">project {
+    sharedname = hello
+    dynamicflags += HELLO_BUILD_DLL
+    specific(nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
+        Debug::dllout = debug
+        Release::dllout = release
+    }
+}
+</code></pre>
 
 <p>之后，执行如下命令，可以生成Debug和Release的dll。注意Debug的dll是hellod.dll。</p>
 
@@ -167,64 +134,51 @@ nmake CFG="Win32 Release"
 
 <p>首先，在原来的目录hellodll下建立文件hellowtest.cpp，内容如下：</p>
 
-<p>```c</p>
+<pre><code class="c">#include "hellodll.h"
 
-<h1>include &ldquo;hellodll.h&rdquo;</h1>
-
-<p>int main ()
-{</p>
-
-<pre><code>print_hello ();
-return 0;
+int main ()
+{
+    print_hello ();
+    return 0;
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>然后，创建文件hellotest.mpc，内容如下：</p>
 
-<p>```plain
-project {</p>
+<pre><code class="plain">project {
+    after += hellodll
+    exename = hellotest
+    libs += hello
 
-<pre><code>after += hellodll
-exename = hellotest
-libs += hello
+    Source_Files {
+        hellotest.cpp
+    }
 
-Source_Files {
-    hellotest.cpp
-}
-
-specific(nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
-    Debug::libpaths = debug
-    Debug::install = debug
-    Release::libpaths = Release
-    Release::install = Release
+    specific(nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
+        Debug::libpaths = debug
+        Debug::install = debug
+        Release::libpaths = Release
+        Release::install = Release
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>注意到helloworld.mpc和hellotest.mpc的差异吗？后者的after语句表示hellotest.mpc依赖于hellodll.mpc，必须在其后编译。另外，我在后者增加了Source_Files块，顾名思义，其作用是指定工程源文件(cpp和c)列表。如果没有它，MPC默认会将hellotest.mpc所在目录的所有源文件作为这个工程的源文件，这显然不是我们希望看到的；同理，需要在hellodll.mpc增加Source_Files块，修改后的内容如下：</p>
 
-<p>```plain
-project {</p>
+<pre><code class="plain">project {
+    sharedname = hello
+    dynamicflags += HELLO_BUILD_DLL
 
-<pre><code>sharedname = hello
-dynamicflags += HELLO_BUILD_DLL
+    Source_Files {
+        hellodll.cpp
+    }
 
-Source_Files {
-    hellodll.cpp
-}
-
-specific (nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
-    Debug::dllout = debug
-    Release::dllout = Release
+    specific (nmake, vc6, vc7, vc71, vc8, vc9, vc10) {
+        Debug::dllout = debug
+        Release::dllout = Release
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>类似Source_Files块，还有Header_Files, Inline_Files和Resoure_Files等，具体可以查看MPC官方文档。
 最后，重新执行一下</p>

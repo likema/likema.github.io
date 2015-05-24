@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Proxy | Like的世界]]></title>
+  <title><![CDATA[Category: proxy | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/proxy/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2015-05-25T02:50:34+08:00</updated>
+  <updated>2015-05-25T02:53:16+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -22,9 +22,8 @@
 
 <h2>命令选项</h2>
 
-<p><code>bash
-autossh [-V] [-M port[:echo_port]] [-f] [SSH_OPTIONS]
-</code></p>
+<pre><code class="bash">autossh [-V] [-M port[:echo_port]] [-f] [SSH_OPTIONS]
+</code></pre>
 
 <ul>
 <li><p><strong>-M port[:echo_port]</strong> 指定监控端口（和echo端口，默认为前者加1）。</p>
@@ -53,22 +52,20 @@ autossh [-V] [-M port[:echo_port]] [-f] [SSH_OPTIONS]
 
 <p>基于Ubuntu 12.04或14.04，以SSH动态代理（即SSH翻墙）为例。init script和Upstart都可以将autossh变成服务，然Upstart的<em>respawn</em>容错能力更强，它能在服务进程掉线，重新启动该服务。</p>
 
-<p>```</p>
+<pre><code># autossh
 
-<h1>autossh</h1>
+description "autossh daemon"
 
-<p>description &ldquo;autossh daemon&rdquo;</p>
+start on (net-device-up IFACE=eth0 or net-device-up IFACE=wlan0)
+stop on (net-device-down IFACE=eth0 and net-device-down IFACE=wlan0)
 
-<p>start on (net-device-up IFACE=eth0 or net-device-up IFACE=wlan0)
-stop on (net-device-down IFACE=eth0 and net-device-down IFACE=wlan0)</p>
+respawn
 
-<p>respawn</p>
+setuid like
+setgid like
 
-<p>setuid like
-setgid like</p>
-
-<p>exec /usr/bin/autossh -M64000 -q -N -D localhost:12348 sshproxy
-```</p>
+exec /usr/bin/autossh -M64000 -q -N -D localhost:12348 sshproxy
+</code></pre>
 
 <ul>
 <li><em>setuid</em>和<em>setgid</em>为了让autossh运行在指定的用户和用户组上。</li>
@@ -82,28 +79,23 @@ setgid like</p>
 
 <p>仍以SSH动态代理为例：</p>
 
-<p>```</p>
+<pre><code># sshproxy
 
-<h1>sshproxy</h1>
+description "ssh proxy"
 
-<p>description &ldquo;ssh proxy&rdquo;</p>
+start on (net-device-up IFACE=eth0 or net-device-up IFACE=wlan0)
+stop on (net-device-down IFACE=eth0 and net-device-down IFACE=wlan0)
 
-<p>start on (net-device-up IFACE=eth0 or net-device-up IFACE=wlan0)
-stop on (net-device-down IFACE=eth0 and net-device-down IFACE=wlan0)</p>
+respawn
 
-<p>respawn</p>
+setuid like
+setgid like
 
-<p>setuid like
-setgid like</p>
-
-<p>exec /usr/bin/ssh \</p>
-
-<pre><code>-oServerAliveInterval=300 \
--oServerAliveCountMax=2 \
--q -N -D localhost:12348 sshproxy
+exec /usr/bin/ssh \
+    -oServerAliveInterval=300 \
+    -oServerAliveCountMax=2 \
+    -q -N -D localhost:12348 sshproxy
 </code></pre>
-
-<p>```</p>
 ]]></content>
   </entry>
   

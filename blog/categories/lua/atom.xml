@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Lua | Like的世界]]></title>
+  <title><![CDATA[Category: lua | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/lua/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2015-05-25T02:50:34+08:00</updated>
+  <updated>2015-05-25T02:53:16+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -40,18 +40,16 @@ quilt add config
 
 <p>将config文件中，如下内容</p>
 
-<p><code>makefile
-CFLAGS = -g $(WARN) $(INC)
+<pre><code class="makefile">CFLAGS = -g $(WARN) $(INC)
 CPPFLAGS = -g $(WARN) $(INC)
-</code></p>
+</code></pre>
 
 <p>替换为</p>
 
-<p><code>makefile
-CFLAGS = -fPIC -O2 -pipe -g $(WARN) $(INC)
+<pre><code class="makefile">CFLAGS = -fPIC -O2 -pipe -g $(WARN) $(INC)
 CPPFLAGS = -fPIC -O2 -pipe  -g $(WARN) $(INC)
 CFLAGS = -fPIC -O2 -pipe -g $(WARN) $(INC)
-</code></p>
+</code></pre>
 
 <p>生成补丁add-fpic-O2-for-amd64.patch</p>
 

@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2015-05-25T02:50:34+08:00</updated>
+  <updated>2015-05-25T02:53:16+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -316,7 +316,7 @@
 <p>运行该命令将创建CentOS 6 amd64于当前工作目录的centos-6目录中。其中，</p>
 
 <ul>
-<li>&mdash;distribution指定发行版本，类似还可以centos-{4,5}， fedora-core-{4,5,6,7,8,9}和opensuse-{10.1,10.2,10.3,11.0,11.1,12.1}等。可以下述命令获取：</li>
+<li>&ndash;distribution指定发行版本，类似还可以centos-{4,5}， fedora-core-{4,5,6,7,8,9}和opensuse-{10.1,10.2,10.3,11.0,11.1,12.1}等。可以下述命令获取：</li>
 </ul>
 
 
@@ -325,30 +325,30 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>具体对应于/etc/rinse/*.packages的模板名，它们主要包含RPM包列表。换一句话说，你根据需要定制自己的模板。另一方面，你也可以通过&mdash;pkgs-dir指定不同于/etc/rinse的模板目录。</p>
+<p>具体对应于/etc/rinse/*.packages的模板名，它们主要包含RPM包列表。换一句话说，你根据需要定制自己的模板。另一方面，你也可以通过&ndash;pkgs-dir指定不同于/etc/rinse的模板目录。</p>
 
 <ul>
-<li>&mdash;arch指定架构，amd64表示64位架构，i386表示32位架构。缺省为i386.</li>
-<li>&mdash;directory指定为安装目录，安装结束后便可以chroot该目录了。</li>
+<li>&ndash;arch指定架构，amd64表示64位架构，i386表示32位架构。缺省为i386.</li>
+<li>&ndash;directory指定为安装目录，安装结束后便可以chroot该目录了。</li>
 </ul>
 
 
-<p>另外，需要额外安装某些包，可以通过指定&mdash;add-pkg-list来完成。</p>
+<p>另外，需要额外安装某些包，可以通过指定&ndash;add-pkg-list来完成。</p>
 
 <h2>配置RPM缓存</h2>
 
 <p>rinse默认使用/var/rinse/cache作为缓存目录，它大大缩短了重复运行同样命令的时间。具体通过：</p>
 
 <ul>
-<li>&mdash;cache 0指禁用缓存，缺省为1</li>
-<li>&mdash;cache-dir指定不同于/var/rinse/cache作为缓存目录。</li>
-<li>&mdash;clean-cache指清楚缓存</li>
+<li>&ndash;cache 0指禁用缓存，缺省为1</li>
+<li>&ndash;cache-dir指定不同于/var/rinse/cache作为缓存目录。</li>
+<li>&ndash;clean-cache指清楚缓存</li>
 </ul>
 
 
 <h2>定制安装后执行脚本</h2>
 
-<p>&mdash;after-post-install, &mdash;before-post-install和&mdash;post-install顾名思义，需要指出的是&mdash;post-install默认执行/usr/lib/rinse/<distribution>/post-install.sh.</p>
+<p>&ndash;after-post-install, &ndash;before-post-install和&ndash;post-install顾名思义，需要指出的是&ndash;post-install默认执行/usr/lib/rinse/<distribution>/post-install.sh.</p>
 
 <h2>如何提高安装速度？</h2>
 
@@ -357,7 +357,7 @@
 <pre><code>http://centos.ustc.edu.cn/centos/6/os/x86_64/CentOS/
 </code></pre>
 
-<p>也可以通过&mdash;config指定不同于/etc/rinse/rinse.conf的配置文件。</p>
+<p>也可以通过&ndash;config指定不同于/etc/rinse/rinse.conf的配置文件。</p>
 
 <p>若内网存在HTTP cache服务器（如Squid)，还可以设置环境变量http_proxy来缓存rpm以及加速安装，如：</p>
 
@@ -452,7 +452,7 @@
 <li>第8行为命令合法性判断, 由两个条件组成：
 
 <ul>
-<li>判断&mdash;sender参数是否存在于$SSH_ORIGINAL_COMMAND中，&mdash;sender表示该命令为下载命令；</li>
+<li>判断&ndash;sender参数是否存在于$SSH_ORIGINAL_COMMAND中，&ndash;sender表示该命令为下载命令；</li>
 <li>判断下载目录$TARGET是否与规定的目录一致。</li>
 </ul>
 </li>
@@ -498,7 +498,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>实际仅与读限制脚本相差一行（第8行），仅允许没有&mdash;sender参数的命令（即上传命令）。</p>
+<p>实际仅与读限制脚本相差一行（第8行），仅允许没有&ndash;sender参数的命令（即上传命令）。</p>
 
 <p>该脚本（存储在文件/usr/local/bin/validate_push_share）同样需要跟另一个公钥配置在服务器的/home/share/.ssh/authorized_keys，如：</p>
 
@@ -571,7 +571,7 @@
 <li>-n指定容器名，这里为precise。</li>
 <li>-f指定基础配置文件，即上一步骤创建的precise.conf。</li>
 <li>-t指定模板名，这里必须为ubuntu（创建Ubuntu 12.04)。每个模板名，对应一个脚本，它们存放在/usr/lib/lxc/templates目录（文件名形如lxc-&lt;模板名>）中。</li>
-<li>&mdash;以后的参数被传递给模板脚本；</li>
+<li>&ndash;以后的参数被传递给模板脚本；</li>
 <li>-r为ubuntu模板脚本的参数，表示<a href="http://en.wikipedia.org/w/index.php?title=Ubuntu_(operating_system)#Releases">Ubuntu发行版代号</a>，这里必须为precise（它是12.04的发行代号）。</li>
 </ul>
 
@@ -733,7 +733,7 @@
 
 <ul>
 <li>通过_const的__setattr__对象方法判断该对象是否存在属性name，若存在则抛出自定义异常ConstError，否则创建该属性。</li>
-<li>将_const实例化的对象赋值sys.modules[__name__]，const模块被绑定成_const对象。__name__在首次载入const过程中为&#8217;const&#8217;，而<a href="http://docs.python.org/2.7/library/sys.html#sys.modules">sys.modules</a>是模块名与已加载模块的dict。</li>
+<li>将_const实例化的对象赋值sys.modules[__name__]，const模块被绑定成_const对象。__name__在首次载入const过程中为'const'，而<a href="http://docs.python.org/2.7/library/sys.html#sys.modules">sys.modules</a>是模块名与已加载模块的dict。</li>
 </ul>
 
 
@@ -1101,7 +1101,7 @@
 
 
 <ul>
-<li>由于默认禁用代码条件复杂度检查，需要通过&mdash;max-complexity激活该功能：</li>
+<li>由于默认禁用代码条件复杂度检查，需要通过&ndash;max-complexity激活该功能：</li>
 </ul>
 
 
@@ -1240,7 +1240,7 @@
     <link href="http://www.malike.net.cn/blog/2013/07/25/pep8-summary/"/>
     <updated>2013-07-25T00:00:00+08:00</updated>
     <id>http://www.malike.net.cn/blog/2013/07/25/pep8-summary</id>
-    <content type="html"><![CDATA[<p>下述内容主要源于<a href="http://www.python.org/dev/peps/pep-0008/">PEP 8 &mdash; Style Guide for Python Code</a>。</p>
+    <content type="html"><![CDATA[<p>下述内容主要源于<a href="http://www.python.org/dev/peps/pep-0008/">PEP 8 &ndash; Style Guide for Python Code</a>。</p>
 
 <h2>最大的行长度</h2>
 
@@ -1406,7 +1406,7 @@
 <li>为所有公开模块、函数、类和方法写docstring。</li>
 <li>非公开方法的comment应出现在def行之后</li>
 <li><a href="http://www.python.org/dev/peps/pep-0257/">PEP-257</a>描述良好的docstring惯例。多行docstring的第1行后应跟着1个空白行。</li>
-<li>单行docstring可保持关闭的&#8221;&ldquo;&#8221;在同一行。</li>
+<li>单行docstring可保持关闭的"&ldquo;"在同一行。</li>
 </ul>
 
 
@@ -1433,7 +1433,7 @@
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[git-buildpackage示例（二）]]></title>
+    <title type="html"><![CDATA[Git-buildpackage示例（二）]]></title>
     <link href="http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2/"/>
     <updated>2012-10-23T00:00:00+08:00</updated>
     <id>http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2</id>
@@ -1568,13 +1568,13 @@
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[git-buildpackage示例（一）]]></title>
+    <title type="html"><![CDATA[Git-buildpackage示例（一）]]></title>
     <link href="http://www.malike.net.cn/blog/2012/02/19/git-buildpackage-1/"/>
     <updated>2012-02-19T00:00:00+08:00</updated>
     <id>http://www.malike.net.cn/blog/2012/02/19/git-buildpackage-1</id>
     <content type="html"><![CDATA[<p>在《为tolua的deb包作一个补丁》中，我介绍了如何利用quilt为Ubuntu已有包做一个补丁包的办法。可以看出quilt具有一定的版本管理能力，然而与流行版本管理系统相比，功能较弱也不灵活。</p>
 
-<p>从<a href="http://www.debian.org/doc/manuals/maint-guide/">Debian New Maintainers&#8217; Guide</a>中，了解到deb包的制作和维护管理已经与现有流行版本管理系统结合在了一块，其中一款工具为git-buildpackage，它将包制作和维护，特别是第三方补丁包维护，与git紧密的结合了起来。</p>
+<p>从<a href="http://www.debian.org/doc/manuals/maint-guide/">Debian New Maintainers' Guide</a>中，了解到deb包的制作和维护管理已经与现有流行版本管理系统结合在了一块，其中一款工具为git-buildpackage，它将包制作和维护，特别是第三方补丁包维护，与git紧密的结合了起来。</p>
 
 <p>下面仍然以tolua的补丁制作为例，一步一步展示git-buildpackage的基本操作。</p>
 

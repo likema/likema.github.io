@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Python | Like的世界]]></title>
+  <title><![CDATA[Category: python | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/python/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2015-05-25T02:50:34+08:00</updated>
+  <updated>2015-05-25T02:53:16+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -26,22 +26,19 @@
 
 <p>幸运的是该问题在2001年就有人给出了解决方案<a href="http://code.activestate.com/recipes/65207-constants-in-python/">Constants in Python</a>，基本内容如下：</p>
 
-<p>```python
-class _const:</p>
+<pre><code class="python">class _const:
+    class ConstError(TypeError):
+        pass
 
-<pre><code>class ConstError(TypeError):
-    pass
+    def __setattr__(self, name, value):
+        if self.__dict__.has_key(name):
+            raise self.ConstError, "Can't rebind const instance attribute (%s)" % name
 
-def __setattr__(self, name, value):
-    if self.__dict__.has_key(name):
-        raise self.ConstError, "Can't rebind const instance attribute (%s)" % name
+        self.__dict__[name] = value
 
-    self.__dict__[name] = value
+import sys
+sys.modules[__name__] = _const()
 </code></pre>
-
-<p>import sys
-sys.modules[<strong>name</strong>] = _const()
-```</p>
 
 <p>其大致含义为：</p>
 
@@ -53,16 +50,14 @@ sys.modules[<strong>name</strong>] = _const()
 
 <p>如何使用const模块呢？</p>
 
-<p><code>python
-import const
+<pre><code class="python">import const
 const.magic = 23
-</code></p>
+</code></pre>
 
 <p>若再次赋值const.magic，</p>
 
-<p><code>python
-const.magic = 88
-</code></p>
+<pre><code class="python">const.magic = 88
+</code></pre>
 
 <p>则将抛出ConstError的异常。</p>
 
@@ -70,22 +65,17 @@ const.magic = 88
 
 <p>实际项目中，常量并不希望被其他代码删除。在_const类中加入：</p>
 
-<p>```python</p>
+<pre><code class="python">    def __delattr__(self, name):
+        if self.__dict__.has_key(name):
+            raise self.ConstError, "Can't unbind const const instance attribute (%s)" % name
 
-<pre><code>def __delattr__(self, name):
-    if self.__dict__.has_key(name):
-        raise self.ConstError, "Can't unbind const const instance attribute (%s)" % name
-
-    raise AttributeError, "const instance has no attribute '%s'" % name
+        raise AttributeError, "const instance has no attribute '%s'" % name
 </code></pre>
-
-<p>```</p>
 
 <p>如此，删除已定义的常量（假设const.magic已经赋值）：</p>
 
-<p><code>python
-del const.magic
-</code></p>
+<pre><code class="python">del const.magic
+</code></pre>
 
 <p>则将抛出ConstError的异常。</p>
 
@@ -110,41 +100,33 @@ del const.magic
 
 <p>第1和2类常量作为_const类的类属性，第3类常量可以在__init__方法中初始化。如：</p>
 
-<p>```python
-class _const:</p>
+<pre><code class="python">class _const:
+    ETC_FSTAB = "/etc/fstab"
+    LUN_BLOCK_SIZE = 4096
+    URLOPEN_DEFAULT_TIMEOUT = 15
 
-<pre><code>ETC_FSTAB = "/etc/fstab"
-LUN_BLOCK_SIZE = 4096
-URLOPEN_DEFAULT_TIMEOUT = 15
+    def __init__(self):
+        conf = ConfigParser.SafeConfigParser()
+        conf.read(self.CONF_PATH)
 
-def __init__(self):
-    conf = ConfigParser.SafeConfigParser()
-    conf.read(self.CONF_PATH)
+        try:
+            self.URLOPEN_TIMEOUT = conf.getint("DEFAULT", "urlopen_timeout")
+        except:
+            self.URLOPEN_TIMEOUT = self.URLOPEN_DEFAULT_TIMEOUT
 
-    try:
-        self.URLOPEN_TIMEOUT = conf.getint("DEFAULT", "urlopen_timeout")
-    except:
-        self.URLOPEN_TIMEOUT = self.URLOPEN_DEFAULT_TIMEOUT
-
-... ...
+    ... ...
 </code></pre>
-
-<p>```</p>
 
 <p>某些情况下，应用程序可能并不希望const模块在被外部调用时绑定新属性（常量），实现如下：</p>
 
-<p>```python</p>
+<pre><code class="python">    def __init__(self):
+        # Constant definition area
 
-<pre><code>def __init__(self):
-    # Constant definition area
+        _const.__setattr__ = _const._setattr_impl
 
-    _const.__setattr__ = _const._setattr_impl
-
-def _setattr_impl(self, name, value):
-    raise self.ConstError, "Can't bind const instance attribute (%s)" % name
+    def _setattr_impl(self, name, value):
+        raise self.ConstError, "Can't bind const instance attribute (%s)" % name
 </code></pre>
-
-<p>```</p>
 
 <p>其原理为_const对象初始化完成后将__setattr__设置为禁止绑定属性的实现。若在_const类中实现__setattr__为禁止绑定属性，则__init__也将无法初始化（绑定）对象属性。</p>
 
@@ -182,73 +164,111 @@ def _setattr_impl(self, name, value):
 <p>我的目的不是扩展Distutils的install命令，而是改变其行为，避免其安装源码。其实，只需要改变install_lib的行为就足够了。</p>
 
 <p>类install_lib存在于/usr/lib/python2.7/distutils/command/install_lib.py文件中，它的方法run源码如下：
-```python</p>
-
-<pre><code>def run(self):
-    # Make sure we have built everything we need first
-    self.build()
-
-    # Install everything: simply dump the entire contents of the build
-    # directory to the installation directory (that's the beauty of
-    # having a build directory!)
-    outfiles = self.install()
-
-    # (Optionally) compile .py to .pyc
-    if outfiles is not None and self.distribution.has_pure_modules():
-        self.byte_compile(outfiles)
-</code></pre>
-
-<p>```</p>
-
-<p>与先编译再安装的直觉相反，编译生成pyc并不发生在build方法中，而是install方法执行后。所以，若重载build方法（实际调用build_py命令），则install和byte_compile都需要修改，工作量较大且复杂度较高。</p>
-
-<p>直接能想到的办法是重载install方法，使其直接编译源码，并返回None，从而使byte_compile不会被执行。</p>
-
-<p>```python
-import os
-from distutils.core import setup
-from distutils.command.install_lib import install_lib
-from distutils import log
-from distutils.dep_util import newer
-from py_compile import compile</p>
-
-<p>class InstallLib(install_lib):</p>
-
-<pre><code>def install(self):
-    for root, dirs, files in os.walk(self.build_dir):
-        current = root.replace(self.build_dir, self.install_dir)
-        for i in dirs:
-            self.mkpath(os.path.join(current, i))
-
-        for i in files:
-            file = os.path.join(root, i)
-            cfile = os.path.join(current, i) + "c"
-            cfile_base = os.path.basename(cfile)
-            if self.force or newer(file, cfile):
-                log.info("byte-compiling %s to %s", file, cfile_base)
-                compile(file, cfile)
-            else:
-                log.debug("skipping byte-compilation of %s", file)
-</code></pre>
-
-<p>setup(cmdclass={&ldquo;install_lib&rdquo;: InstallLib}, name=&ldquo;HelloWorld&rdquo;, version=&ldquo;1.0&rdquo;)
-```</p>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>    <span class="c"># Make sure we have built everything we need first</span>
+</span><span class='line'>    <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="p">()</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span>    <span class="c"># Install everything: simply dump the entire contents of the build</span>
+</span><span class='line'><span class="c"># directory to the installation directory (that&#39;s the beauty of</span>
+</span><span class='line'><span class="c"># having a build directory!)</span>
+</span><span class='line'><span class="n">outfiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">install</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># (Optionally) compile .py to .pyc</span>
+</span><span class='line'><span class="k">if</span> <span class="n">outfiles</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">has_pure_modules</span><span class="p">():</span>
+</span><span class='line'>    <span class="bp">self</span><span class="o">.</span><span class="n">byte_compile</span><span class="p">(</span><span class="n">outfiles</span><span class="p">)</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span>
+</span><span class='line'><span class="err">与先编译再安装的直觉相反，编译生成</span><span class="n">pyc</span><span class="err">并不发生在</span><span class="n">build</span><span class="err">方法中，而是</span><span class="n">install</span><span class="err">方法执行后。所以，若重载</span><span class="n">build</span><span class="err">方法（实际调用</span><span class="n">build_py</span><span class="err">命令），则</span><span class="n">install</span><span class="err">和</span><span class="n">byte_compile</span><span class="err">都需要修改，工作量较大且复杂度较高。</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">直接能想到的办法是重载</span><span class="n">install</span><span class="err">方法，使其直接编译源码，并返回</span><span class="bp">None</span><span class="err">，从而使</span><span class="n">byte_compile</span><span class="err">不会被执行。</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="kn">import</span> <span class="nn">os</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">distutils.core</span> <span class="kn">import</span> <span class="n">setup</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">distutils.command.install_lib</span> <span class="kn">import</span> <span class="n">install_lib</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">distutils</span> <span class="kn">import</span> <span class="n">log</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">distutils.dep_util</span> <span class="kn">import</span> <span class="n">newer</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">py_compile</span> <span class="kn">import</span> <span class="nb">compile</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">class</span> <span class="nc">InstallLib</span><span class="p">(</span><span class="n">install_lib</span><span class="p">):</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">install</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>    <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build_dir</span><span class="p">):</span>
+</span><span class='line'>        <span class="n">current</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">install_dir</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dirs</span><span class="p">:</span>
+</span><span class='line'>            <span class="bp">self</span><span class="o">.</span><span class="n">mkpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+</span><span class='line'>        <span class="nb">file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">cfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;c&quot;</span>
+</span><span class='line'>        <span class="n">cfile_base</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">cfile</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">force</span> <span class="ow">or</span> <span class="n">newer</span><span class="p">(</span><span class="nb">file</span><span class="p">,</span> <span class="n">cfile</span><span class="p">):</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;byte-compiling </span><span class="si">%s</span><span class="s"> to </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="nb">file</span><span class="p">,</span> <span class="n">cfile_base</span><span class="p">)</span>
+</span><span class='line'>            <span class="nb">compile</span><span class="p">(</span><span class="nb">file</span><span class="p">,</span> <span class="n">cfile</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">else</span><span class="p">:</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;skipping byte-compilation of </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">setup</span><span class="p">(</span><span class="n">cmdclass</span><span class="o">=</span><span class="p">{</span><span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">install_lib</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;:</span> <span class="n">InstallLib</span><span class="p">},</span> <span class="n">name</span><span class="o">=&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">HelloWorld</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;,</span> <span class="n">version</span><span class="o">=&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="mf">1.0</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;)</span>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>虽然这样做达到了目的，然而仔细思考一下，更简单的办法是等安装完成后，删除目标目录的源码文件（这里仅给出InstallLib的实现，其余部分同上）：</p>
 
-<p>```python
-class InstallLib(install_lib):</p>
-
-<pre><code>def run(self):
-    self.build()
-    outfiles = self.install()
-    if outfiles is not None and self.distribution.has_pure_modules():
-        self.byte_compile(outfiles)
-        for i in outfiles:
-            os.unlink(i)
+<pre><code class="python">class InstallLib(install_lib):
+    def run(self):
+        self.build()
+        outfiles = self.install()
+        if outfiles is not None and self.distribution.has_pure_modules():
+            self.byte_compile(outfiles)
+            for i in outfiles:
+                os.unlink(i)
 </code></pre>
-
-<p>```</p>
 
 <p>如此非常简洁，实际只增加了2行代码，其余皆copy-paste。</p>
 ]]></content>
@@ -279,20 +299,18 @@ class InstallLib(install_lib):</p>
 </ul>
 
 
-<p><code>
-sudo add-apt-repository ppa:likemartinma/python
+<pre><code>sudo add-apt-repository ppa:likemartinma/python
 sudo apt-get update
 sudo apt-get -y --force-yes dist-upgrade
-</code></p>
+</code></pre>
 
 <ul>
 <li>安装python-flake8</li>
 </ul>
 
 
-<p><code>sh
-sudo apt-get install python-flake8
-</code></p>
+<pre><code class="sh">sudo apt-get install python-flake8
+</code></pre>
 
 <h2>使用</h2>
 
@@ -301,52 +319,44 @@ sudo apt-get install python-flake8
 </ul>
 
 
-<p><code>sh
-flake8 .
-</code></p>
+<pre><code class="sh">flake8 .
+</code></pre>
 
 <ul>
 <li>检查指定文件</li>
 </ul>
 
 
-<p><code>sh
-flake8 foo.py bar.py
-</code></p>
+<pre><code class="sh">flake8 foo.py bar.py
+</code></pre>
 
 <ul>
 <li>通过setup.py检查工程的所有Python文件：</li>
 </ul>
 
 
-<p><code>sh
-python setup.py flake8
-</code></p>
+<pre><code class="sh">python setup.py flake8
+</code></pre>
 
 <p>为了保证其在其他环境中正确运行，需要将flake8增加到setup_requires中，例如：</p>
 
-<p>```python
-setup(</p>
+<pre><code class="python">setup(
+    name="project",
+    packages=["project"],
 
-<pre><code>name="project",
-packages=["project"],
-
-setup_requires=[
-    "flake8"
-]
+    setup_requires=[
+        "flake8"
+    ]
+)
 </code></pre>
 
-<p>)
-```</p>
-
 <ul>
-<li>由于默认禁用代码条件复杂度检查，需要通过&mdash;max-complexity激活该功能：</li>
+<li>由于默认禁用代码条件复杂度检查，需要通过&ndash;max-complexity激活该功能：</li>
 </ul>
 
 
-<p><code>sh
-flake8 --max-complexity 12 .
-</code></p>
+<pre><code class="sh">flake8 --max-complexity 12 .
+</code></pre>
 
 <p>该功能对于发现代码过度复杂非常有用，根据Thomas J. McCabe, Sr（<a href="https://en.wikipedia.org/wiki/Cyclomatic_complexity">Cyclomatic complexity</a>的创造者）研究，代码复杂度不宜超过10，而Flake8官网建议值为12。</p>
 
@@ -357,10 +367,9 @@ flake8 --max-complexity 12 .
 </ul>
 
 
-<p><code>ini
-[flake8]
+<pre><code class="ini">[flake8]
 max-complexity=12
-</code></p>
+</code></pre>
 
 <p>个人感觉除了代码复杂度因子（max-complexity）外，其他参数的默认值已经很好，基本不需要再作配置。</p>
 
@@ -373,22 +382,17 @@ max-complexity=12
 
 <p>在.git/hooks目录中，创建Git的pre-commit钩子脚本，Flake8可以对每次提交的代码进行检查。该脚本如下：</p>
 
-<p>```python</p>
+<pre><code class="python">#!/usr/bin/python
 
-<h1>!/usr/bin/python</h1>
+import sys
+from flake8.run import git_hook
 
-<p>import sys
-from flake8.run import git_hook</p>
+COMPLEXITY = 12
+STRICT = True
 
-<p>COMPLEXITY = 12
-STRICT = True</p>
-
-<p>if <strong>name</strong> == &lsquo;<strong>main</strong>&rsquo;:</p>
-
-<pre><code>sys.exit(git_hook(complexity=COMPLEXITY, strict=STRICT))
+if __name__ == '__main__':
+    sys.exit(git_hook(complexity=COMPLEXITY, strict=STRICT))
 </code></pre>
-
-<p>```</p>
 
 <p>若strict为True，任何warning都将阻挡提交。否则（或缺省），warning仅会被打印到标准输出。</p>
 
@@ -401,35 +405,29 @@ STRICT = True</p>
 </ul>
 
 
-<p>```sh
-mkdir -p ~/.vim/autoload ~/.vim/bundle
-curl -Sso ~/.vim/autoload/pathogen.vim \</p>
-
-<pre><code>https://raw.github.com/tpope/vim-pathogen/master/autoload/pathogen.vim
+<pre><code class="sh">mkdir -p ~/.vim/autoload ~/.vim/bundle
+curl -Sso ~/.vim/autoload/pathogen.vim \
+    https://raw.github.com/tpope/vim-pathogen/master/autoload/pathogen.vim
 </code></pre>
-
-<p>```</p>
 
 <ul>
 <li>添加下列配置至~/.vimrc中：</li>
 </ul>
 
 
-<p><code>vim
-execute pathogen#infect()
+<pre><code class="vim">execute pathogen#infect()
 syntax on
 filetype plugin indent on
-</code></p>
+</code></pre>
 
 <ul>
 <li>安装vim-flake8：</li>
 </ul>
 
 
-<p><code>sh
-cd ~/.vim/bundle
+<pre><code class="sh">cd ~/.vim/bundle
 git clone git://github.com/nvie/vim-flake8.git
-</code></p>
+</code></pre>
 
 <p>至此，当vim打开Python源码后，按F7就会执行Flake8对当前文件进行检查。</p>
 
@@ -439,12 +437,11 @@ git clone git://github.com/nvie/vim-flake8.git
 
 <p>pep8-naming处于早期开发阶段，尚无人为其制作deb包。我花时间做了deb包，并上传到我的ppa:likemartinma/python上。通过下述步骤可以轻松安装它：</p>
 
-<p><code>sh
-sudo add-apt-repository ppa:likemartinma/python
+<pre><code class="sh">sudo add-apt-repository ppa:likemartinma/python
 sudo apt-get update
 sudo apt-get -y --force-yes dist-upgrade
 sudo apt-get install pep8-naming
-</code></p>
+</code></pre>
 
 <p>由于Python部分核心库的函数命令存在“历史遗留”问题，与PEP 8并不保持完全一致，如<a href="http://docs.python.org/2/library/pyexpat.html#xml.parsers.expat.xmlparser.StartElementHandler">xml.parsers.expat.xmlparser.StartElementHandler</a>，这给pep8-naming带来一定的误报困扰。</p>
 
@@ -461,7 +458,7 @@ sudo apt-get install pep8-naming
     <link href="http://www.malike.net.cn/blog/2013/07/25/pep8-summary/"/>
     <updated>2013-07-25T00:00:00+08:00</updated>
     <id>http://www.malike.net.cn/blog/2013/07/25/pep8-summary</id>
-    <content type="html"><![CDATA[<p>下述内容主要源于<a href="http://www.python.org/dev/peps/pep-0008/">PEP 8 &mdash; Style Guide for Python Code</a>。</p>
+    <content type="html"><![CDATA[<p>下述内容主要源于<a href="http://www.python.org/dev/peps/pep-0008/">PEP 8 &ndash; Style Guide for Python Code</a>。</p>
 
 <h2>最大的行长度</h2>
 
@@ -479,75 +476,51 @@ sudo apt-get install pep8-naming
 </ul>
 
 
-<p>```python
-from bottle import (get, post, delete, error, run, default_app, HTTPError,</p>
+<pre><code class="python">from bottle import (get, post, delete, error, run, default_app, HTTPError,
+                    request, response, static_file)
 
-<pre><code>                request, response, static_file)
+# Aligned with opening delimiter
+foo = long_function_name(var_one, var_two,
+                         var_three, var_four)
+
+# More indentation included to distinguish this from the rest.
+def long_function_name(
+        var_one, var_two, var_three,
+        var_four):
+    print(var_one)
 </code></pre>
-
-<h1>Aligned with opening delimiter</h1>
-
-<p>foo = long_function_name(var_one, var_two,</p>
-
-<pre><code>                     var_three, var_four)
-</code></pre>
-
-<h1>More indentation included to distinguish this from the rest.</h1>
-
-<p>def long_function_name(</p>
-
-<pre><code>    var_one, var_two, var_three,
-    var_four):
-print(var_one)
-</code></pre>
-
-<p>```</p>
 
 <ul>
 <li>多行情况下，关闭括号可以出现在一行开始，如：</li>
 </ul>
 
 
-<p>```python
-my_dict = {</p>
+<pre><code class="python">my_dict = {
+    'hello': 'foo',
+    'world': 'bar',
+}
 
-<pre><code>'hello': 'foo',
-'world': 'bar',
+my_list = [
+    1, 2, 3,
+    4, 5, 6,
+]
+result = some_function_that_takes_arguments(
+    'a', 'b', 'c',
+    'd', 'e', 'f',
+)
 </code></pre>
-
-<p>}</p>
-
-<p>my_list = [</p>
-
-<pre><code>1, 2, 3,
-4, 5, 6,
-</code></pre>
-
-<p>]
-result = some_function_that_takes_arguments(</p>
-
-<pre><code>'a', 'b', 'c',
-'d', 'e', 'f',
-</code></pre>
-
-<p>)
-```</p>
 
 <p>实际工作中，不同开发语言存在不同的补齐风格要求。可以在.vimrc中针对python设置：</p>
 
-<p><code>vim
-autocmd BufRead,BufNewFile *.py set et ts=4 sw=4 sts=4
-</code></p>
+<pre><code class="vim">autocmd BufRead,BufNewFile *.py set et ts=4 sw=4 sts=4
+</code></pre>
 
 <p>仅对python源文件设置4个空格补齐。</p>
 
 <p>当然，更好的办法是在每个python源文件的最后一行追加：</p>
 
-<p>```python</p>
-
-<h1>vim: set ts=4 sw=4 sts=4 et:</h1>
-
-<p>```</p>
+<pre><code class="python"># vim: set ts=4 sw=4 sts=4 et:
+</code></pre>
 
 <p>从而保证vim打开该文件时满足4个空格补齐的要求。</p>
 
@@ -561,11 +534,8 @@ autocmd BufRead,BufNewFile *.py set et ts=4 sw=4 sts=4
 <p>Python核心代码应为UTF-8（或ASCII，在Python 2中）。
 源文件若在Python 2中用ASCII或在Python 3中用UTF-8，则不应出现编码声明。</p>
 
-<p>```python</p>
-
-<h1>&ndash;<em>&ndash; coding: utf-8 &ndash;</em>&ndash;</h1>
-
-<p>```</p>
+<pre><code class="python"># -*- coding: utf-8 -*-
+</code></pre>
 
 <h2>导入</h2>
 
@@ -574,11 +544,10 @@ autocmd BufRead,BufNewFile *.py set et ts=4 sw=4 sts=4
 </ul>
 
 
-<p><code>python
-import os
+<pre><code class="python">import os
 import sys
 from subprocess import Popen, PIPE
-</code></p>
+</code></pre>
 
 <ul>
 <li>保证所有import在文件的头部，仅在模块注释后面，并先于模块的全局变量和常量。</li>
