@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ubuntu | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/ubuntu/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2014-10-27T04:22:06+08:00</updated>
+  <updated>2015-05-25T02:28:11+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,100 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[AutoSSH简介]]></title>
+    <link href="http://www.malike.net.cn/blog/2014/12/23/autossh-tutorial/"/>
+    <updated>2014-12-23T00:00:00+08:00</updated>
+    <id>http://www.malike.net.cn/blog/2014/12/23/autossh-tutorial</id>
+    <content type="html"><![CDATA[<p><a href="http://www.harding.motd.ca/autossh/">autossh</a> (Automatically restart SSH sessions and tunnels)，它在运行的时候启动一个SSH进程，并监控该进程的健康状况；当SSH进程崩溃或停止通信时，它将重启动SSH进程。</p>
+
+<h2>命令选项</h2>
+
+<p><code>bash
+autossh [-V] [-M port[:echo_port]] [-f] [SSH_OPTIONS]
+</code></p>
+
+<ul>
+<li><p><strong>-M port[:echo_port]</strong> 指定监控端口（和echo端口，默认为前者加1）。</p>
+
+<ul>
+<li>若希望使远程标准inetd的echo服务（默认端口为7），则指定echo_port，仅需服务监听地址为localhost。</li>
+<li>若port设置为0，则将禁用监控功能。仅在ssh退出后重启它。</li>
+</ul>
+</li>
+<li><p><strong>-f</strong> 使autossh在后台运行。</p></li>
+</ul>
+
+
+<p>另外，autossh还提供了一组环境变量来控制其行为, 这里仅介绍几个有代表性的，其可以man autossh</p>
+
+<ul>
+<li><strong>AUTOSSH_FIRST_POLL</strong> 指定首次论询测试时间。</li>
+<li><strong>AUTOSSH_POLL</strong> 指定连接论询时间，默认600。若该值小于两次网络超时（默认15秒），则网络超将被调整为该值的1/2</li>
+<li><strong>AUTOSSH_GATETIME</strong> 指定等待SSH连接成功建立的时间，默认30秒，超时表示首次运行失败，将退出autossh。若设为0，则禁用该功能，通常用于启动时运行autossh。</li>
+<li><strong>AUTOSSH_MAXLIFETIME</strong> 指autossh最长运行时间，达到该时间，autossh将退出，并杀死SSH进程。</li>
+<li><strong>AUTOSSH_MAXSTART</strong> 指定SSH最大启动次数。默认-1，表示无限制。</li>
+</ul>
+
+
+<h2>Ubuntu配置方法</h2>
+
+<p>基于Ubuntu 12.04或14.04，以SSH动态代理（即SSH翻墙）为例。init script和Upstart都可以将autossh变成服务，然Upstart的<em>respawn</em>容错能力更强，它能在服务进程掉线，重新启动该服务。</p>
+
+<p>```</p>
+
+<h1>autossh</h1>
+
+<p>description &ldquo;autossh daemon&rdquo;</p>
+
+<p>start on (net-device-up IFACE=eth0 or net-device-up IFACE=wlan0)
+stop on (net-device-down IFACE=eth0 and net-device-down IFACE=wlan0)</p>
+
+<p>respawn</p>
+
+<p>setuid like
+setgid like</p>
+
+<p>exec /usr/bin/autossh -M64000 -q -N -D localhost:12348 sshproxy
+```</p>
+
+<ul>
+<li><em>setuid</em>和<em>setgid</em>为了让autossh运行在指定的用户和用户组上。</li>
+<li><em>start on</em>表示当eth0或wlan0激活时，启动autossh，<em>stop on</em>反之。其目的为避免系统启动或网络掉线时，频繁尝试启动autossh。</li>
+</ul>
+
+
+<h2>更好的办法</h2>
+
+<p>最近OpenSSH都支持选项<strong>ServerAliveInterval</strong>和<strong>ServerAliveCountMax</strong>，实际为建立在SSH协议上的心跳测试。当测试失败后，SSH客户端进程将退出。通过Upstart的respawn功能重启SSH客户端进程，也能达到autossh目的。</p>
+
+<p>仍以SSH动态代理为例：</p>
+
+<p>```</p>
+
+<h1>sshproxy</h1>
+
+<p>description &ldquo;ssh proxy&rdquo;</p>
+
+<p>start on (net-device-up IFACE=eth0 or net-device-up IFACE=wlan0)
+stop on (net-device-down IFACE=eth0 and net-device-down IFACE=wlan0)</p>
+
+<p>respawn</p>
+
+<p>setuid like
+setgid like</p>
+
+<p>exec /usr/bin/ssh \</p>
+
+<pre><code>-oServerAliveInterval=300 \
+-oServerAliveCountMax=2 \
+-q -N -D localhost:12348 sshproxy
+</code></pre>
+
+<p>```</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Rinse简介——Debian/Ubuntu中创建RPM安装环境]]></title>

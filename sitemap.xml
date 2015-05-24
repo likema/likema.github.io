@@ -56,11 +56,15 @@
     </url>
     <url>
         <loc>http://www.malike.net.cn/blog/2014/10/27/ssh-tunnel-tutorial/</loc>
-        <lastmod>2014-10-27T04:09:33+08:00</lastmod>
+        <lastmod>2014-11-12T09:47:49+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://www.malike.net.cn/blog/2014/12/23/autossh-tutorial/</loc>
+        <lastmod>2015-05-25T02:26:41+08:00</lastmod>
     </url>
     <url>
         <loc>http://www.malike.net.cn/blog/archives/</loc>
-        <lastmod>2014-10-27T04:09:33+08:00</lastmod>
+        <lastmod>2015-05-25T02:26:41+08:00</lastmod>
     </url>
     <url>
         <loc>http://www.malike.net.cn/blog/categories/</loc>
@@ -68,7 +72,7 @@
     </url>
     <url>
         <loc>http://www.malike.net.cn/</loc>
-        <lastmod>2014-10-27T04:09:33+08:00</lastmod>
+        <lastmod>2015-05-25T02:26:41+08:00</lastmod>
     </url>
     <url>
         <loc>http://www.malike.net.cn/robots.txt</loc>
