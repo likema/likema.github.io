@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ssh | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/ssh/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2015-05-25T02:53:16+08:00</updated>
+  <updated>2015-05-27T04:27:56+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,102 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[SSH翻墙集群]]></title>
+    <link href="http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster/"/>
+    <updated>2015-03-15T21:30:43+08:00</updated>
+    <id>http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster</id>
+    <content type="html"><![CDATA[<p>SSH动态代理是国内较为常见的翻墙方法。正如<a href="/blog/2014/10/27/ssh-tunnel-tutorial/">SSH隧道简介</a>所说，它存在不少有优点。</p>
+
+<p>然而在实际使用中，它存在如下缺点：</p>
+
+<ul>
+<li>与PPTP等VPN协议相比，它的连接不稳定。前者应该具备协议级断线重传机制。</li>
+<li>基于廉价VPS，导致它的连接不稳定。而且廉价VPS容易掉线，有时需要用户自己找在线客户修复，进一步延长了掉线时间。</li>
+<li>由于上述缺点，不适合小型公司多人使用。</li>
+</ul>
+
+
+<p>在大概2年前，我摸索出SSH动态代理集群的办法。并将之部署于我所服务的公司，成功负载了20-30人日常翻墙学习与工作的需求。</p>
+
+<h2>原理</h2>
+
+<p>SSH动态代理，即为SOCK5代理，所以我们需要的是SOCK5集群。</p>
+
+<p>若搜索<a href="https://www.google.com/search?hl=en&amp;q=socks+5+load+balance">socks 5 load balance</a>不难发现一些有用信息：</p>
+
+<p><a href="http://serverfault.com/questions/517971/what-is-the-best-way-to-load-balance-multiple-sock5-proxys-on-seperate-vms-in-t">What is the best way to load balance multiple sock5 proxys on seperate VM&rsquo;s in the same datacenter?</a></p>
+
+<p>其中，第1个方法就是利用<a href="http://nginx.org/">Nginx</a>的<a href="https://github.com/yaoweibin/nginx_tcp_proxy_module">nginx_tcp_proxy_module</a>。它或许也是配置最简单的方法。</p>
+
+<p>事实上，Nginx的<a href="http://nginx.com/">商业版本</a>是支持<a href="http://nginx.com/resources/admin-guide/tcp-load-balancing/">TCP Load Balancing</a>的。</p>
+
+<p>然而，Ubuntu的Nginx并没有将nginx_tcp_proxy_module编译进去。为了简化安装，我基于Ubuntu的Nginx包，做了Nginx的<a href="https://launchpad.net/~likemartinma/+archive/ubuntu/net">PPA</a>:</p>
+
+<ul>
+<li>升级Nginx版本</li>
+<li>加入nginx_tcp_proxy_module</li>
+</ul>
+
+
+<h2>配置方法</h2>
+
+<p>关于SSH动态代理的配置方法，请参看<a href="/blog/2014/12/23/autossh-tutorial/">AutoSSH简介</a></p>
+
+<p>添加我的PPA</p>
+
+<pre><code class="bash">sudo add-apt-repository ppa:likemartinma/net
+sudo apt-get -y update
+</code></pre>
+
+<p>若未安装nginx，则</p>
+
+<pre><code class="bash">sudo apt-get install nginx
+</code></pre>
+
+<p>若已安装nginx，则</p>
+
+<pre><code class="bash">sudo apt-get -y upgrade
+</code></pre>
+
+<p>在/etc/nginx/nginx.conf中，增加如下内容：</p>
+
+<pre><code class="nginx">tcp {
+    access_log /var/log/nginx/tcp_access.log;
+
+    upstream ssh_cluster {
+        # simple round-robin
+        server 127.0.0.1:12345;
+        server 127.0.0.1:12346;
+        server 127.0.0.1:12347;
+
+        check interval=3000 rise=2 fall=5 timeout=1000;
+    }
+
+    server {
+        listen 9999;
+        proxy_pass ssh_cluster;
+    }
+}
+</code></pre>
+
+<p>在/etc/nginx/sites-enabled/default的中，增加如下内容：</p>
+
+<pre><code class="nginx">server {
+    ...
+
+    location /status {
+        tcp_check_status;
+    }
+}
+</code></pre>
+
+<h2>存在问题</h2>
+
+<p>缺乏认证机制，只能部署于家庭或企业内网。当然也可以部署于个人电脑，事实上，我就是这样使用的。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[AutoSSH简介]]></title>

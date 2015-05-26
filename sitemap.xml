@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster/</loc>
+    <lastmod>2015-03-15T21:30:43+08:00</lastmod>
+  </url>
+  <url>
     <loc>http://www.malike.net.cn/blog/2014/12/23/autossh-tutorial/</loc>
     <lastmod>2014-12-23T00:00:00+08:00</lastmod>
   </url>

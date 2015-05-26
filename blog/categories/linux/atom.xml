@@ -4,7 +4,7 @@
   <title><![CDATA[Category: linux | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/linux/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2015-05-25T02:53:16+08:00</updated>
+  <updated>2015-05-27T04:27:56+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,102 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[SSH翻墙集群]]></title>
+    <link href="http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster/"/>
+    <updated>2015-03-15T21:30:43+08:00</updated>
+    <id>http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster</id>
+    <content type="html"><![CDATA[<p>SSH动态代理是国内较为常见的翻墙方法。正如<a href="/blog/2014/10/27/ssh-tunnel-tutorial/">SSH隧道简介</a>所说，它存在不少有优点。</p>
+
+<p>然而在实际使用中，它存在如下缺点：</p>
+
+<ul>
+<li>与PPTP等VPN协议相比，它的连接不稳定。前者应该具备协议级断线重传机制。</li>
+<li>基于廉价VPS，导致它的连接不稳定。而且廉价VPS容易掉线，有时需要用户自己找在线客户修复，进一步延长了掉线时间。</li>
+<li>由于上述缺点，不适合小型公司多人使用。</li>
+</ul>
+
+
+<p>在大概2年前，我摸索出SSH动态代理集群的办法。并将之部署于我所服务的公司，成功负载了20-30人日常翻墙学习与工作的需求。</p>
+
+<h2>原理</h2>
+
+<p>SSH动态代理，即为SOCK5代理，所以我们需要的是SOCK5集群。</p>
+
+<p>若搜索<a href="https://www.google.com/search?hl=en&amp;q=socks+5+load+balance">socks 5 load balance</a>不难发现一些有用信息：</p>
+
+<p><a href="http://serverfault.com/questions/517971/what-is-the-best-way-to-load-balance-multiple-sock5-proxys-on-seperate-vms-in-t">What is the best way to load balance multiple sock5 proxys on seperate VM&rsquo;s in the same datacenter?</a></p>
+
+<p>其中，第1个方法就是利用<a href="http://nginx.org/">Nginx</a>的<a href="https://github.com/yaoweibin/nginx_tcp_proxy_module">nginx_tcp_proxy_module</a>。它或许也是配置最简单的方法。</p>
+
+<p>事实上，Nginx的<a href="http://nginx.com/">商业版本</a>是支持<a href="http://nginx.com/resources/admin-guide/tcp-load-balancing/">TCP Load Balancing</a>的。</p>
+
+<p>然而，Ubuntu的Nginx并没有将nginx_tcp_proxy_module编译进去。为了简化安装，我基于Ubuntu的Nginx包，做了Nginx的<a href="https://launchpad.net/~likemartinma/+archive/ubuntu/net">PPA</a>:</p>
+
+<ul>
+<li>升级Nginx版本</li>
+<li>加入nginx_tcp_proxy_module</li>
+</ul>
+
+
+<h2>配置方法</h2>
+
+<p>关于SSH动态代理的配置方法，请参看<a href="/blog/2014/12/23/autossh-tutorial/">AutoSSH简介</a></p>
+
+<p>添加我的PPA</p>
+
+<pre><code class="bash">sudo add-apt-repository ppa:likemartinma/net
+sudo apt-get -y update
+</code></pre>
+
+<p>若未安装nginx，则</p>
+
+<pre><code class="bash">sudo apt-get install nginx
+</code></pre>
+
+<p>若已安装nginx，则</p>
+
+<pre><code class="bash">sudo apt-get -y upgrade
+</code></pre>
+
+<p>在/etc/nginx/nginx.conf中，增加如下内容：</p>
+
+<pre><code class="nginx">tcp {
+    access_log /var/log/nginx/tcp_access.log;
+
+    upstream ssh_cluster {
+        # simple round-robin
+        server 127.0.0.1:12345;
+        server 127.0.0.1:12346;
+        server 127.0.0.1:12347;
+
+        check interval=3000 rise=2 fall=5 timeout=1000;
+    }
+
+    server {
+        listen 9999;
+        proxy_pass ssh_cluster;
+    }
+}
+</code></pre>
+
+<p>在/etc/nginx/sites-enabled/default的中，增加如下内容：</p>
+
+<pre><code class="nginx">server {
+    ...
+
+    location /status {
+        tcp_check_status;
+    }
+}
+</code></pre>
+
+<h2>存在问题</h2>
+
+<p>缺乏认证机制，只能部署于家庭或企业内网。当然也可以部署于个人电脑，事实上，我就是这样使用的。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[AutoSSH简介]]></title>
@@ -308,111 +404,6 @@ none /var/lib/centos-6/sys  sysfs defaults      0 0
 
 <pre><code class="sh">sudo http_proxy=http://&lt;http proxy address&gt; rinse --distribution centos-6 --arch amd64 --directory centos-6
 </code></pre>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[利用SSH限制rsync的访问目录]]></title>
-    <link href="http://www.malike.net.cn/blog/2014/04/01/restrict-ssh-access-to-rsync/"/>
-    <updated>2014-04-01T00:00:00+08:00</updated>
-    <id>http://www.malike.net.cn/blog/2014/04/01/restrict-ssh-access-to-rsync</id>
-    <content type="html"><![CDATA[<p>我经常使用VPS来共享数据给朋友同事。由于VPS通常内存较小，不太适合安装ftp服务器；而http服务器常常只有下载的功能；更重要是某些数据较大，每天可能都在改变，需要增量同步上传或下载。</p>
-
-<p>rsync是这类场景的良好选择。一方面，通过SSH服务器来工作，它不常驻内存，节约了VPS内存使用；另一方面，它优秀的二进制增量同步功能，不仅减少了同步时间，也节约了VPS有限的带宽。</p>
-
-<p>在实际使用过程中，我遇到了下述问题：</p>
-
-<ul>
-<li>针对某些目录，某些用户仅能读（下载）;</li>
-<li>针对某些目录，某些用户仅能写（上传）;</li>
-<li>具有读或写权限的用户不能登录SSH，也不能执行任何程序;</li>
-<li>具有读或写权限的用户不能访问其他目录。</li>
-</ul>
-
-
-<p>诚然，这些问题可以通过操作系统用户相对复杂的权限控制（包括目录基本权限和ACL以及SELinux等）。然而，通过搜索和学习，我发现强大的SSH早已具备这样的接口：</p>
-
-<ul>
-<li>通过密钥对，简化用户使用，让用户彻底摆脱密码的记忆（当然用户加密私钥，还是要自己记密码的）；</li>
-<li>通过~/.ssh/authorized_keys的command选项（通过<a href="http://man.he.net/man5/authorized_keys">man authorized_keys</a>阅读详细内容），设置脚本过滤掉业务上无效的指令；</li>
-<li>还是通过command选项，限制不同密钥有不同权限，如密钥A只能读，密钥B只能写。</li>
-</ul>
-
-
-<p>下面，我将通过具体示例来解释command选项:</p>
-
-<h2>限制用户仅能读</h2>
-
-<pre><code class="sh">#!/bin/sh
-
-DATA_DIR=/home/share/data
-
-case "$SSH_ORIGINAL_COMMAND" in
-rsync\ --server*)
-        TARGET=`echo "$SSH_ORIGINAL_COMMAND" | awk '{ print $NF }'`
-        if echo "$SSH_ORIGINAL_COMMAND" | grep -q " --sender " &amp;&amp; [ "$TARGET" = $DATA_DIR ]; then
-                $SSH_ORIGINAL_COMMAND
-        else
-                echo "Rejected"
-        fi
-        ;;
-*)
-        echo "Rejected"
-        ;;
-esac
-</code></pre>
-
-<p>该脚本（存储在文件/usr/local/bin/validate_pull_share）限制用户share仅能下载$DATA_DIR的文件, 它需要跟公钥配置在服务器的/home/share/.ssh/authorized_keys，如：</p>
-
-<pre><code>command="/usr/local/bin/validate_pull_share" ssh-rsa &lt;用户公钥A&gt;
-</code></pre>
-
-<ul>
-<li>command选项用于指定脚本，该脚本可以过滤一些远程命令（禁止执行），它相当于远程命令的前置脚本。</li>
-<li>$SSH_ORIGINAL_COMMAND是sshd传递给command脚本环境变量，表示ssh客户端需要远程执行的命令。</li>
-<li>第6行限制仅能执行rsync服务端指令。</li>
-<li>第7行获取$SSH_ORIGINAL_COMMAND的最后一个参数（这里没有考虑有空格的目录），这个参数在这里是rsync需要访问的目录$TARGET.</li>
-<li>第8行为命令合法性判断, 由两个条件组成：
-
-<ul>
-<li>判断&ndash;sender参数是否存在于$SSH_ORIGINAL_COMMAND中，&ndash;sender表示该命令为下载命令；</li>
-<li>判断下载目录$TARGET是否与规定的目录一致。</li>
-</ul>
-</li>
-</ul>
-
-
-<h2>限制用户仅能写</h2>
-
-<pre><code class="sh">#!/bin/sh
-
-DATA_DIR=/home/share/data
-
-case "$SSH_ORIGINAL_COMMAND" in
-rsync\ --server*)
-        TARGET=`echo "$SSH_ORIGINAL_COMMAND" | awk '{ print $NF }'`
-        if ! echo "$SSH_ORIGINAL_COMMAND" | grep -q " --sender " &amp;&amp; [ "$TARGET" = $DATA_DIR ]; then
-                $SSH_ORIGINAL_COMMAND
-        else
-                echo "Rejected"
-        fi
-        ;;
-*)
-        echo "Rejected"
-        ;;
-esac
-</code></pre>
-
-<p>实际仅与读限制脚本相差一行（第8行），仅允许没有&ndash;sender参数的命令（即上传命令）。</p>
-
-<p>该脚本（存储在文件/usr/local/bin/validate_push_share）同样需要跟另一个公钥配置在服务器的/home/share/.ssh/authorized_keys，如：</p>
-
-<pre><code>command="/usr/local/bin/validate_pull_share" ssh-rsa &lt;用户公钥B&gt;
-</code></pre>
-
-<h2>总结</h2>
-
-<p>通过上述脚本和配置实现了不同密钥访问同一目录的不同权限控制。还可以在这些脚本基础上扩展到多个目录或文件的访问控制。以及访问时间的控制，如某时段只能读，另外时段只能写；避免正在写数据的时候，有用户读数据造成数据不一致的问题。</p>
 ]]></content>
   </entry>
   
