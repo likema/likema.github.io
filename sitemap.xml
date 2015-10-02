@@ -118,4 +118,10 @@
   <url>
     <loc>http://www.malike.net.cn/blog/categories/proxy/</loc>
   </url>
+  <url>
+    <loc>http://www.malike.net.cn/blog/categories/nginx/</loc>
+  </url>
+  <url>
+    <loc>http://www.malike.net.cn/blog/categories/haproxy/</loc>
+  </url>
 </urlset>

@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2015-05-27T04:27:56+08:00</updated>
+  <updated>2015-10-03T04:50:24+08:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -39,21 +39,26 @@
 
 <p><a href="http://serverfault.com/questions/517971/what-is-the-best-way-to-load-balance-multiple-sock5-proxys-on-seperate-vms-in-t">What is the best way to load balance multiple sock5 proxys on seperate VM&rsquo;s in the same datacenter?</a></p>
 
-<p>其中，第1个方法就是利用<a href="http://nginx.org/">Nginx</a>的<a href="https://github.com/yaoweibin/nginx_tcp_proxy_module">nginx_tcp_proxy_module</a>。它或许也是配置最简单的方法。</p>
+<p>我将分别介绍3种方法搭建SOCK5集群：</p>
 
-<p>事实上，Nginx的<a href="http://nginx.com/">商业版本</a>是支持<a href="http://nginx.com/resources/admin-guide/tcp-load-balancing/">TCP Load Balancing</a>的。</p>
+<ol>
+<li>利用第三方模块<a href="https://github.com/yaoweibin/nginx_tcp_proxy_module">nginx_tcp_proxy_module</a>。</li>
+<li>Nginx 1.9开始支持<a href="http://nginx.com/resources/admin-guide/tcp-load-balancing/">TCP Load Balancing</a>。</li>
+<li><a href="http://www.haproxy.org/">HAProxy</a></li>
+</ol>
 
-<p>然而，Ubuntu的Nginx并没有将nginx_tcp_proxy_module编译进去。为了简化安装，我基于Ubuntu的Nginx包，做了Nginx的<a href="https://launchpad.net/~likemartinma/+archive/ubuntu/net">PPA</a>:</p>
+
+<p>关于SSH动态代理的配置方法，请参看<a href="http://www.malike.net.cn/blog/2014/12/23/autossh-tutorial/">AutoSSH简介</a></p>
+
+<h2>nginx_tcp_proxy_module的配置方法</h2>
+
+<p>Ubuntu的Nginx并没有将nginx_tcp_proxy_module编译进去。为了简化安装，我基于Ubuntu的Nginx包，做了Nginx的<a href="https://launchpad.net/~likemartinma/+archive/ubuntu/net">PPA</a>:</p>
 
 <ul>
 <li>升级Nginx版本</li>
 <li>加入nginx_tcp_proxy_module</li>
 </ul>
 
-
-<h2>配置方法</h2>
-
-<p>关于SSH动态代理的配置方法，请参看<a href="http://www.malike.net.cn/blog/2014/12/23/autossh-tutorial/">AutoSSH简介</a></p>
 
 <p>添加我的PPA</p>
 
@@ -67,7 +72,7 @@
 <p>若未安装nginx，则</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install nginx
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install -y nginx
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -117,7 +122,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>在/etc/nginx/sites-enabled/default的中，增加如下内容：</p>
+<p>为了查看集群的状态，在/etc/nginx/sites-enabled/default的中，增加如下内容：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -136,9 +141,158 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h2>存在问题</h2>
+<p>重启Nginx:</p>
 
-<p>缺乏认证机制，只能部署于家庭或企业内网。当然也可以部署于个人电脑，事实上，我就是这样使用的。</p>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">service</span> <span class="s">nginx</span> <span class="s">restart</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如此，访问http://&lt;cluster IP&gt;/status将能查看集群的详细状态。</p>
+
+<h2>Nginx 1.9的配置方法</h2>
+
+<p>Ubuntu 15.10之前的官方Nginx版本都小于1.9，须通过ppa:nginx/development升级nginx。</p>
+
+<p>添加ppa:nginx/development</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo add-apt-repository ppa:nginx/development
+</span><span class='line'>sudo apt-get -y update
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>若未安装nginx，则</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install -y nginx
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>若已安装nginx，则</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get -y upgrade
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在/etc/nginx/nginx.conf中，增加如下内容：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">stream</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kn">upstream</span> <span class="s">ssh_cluster</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kn">least_conn</span><span class="p">;</span>
+</span><span class='line'>        <span class="kn">server</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12345</span><span class="p">;</span>
+</span><span class='line'>        <span class="kn">server</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12346</span><span class="p">;</span>
+</span><span class='line'>        <span class="kn">server</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12347</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kn">server</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kn">listen</span> <span class="mi">9999</span><span class="p">;</span>
+</span><span class='line'>        <span class="kn">proxy_pass</span> <span class="s">ssh_cluster</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>重启Nginx:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">service</span> <span class="s">nginx</span> <span class="s">restart</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>HAProxy的配置方法</h2>
+
+<p>安装haproxy</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">sudo</span> <span class="s">apt-get</span> <span class="s">install</span> <span class="s">-y</span> <span class="s">haproxy</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在/etc/haproxy/haproxy.cfg中，增加如下内容：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">frontend</span> <span class="s">socks5</span>
+</span><span class='line'>    <span class="s">mode</span> <span class="s">tcp</span>
+</span><span class='line'>    <span class="s">bind</span> <span class="s">*:9999</span>
+</span><span class='line'>    <span class="s">default_backend</span> <span class="s">ssh_cluster</span>
+</span><span class='line'>
+</span><span class='line'><span class="s">backend</span> <span class="s">ssh_cluster</span>
+</span><span class='line'>    <span class="s">mode</span> <span class="s">tcp</span>
+</span><span class='line'>    <span class="s">balance</span> <span class="s">roundrobin</span>
+</span><span class='line'>    <span class="s">server</span> <span class="s">vps1</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12345</span> <span class="s">weight</span> <span class="mi">1</span> <span class="s">check</span> <span class="s">inter</span> <span class="mi">30000</span>
+</span><span class='line'>    <span class="s">server</span> <span class="s">vps2</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12346</span> <span class="s">weight</span> <span class="mi">1</span> <span class="s">check</span> <span class="s">inter</span> <span class="mi">30000</span>
+</span><span class='line'>    <span class="s">server</span> <span class="s">vps3</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12347</span> <span class="s">weight</span> <span class="mi">1</span> <span class="s">check</span> <span class="s">inter</span> <span class="mi">30000</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了查看集群的状态，在/etc/haproxy/haproxy.cfg中，增加如下内容：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">listen</span> <span class="s">stats</span> <span class="p">:</span><span class="mi">9090</span>
+</span><span class='line'>    <span class="s">balance</span>
+</span><span class='line'>    <span class="s">mode</span> <span class="s">http</span>
+</span><span class='line'>    <span class="s">stats</span> <span class="s">enable</span>
+</span><span class='line'>    <span class="s">stats</span> <span class="s">auth</span> <span class="s">admin:admin</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>默认安装，haproxy处于不活动状态，须要激活它。</p>
+
+<p>在/etc/default/haproxy中，修改如下行：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">ENABLED=1</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最后，启动haproxy:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">service</span> <span class="s">haproxy</span> <span class="s">start</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如此，访问http://&lt;cluster IP&gt;:9090/haproxy?stats将能查看集群的详细状态。</p>
+
+<h2>总结</h2>
+
+<ul>
+<li>nginx_tcp_proxy_module有简单的集群状态页面。</li>
+<li>nginx 1.9没有集群状态查页面，仅能通过错误日志/var/log/ngnix/error.log来查看掉线的集群节点。</li>
+<li>haproxy不仅有完善的集群状态页面，而且不需要任何PPA，应该是最佳选择。</li>
+<li>上述3种方法都缺乏认证机制，只能部署于家庭或企业内网。当然也可以部署于个人电脑，事实上，我就是这样使用的。</li>
+</ul>
+
 ]]></content>
   </entry>
   
@@ -391,6 +545,15 @@
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>Match group centos6
 </span><span class='line'>  ChrootDirectory /var/lib/centos-6
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>确保/var/lib/centos-6的每一级目录的属主为root，且其他用户或组没有写权限。</p>
+
+<p>然后，重启ssh</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>service ssh restart
 </span></code></pre></td></tr></table></div></figure>
 
 
