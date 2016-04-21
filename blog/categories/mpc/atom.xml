@@ -4,7 +4,7 @@
   <title><![CDATA[Category: mpc | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/mpc/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2015-10-03T04:50:24+08:00</updated>
+  <updated>2016-04-21T07:07:12+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[MakeProjectCreator (MPC) 简介]]></title>
     <link href="http://www.malike.net.cn/blog/2008/10/05/mpc-tutorial/"/>
-    <updated>2008-10-05T00:00:00+08:00</updated>
+    <updated>2008-10-05T00:00:00+00:00</updated>
     <id>http://www.malike.net.cn/blog/2008/10/05/mpc-tutorial</id>
     <content type="html"><![CDATA[<p><a href="http://www.ociweb.com/products/mpc">Makefile, Project, and Workspace Creator (MPC)</a> 原始OCI为网络通信库ACE开发的跨平台工程文件生成工具，它可以生成很多种工程文件，例如Windows平台的Borland Developer Studio, Borland C++ Build 2007, Borland Makefile，Microsoft eMbedded VC3, Microsoft Visual C++ 6/7/71/8/9/10, nmake；Linux平台的automake, make等。</p>
 

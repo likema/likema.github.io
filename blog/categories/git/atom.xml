@@ -4,7 +4,7 @@
   <title><![CDATA[Category: git | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/git/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2015-10-03T04:50:24+08:00</updated>
+  <updated>2016-04-21T07:07:12+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[git-buildpackage示例（二）]]></title>
     <link href="http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2/"/>
-    <updated>2012-10-23T00:00:00+08:00</updated>
+    <updated>2012-10-23T00:00:00+00:00</updated>
     <id>http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2</id>
     <content type="html"><![CDATA[<p>在<a href="/blog/2012/02/19/git-buildpackage-1/">《git-buildpackage示例（一）》</a>中，我介绍了如何利用git-buildpackage为Ubuntu已有包做一个补丁包的办法。</p>
 
@@ -118,7 +118,7 @@ git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
   <entry>
     <title type="html"><![CDATA[git-buildpackage示例（一）]]></title>
     <link href="http://www.malike.net.cn/blog/2012/02/19/git-buildpackage-1/"/>
-    <updated>2012-02-19T00:00:00+08:00</updated>
+    <updated>2012-02-19T00:00:00+00:00</updated>
     <id>http://www.malike.net.cn/blog/2012/02/19/git-buildpackage-1</id>
     <content type="html"><![CDATA[<p>在《为tolua的deb包作一个补丁》中，我介绍了如何利用quilt为Ubuntu已有包做一个补丁包的办法。可以看出quilt具有一定的版本管理能力，然而与流行版本管理系统相比，功能较弱也不灵活。</p>
 

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: debian | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/debian/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2015-10-03T04:50:24+08:00</updated>
+  <updated>2016-04-21T07:07:12+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Rinse简介——Debian/Ubuntu中创建RPM安装环境]]></title>
     <link href="http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial/"/>
-    <updated>2014-07-15T20:34:58+08:00</updated>
+    <updated>2014-07-15T12:34:58+00:00</updated>
     <id>http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial</id>
     <content type="html"><![CDATA[<p><a href="http://collab-maint.alioth.debian.org/rinse/">Rinse</a>是一个Debian环境中创建RPM发行版本（如CentOS，Scientific Linux和openSUSE）的工具。你可以利用它轻松创建各种RPM发行版本的chroot环境。</p>
 
@@ -86,7 +86,7 @@
   <entry>
     <title type="html"><![CDATA[git-buildpackage示例（二）]]></title>
     <link href="http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2/"/>
-    <updated>2012-10-23T00:00:00+08:00</updated>
+    <updated>2012-10-23T00:00:00+00:00</updated>
     <id>http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2</id>
     <content type="html"><![CDATA[<p>在<a href="/blog/2012/02/19/git-buildpackage-1/">《git-buildpackage示例（一）》</a>中，我介绍了如何利用git-buildpackage为Ubuntu已有包做一个补丁包的办法。</p>
 
@@ -188,7 +188,7 @@ git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
   <entry>
     <title type="html"><![CDATA[git-buildpackage示例（一）]]></title>
     <link href="http://www.malike.net.cn/blog/2012/02/19/git-buildpackage-1/"/>
-    <updated>2012-02-19T00:00:00+08:00</updated>
+    <updated>2012-02-19T00:00:00+00:00</updated>
     <id>http://www.malike.net.cn/blog/2012/02/19/git-buildpackage-1</id>
     <content type="html"><![CDATA[<p>在《为tolua的deb包作一个补丁》中，我介绍了如何利用quilt为Ubuntu已有包做一个补丁包的办法。可以看出quilt具有一定的版本管理能力，然而与流行版本管理系统相比，功能较弱也不灵活。</p>
 
@@ -359,7 +359,7 @@ git tag debian/5.1.3-2
   <entry>
     <title type="html"><![CDATA[为tolua的deb包作一个补丁]]></title>
     <link href="http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch/"/>
-    <updated>2011-10-31T00:00:00+08:00</updated>
+    <updated>2011-10-31T00:00:00+00:00</updated>
     <id>http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch</id>
     <content type="html"><![CDATA[<p>近日在学习tolua时发现在Kubuntu 11.10 amd64平台下将其链接到so时报告如下错误：</p>
 

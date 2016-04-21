@@ -4,7 +4,7 @@
   <title><![CDATA[Category: lua | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/lua/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2015-10-03T04:50:24+08:00</updated>
+  <updated>2016-04-21T07:07:12+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[为tolua的deb包作一个补丁]]></title>
     <link href="http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch/"/>
-    <updated>2011-10-31T00:00:00+08:00</updated>
+    <updated>2011-10-31T00:00:00+00:00</updated>
     <id>http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch</id>
     <content type="html"><![CDATA[<p>近日在学习tolua时发现在Kubuntu 11.10 amd64平台下将其链接到so时报告如下错误：</p>
 

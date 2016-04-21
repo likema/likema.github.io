@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ubuntu | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/ubuntu/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2015-10-03T04:50:24+08:00</updated>
+  <updated>2016-04-21T07:07:12+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[SSH翻墙集群]]></title>
     <link href="http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster/"/>
-    <updated>2015-03-15T21:30:43+08:00</updated>
+    <updated>2015-03-15T13:30:43+00:00</updated>
     <id>http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster</id>
     <content type="html"><![CDATA[<p>SSH动态代理是国内较为常见的翻墙方法。正如<a href="/blog/2014/10/27/ssh-tunnel-tutorial/">SSH隧道简介</a>所说，它存在不少有优点。</p>
 
@@ -217,7 +217,7 @@ backend ssh_cluster
   <entry>
     <title type="html"><![CDATA[AutoSSH简介]]></title>
     <link href="http://www.malike.net.cn/blog/2014/12/23/autossh-tutorial/"/>
-    <updated>2014-12-23T00:00:00+08:00</updated>
+    <updated>2014-12-23T00:00:00+00:00</updated>
     <id>http://www.malike.net.cn/blog/2014/12/23/autossh-tutorial</id>
     <content type="html"><![CDATA[<p><a href="http://www.harding.motd.ca/autossh/">autossh</a> (Automatically restart SSH sessions and tunnels)，它在运行的时候启动一个SSH进程，并监控该进程的健康状况；当SSH进程崩溃或停止通信时，它将重启动SSH进程。</p>
 
@@ -303,7 +303,7 @@ exec /usr/bin/ssh \
   <entry>
     <title type="html"><![CDATA[Rinse简介——Debian/Ubuntu中创建RPM安装环境]]></title>
     <link href="http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial/"/>
-    <updated>2014-07-15T20:34:58+08:00</updated>
+    <updated>2014-07-15T12:34:58+00:00</updated>
     <id>http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial</id>
     <content type="html"><![CDATA[<p><a href="http://collab-maint.alioth.debian.org/rinse/">Rinse</a>是一个Debian环境中创建RPM发行版本（如CentOS，Scientific Linux和openSUSE）的工具。你可以利用它轻松创建各种RPM发行版本的chroot环境。</p>
 
@@ -373,7 +373,7 @@ exec /usr/bin/ssh \
   <entry>
     <title type="html"><![CDATA[LXC简介]]></title>
     <link href="http://www.malike.net.cn/blog/2013/11/10/lxc-tutorial/"/>
-    <updated>2013-11-10T00:00:00+08:00</updated>
+    <updated>2013-11-10T00:00:00+00:00</updated>
     <id>http://www.malike.net.cn/blog/2013/11/10/lxc-tutorial</id>
     <content type="html"><![CDATA[<p><a href="http://linuxcontainers.org/">LXC</a> (Linux Containters) 是一种基于内核容器属性的用户空间接口。 它被认为介于chroot和完全虚拟化之间，其目标为创建一个不需要独立内核，但近可能接近标准Linux安装的环境。</p>
 
@@ -514,7 +514,7 @@ SECURITY_MIRROR=http://security.ubuntu.com/ubuntu
   <entry>
     <title type="html"><![CDATA[Ubuntu 11.10 VirtualBox的Host-only网卡上外网和DHCP永久地址]]></title>
     <link href="http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp/"/>
-    <updated>2011-12-20T00:00:00+08:00</updated>
+    <updated>2011-12-20T00:00:00+00:00</updated>
     <id>http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp</id>
     <content type="html"><![CDATA[<p>VirtualBox支持各种虚拟网络：NAT, Bridge Adapter, Internal Network和Host-only Adapter等。其中Bridged Adapter最为简单和常用，它几乎是0配置，直接桥接有线或无线物理网卡就可以与互联网通信。</p>
 

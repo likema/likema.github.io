@@ -4,7 +4,7 @@
   <title><![CDATA[Category: lxc | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/lxc/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2015-10-03T04:50:24+08:00</updated>
+  <updated>2016-04-21T07:07:12+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[LXC简介]]></title>
     <link href="http://www.malike.net.cn/blog/2013/11/10/lxc-tutorial/"/>
-    <updated>2013-11-10T00:00:00+08:00</updated>
+    <updated>2013-11-10T00:00:00+00:00</updated>
     <id>http://www.malike.net.cn/blog/2013/11/10/lxc-tutorial</id>
     <content type="html"><![CDATA[<p><a href="http://linuxcontainers.org/">LXC</a> (Linux Containters) 是一种基于内核容器属性的用户空间接口。 它被认为介于chroot和完全虚拟化之间，其目标为创建一个不需要独立内核，但近可能接近标准Linux安装的环境。</p>
 

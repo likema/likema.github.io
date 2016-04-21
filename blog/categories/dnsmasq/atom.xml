@@ -4,7 +4,7 @@
   <title><![CDATA[Category: dnsmasq | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/dnsmasq/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2015-10-03T04:50:24+08:00</updated>
+  <updated>2016-04-21T07:07:12+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Ubuntu 11.10 VirtualBox的Host-only网卡上外网和DHCP永久地址]]></title>
     <link href="http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp/"/>
-    <updated>2011-12-20T00:00:00+08:00</updated>
+    <updated>2011-12-20T00:00:00+00:00</updated>
     <id>http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp</id>
     <content type="html"><![CDATA[<p>VirtualBox支持各种虚拟网络：NAT, Bridge Adapter, Internal Network和Host-only Adapter等。其中Bridged Adapter最为简单和常用，它几乎是0配置，直接桥接有线或无线物理网卡就可以与互联网通信。</p>
 
