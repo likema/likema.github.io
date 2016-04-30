@@ -9,9 +9,9 @@
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="Flake8包装了下列工具： PyFlakes：静态检查Python代码逻辑错误的工具。
-pep8： 静态检查PEP 8编码风格的工具。
-Ned Batchelder’s McCabe script：静态分析Python代码复杂度的工具。 它综合上述三者的功能，在简化操作的同时， &hellip;">
+  <meta name="description" content="下述内容主要源于PEP 8 &ndash; Style Guide for Python Code。 最大的行长度 所有行不超过79个字符。
+docstring或comment应不超过72字符 补齐 每个补齐级别为4个空格。
+当一行操作最大行长度时，应尽可能按照各种括号作为纵向对齐的参照物（ &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -80,260 +80,6 @@ Ned Batchelder’s McCabe script：静态分析Python代码复杂度的工具。
     <div id="content">
       <div class="blog-index">
   
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/10/23/flake8-tutorial/">Flake8简介</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2013-10-23T00:00:00+00:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>23</span><span class='date-suffix'>rd</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/blog/2013/10/23/flake8-tutorial/#disqus_thread"
-             data-disqus-identifier="http://www.malike.net.cn/blog/2013/10/23/flake8-tutorial/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><a href="http://flake8.readthedocs.org/">Flake8</a>包装了下列工具：</p>
-
-<ul>
-<li><a href="https://launchpad.net/pyflakes">PyFlakes</a>：静态检查Python代码逻辑错误的工具。</li>
-<li><a href="http://pep8.readthedocs.org/en/latest/">pep8</a>： 静态检查<a href="/blog/2013/07/25/pep8-summary/">PEP 8</a>编码风格的工具。</li>
-<li><a href="http://nedbatchelder.com/blog/200803/python_code_complexity_microtool.html">Ned Batchelder’s McCabe script</a>：静态分析Python代码复杂度的工具。</li>
-</ul>
-
-
-<p>它综合上述三者的功能，在简化操作的同时，还提供了扩展开发接口。</p>
-
-<h2>安装</h2>
-
-<p>这里仅介绍Ubuntu的安装方法，其他安装方法见Flake8官网。</p>
-
-<ul>
-<li>添加ppa:cjohnston/flake8。Ubuntu 12.04、12.10和13.04官方源仅提供pep8的包，而该PPA不仅提供了最新的python-flake8包，还提供最新的pep8包。Ubuntu 13.10和14.04默认已经提供最新的pep8和python-flake8，所以可以跳过这一步。</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sudo add-apt-repository ppa:likemartinma/python
-</span><span class='line'>sudo apt-get update
-</span><span class='line'>sudo apt-get -y --force-yes dist-upgrade</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>安装python-flake8</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo apt-get install python-flake8
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>使用</h2>
-
-<ul>
-<li>递归检查当前目录的所有Python文件：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>flake8 .
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>检查指定文件</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>flake8 foo.py bar.py
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>通过setup.py检查工程的所有Python文件：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>python setup.py flake8
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>为了保证其在其他环境中正确运行，需要将flake8增加到setup_requires中，例如：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">setup</span><span class="p">(</span>
-</span><span class='line'>    <span class="n">name</span><span class="o">=</span><span class="s">&quot;project&quot;</span><span class="p">,</span>
-</span><span class='line'>    <span class="n">packages</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;project&quot;</span><span class="p">],</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">setup_requires</span><span class="o">=</span><span class="p">[</span>
-</span><span class='line'>        <span class="s">&quot;flake8&quot;</span>
-</span><span class='line'>    <span class="p">]</span>
-</span><span class='line'><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>由于默认禁用代码条件复杂度检查，需要通过&ndash;max-complexity激活该功能：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>flake8 --max-complexity <span class="m">12</span> .
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>该功能对于发现代码过度复杂非常有用，根据Thomas J. McCabe, Sr（<a href="https://en.wikipedia.org/wiki/Cyclomatic_complexity">Cyclomatic complexity</a>的创造者）研究，代码复杂度不宜超过10，而Flake8官网建议值为12。</p>
-
-<h2>配置</h2>
-
-<ul>
-<li>用户相关的配置存在~/.config/flake8中，如：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[flake8]</span>
-</span><span class='line'><span class="na">max-complexity</span><span class="o">=</span><span class="s">12</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>个人感觉除了代码复杂度因子（max-complexity）外，其他参数的默认值已经很好，基本不需要再作配置。</p>
-
-<ul>
-<li>工程相关的设置，可以存放在工程顶级目录的tox.ini或setup.cfg，格式与用户相关的配置一致。</li>
-</ul>
-
-
-<h2>与Git整合</h2>
-
-<p>在.git/hooks目录中，创建Git的pre-commit钩子脚本，Flake8可以对每次提交的代码进行检查。该脚本如下：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c">#!/usr/bin/python</span>
-</span><span class='line'>
-</span><span class='line'><span class="kn">import</span> <span class="nn">sys</span>
-</span><span class='line'><span class="kn">from</span> <span class="nn">flake8.run</span> <span class="kn">import</span> <span class="n">git_hook</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">COMPLEXITY</span> <span class="o">=</span> <span class="mi">12</span>
-</span><span class='line'><span class="n">STRICT</span> <span class="o">=</span> <span class="bp">True</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
-</span><span class='line'>    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">git_hook</span><span class="p">(</span><span class="n">complexity</span><span class="o">=</span><span class="n">COMPLEXITY</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="n">STRICT</span><span class="p">))</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>若strict为True，任何warning都将阻挡提交。否则（或缺省），warning仅会被打印到标准输出。</p>
-
-<h2>与vim整合</h2>
-
-<p>这里仅介绍vim插件vim-flake8的安装和配置</p>
-
-<ul>
-<li>安装vim插件pathogen：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>mkdir -p ~/.vim/autoload ~/.vim/bundle
-</span><span class='line'>curl -Sso ~/.vim/autoload/pathogen.vim <span class="se">\</span>
-</span><span class='line'>    https://raw.github.com/tpope/vim-pathogen/master/autoload/pathogen.vim
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>添加下列配置至~/.vimrc中：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='vim'><span class='line'>execute pathogen#infect<span class="p">()</span>
-</span><span class='line'><span class="nb">syntax</span> <span class="k">on</span>
-</span><span class='line'><span class="k">filetype</span> plugin indent <span class="k">on</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>安装vim-flake8：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">cd</span> ~/.vim/bundle
-</span><span class='line'>git clone git://github.com/nvie/vim-flake8.git
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>至此，当vim打开Python源码后，按F7就会执行Flake8对当前文件进行检查。</p>
-
-<h2>插件</h2>
-
-<p>Flake8相比pep8的优势在于其良好的扩展性，pep8 1.4.6尚未支持命名规范的检查，却已有人开发Flake8的插件<a href="https://github.com/flintwork/pep8-naming">pep8-naming</a>来弥补这个缺陷。</p>
-
-<p>pep8-naming处于早期开发阶段，尚无人为其制作deb包。我花时间做了deb包，并上传到我的ppa:likemartinma/python上。通过下述步骤可以轻松安装它：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo add-apt-repository ppa:likemartinma/python
-</span><span class='line'>sudo apt-get update
-</span><span class='line'>sudo apt-get -y --force-yes dist-upgrade
-</span><span class='line'>sudo apt-get install pep8-naming
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>由于Python部分核心库的函数命令存在“历史遗留”问题，与PEP 8并不保持完全一致，如<a href="http://docs.python.org/2/library/pyexpat.html#xml.parsers.expat.xmlparser.StartElementHandler">xml.parsers.expat.xmlparser.StartElementHandler</a>，这给pep8-naming带来一定的误报困扰。</p>
-
-<p>解决的办法是这样的代码行追加 # noqa 的注释，从避免flake8发出类似warning。</p>
-
-<h2>存在的问题</h2>
-
-<p>由于pep8尚未支持docstring规范的检查，也没有相关Flake8的插件。目前仅能用<a href="https://github.com/GreenSteam/pep257">pep257</a>来完成docstring规范的检查。期待pep257早日衍生成Flake8的插件。</p>
-</div>
-  
-  
-
-
-    </article>
   
   
     <article>
@@ -1478,10 +1224,6 @@ nmake CFG="Win32 Release"
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/04/20/python-gevent-actor/">扩展Python Gevent的Actor模型</a>
-      </li>
-    
-      <li class="post">
         <a href="/blog/2015/03/15/ssh-proxy-cluster/">SSH翻墙集群</a>
       </li>
     
@@ -1495,6 +1237,10 @@ nmake CFG="Win32 Release"
     
       <li class="post">
         <a href="/blog/2014/08/07/create-chroot-for-ssh-access/">创建通过SSH访问的chroot</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/07/15/rinse-tutorial/">Rinse简介——Debian/Ubuntu中创建RPM安装环境</a>
       </li>
     
   </ul>
@@ -1543,7 +1289,7 @@ nmake CFG="Win32 Release"
 
 <section>
   <h1>Categories</h1>
-    <ul id="category-list"><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-'>c++ (1)</a></li><li><a href='/blog/categories/debian'>debian (4)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (11)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/proxy'>proxy (3)</a></li><li><a href='/blog/categories/python'>python (5)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (5)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
+    <ul id="category-list"><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-'>c++ (1)</a></li><li><a href='/blog/categories/debian'>debian (4)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (11)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/proxy'>proxy (3)</a></li><li><a href='/blog/categories/python'>python (4)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (5)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
 </section>
 
   

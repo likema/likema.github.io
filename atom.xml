@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-04-21T07:10:57+00:00</updated>
+  <updated>2016-04-30T09:14:36+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,115 +12,6 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-  
-  <entry>
-    <title type="html"><![CDATA[扩展Python Gevent的Actor模型]]></title>
-    <link href="http://www.malike.net.cn/blog/2016/04/20/python-gevent-actor/"/>
-    <updated>2016-04-20T00:00:00+00:00</updated>
-    <id>http://www.malike.net.cn/blog/2016/04/20/python-gevent-actor</id>
-    <content type="html"><![CDATA[<h2>什么是Actor模型？</h2>
-
-<p><a href="https://en.wikipedia.org/wiki/Actor_model">Actor模型</a>（<a href="https://zh.wikipedia.org/wiki/%E5%8F%83%E8%88%87%E8%80%85%E6%A8%A1%E5%BC%8F">中文版</a>）是一种基于消息传递（message-passing）的并发（concurrent）计算模型。</p>
-
-<p>它与OOP易同：</p>
-
-<ul>
-<li>它推崇“一切皆为Actor”，而OOP推崇“一切皆为Object”</li>
-<li>表面上，Actor通过发送消息与其他Actor通信，OOP的Object通过发送消息与其他Object通信。实际上，前者为发送结构化的数据，而后者为调用对方的方法。</li>
-<li>它的发送者与已经发送的消息解耦，它允许进行异步通信，从而实现发送者与接收者并发执行。而OOP的方法调用者（发送者）与方法被调用者（接收者）通常顺序执行，而且调用者与被调用者通常具有较强的耦合。</li>
-<li>它的消息接收者是通过地址区分的，有时也被称作“邮件地址”。而OOP的Object通过引用（地址）来区分。</li>
-<li>它着重消息传递，而OOP着重于类与对象。</li>
-</ul>
-
-
-<h2>Gevent的Actor实现</h2>
-
-<p><a href="http://sdiehl.github.io/gevent-tutorial/">gevent</a>（<a href="http://xlambda.com/gevent-tutorial/">中文版</a>）是一个基于libev的并发库，它为各种并发和网络相关的任务提供了整洁的API。</p>
-
-<p>其<a href="http://sdiehl.github.io/gevent-tutorial/#actors">Actors</a>（<a href="http://xlambda.com/gevent-tutorial/#actors">中文版</a>）章节已介绍了如何基于Greenlet和 Queue实现</p>
-
-<p>该实现存在的问题：发送者与接收者紧耦合，发送者持有接收者的对象引用。</p>
-
-<h2>解决办法</h2>
-
-<p>在此基础上，我利用<a href="http://blog.csdn.net/gzlaiyonghao/article/details/7215315">message</a>库将其扩展为发布-订阅者模式。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">from</span> <span class="nn">gevent.queue</span> <span class="kn">import</span> <span class="n">Queue</span>
-</span><span class='line'><span class="kn">from</span> <span class="nn">gevent</span> <span class="kn">import</span> <span class="n">Greenlet</span>
-</span><span class='line'><span class="kn">from</span> <span class="nn">message</span> <span class="kn">import</span> <span class="n">observable</span>
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'><span class="k">class</span> <span class="nc">Actor</span><span class="p">(</span><span class="n">Greenlet</span><span class="p">):</span>
-</span><span class='line'>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
-</span><span class='line'>        <span class="n">Greenlet</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-</span><span class='line'>        <span class="k">raise</span> <span class="bp">NotImplemented</span><span class="p">()</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="bp">True</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">running</span><span class="p">:</span>
-</span><span class='line'>            <span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-</span><span class='line'>            <span class="bp">self</span><span class="o">.</span><span class="n">receive</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'><span class="nd">@observable</span>
-</span><span class='line'><span class="k">class</span> <span class="nc">Publisher</span><span class="p">(</span><span class="n">Actor</span><span class="p">):</span>
-</span><span class='line'>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subject</span><span class="p">):</span>
-</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">subject</span><span class="p">(</span><span class="n">subject</span><span class="p">)</span>
-</span><span class='line'>        <span class="n">Actor</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">def</span> <span class="nf">subcribe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observer</span><span class="p">):</span>
-</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subject</span><span class="p">,</span> <span class="n">observer</span><span class="o">.</span><span class="n">send</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">def</span> <span class="nf">publish</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">pub</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subject</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如此，不仅将发送者与接收者解耦，而且支持发送者发送1条消息时，多个接收者接收同1条消息。</p>
-]]></content>
-  </entry>
   
   <entry>
     <title type="html"><![CDATA[SSH翻墙集群]]></title>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: python | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/python/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-04-21T07:11:10+00:00</updated>
+  <updated>2016-04-30T09:14:36+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,79 +12,6 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-  
-  <entry>
-    <title type="html"><![CDATA[扩展Python Gevent的Actor模型]]></title>
-    <link href="http://www.malike.net.cn/blog/2016/04/20/python-gevent-actor/"/>
-    <updated>2016-04-20T00:00:00+00:00</updated>
-    <id>http://www.malike.net.cn/blog/2016/04/20/python-gevent-actor</id>
-    <content type="html"><![CDATA[<h2>什么是Actor模型？</h2>
-
-<p><a href="https://en.wikipedia.org/wiki/Actor_model">Actor模型</a>（<a href="https://zh.wikipedia.org/wiki/%E5%8F%83%E8%88%87%E8%80%85%E6%A8%A1%E5%BC%8F">中文版</a>）是一种基于消息传递（message-passing）的并发（concurrent）计算模型。</p>
-
-<p>它与OOP易同：</p>
-
-<ul>
-<li>它推崇“一切皆为Actor”，而OOP推崇“一切皆为Object”</li>
-<li>表面上，Actor通过发送消息与其他Actor通信，OOP的Object通过发送消息与其他Object通信。实际上，前者为发送结构化的数据，而后者为调用对方的方法。</li>
-<li>它的发送者与已经发送的消息解耦，它允许进行异步通信，从而实现发送者与接收者并发执行。而OOP的方法调用者（发送者）与方法被调用者（接收者）通常顺序执行，而且调用者与被调用者通常具有较强的耦合。</li>
-<li>它的消息接收者是通过地址区分的，有时也被称作“邮件地址”。而OOP的Object通过引用（地址）来区分。</li>
-<li>它着重消息传递，而OOP着重于类与对象。</li>
-</ul>
-
-
-<h2>Gevent的Actor实现</h2>
-
-<p><a href="http://sdiehl.github.io/gevent-tutorial/">gevent</a>（<a href="http://xlambda.com/gevent-tutorial/">中文版</a>）是一个基于libev的并发库，它为各种并发和网络相关的任务提供了整洁的API。</p>
-
-<p>其<a href="http://sdiehl.github.io/gevent-tutorial/#actors">Actors</a>（<a href="http://xlambda.com/gevent-tutorial/#actors">中文版</a>）章节已介绍了如何基于Greenlet和 Queue实现</p>
-
-<p>该实现存在的问题：发送者与接收者紧耦合，发送者持有接收者的对象引用。</p>
-
-<h2>解决办法</h2>
-
-<p>在此基础上，我利用<a href="http://blog.csdn.net/gzlaiyonghao/article/details/7215315">message</a>库将其扩展为发布-订阅者模式。</p>
-
-<pre><code class="python">from gevent.queue import Queue
-from gevent import Greenlet
-from message import observable
-
-
-class Actor(Greenlet):
-    def __init__(self):
-        self.inbox = Queue()
-        Greenlet.__init__(self)
-
-    def send(self, message):
-        self.inbox.put(message)
-
-    def receive(self, message):
-        raise NotImplemented()
-
-    def _run(self):
-        self.running = True
-
-        while self.running:
-            message = self.inbox.get()
-            self.receive(message)
-
-
-@observable
-class Publisher(Actor):
-    def __init__(self, subject):
-        self.subject(subject)
-        Actor.__init__(self)
-
-    def subcribe(self, observer):
-        self.sub(self.subject, observer.send)
-
-    def publish(self, message):
-        self.pub(self.subject, message)
-</code></pre>
-
-<p>如此，不仅将发送者与接收者解耦，而且支持发送者发送1条消息时，多个接收者接收同1条消息。</p>
-]]></content>
-  </entry>
   
   <entry>
     <title type="html"><![CDATA[Python常量]]></title>
@@ -237,54 +164,99 @@ const.magic = 23
 <p>我的目的不是扩展Distutils的install命令，而是改变其行为，避免其安装源码。其实，只需要改变install_lib的行为就足够了。</p>
 
 <p>类install_lib存在于/usr/lib/python2.7/distutils/command/install_lib.py文件中，它的方法run源码如下：
-```python
-    def run(self):
-        # Make sure we have built everything we need first
-        self.build()</p>
-
-<pre><code>    # Install everything: simply dump the entire contents of the build
-    # directory to the installation directory (that's the beauty of
-    # having a build directory!)
-    outfiles = self.install()
-
-    # (Optionally) compile .py to .pyc
-    if outfiles is not None and self.distribution.has_pure_modules():
-        self.byte_compile(outfiles)
-</code></pre>
-
-<pre><code>
-与先编译再安装的直觉相反，编译生成pyc并不发生在build方法中，而是install方法执行后。所以，若重载build方法（实际调用build_py命令），则install和byte_compile都需要修改，工作量较大且复杂度较高。
-
-直接能想到的办法是重载install方法，使其直接编译源码，并返回None，从而使byte_compile不会被执行。
-</code></pre>
-
-<p>import os
-from distutils.core import setup
-from distutils.command.install_lib import install_lib
-from distutils import log
-from distutils.dep_util import newer
-from py_compile import compile</p>
-
-<p>class InstallLib(install_lib):
-    def install(self):
-        for root, dirs, files in os.walk(self.build_dir):
-            current = root.replace(self.build_dir, self.install_dir)
-            for i in dirs:
-                self.mkpath(os.path.join(current, i))</p>
-
-<pre><code>        for i in files:
-            file = os.path.join(root, i)
-            cfile = os.path.join(current, i) + "c"
-            cfile_base = os.path.basename(cfile)
-            if self.force or newer(file, cfile):
-                log.info("byte-compiling %s to %s", file, cfile_base)
-                compile(file, cfile)
-            else:
-                log.debug("skipping byte-compilation of %s", file)
-</code></pre>
-
-<p>setup(cmdclass={&ldquo;install_lib&rdquo;: InstallLib}, name=&ldquo;HelloWorld&rdquo;, version=&ldquo;1.0&rdquo;)
-```</p>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>    <span class="c"># Make sure we have built everything we need first</span>
+</span><span class='line'>    <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="p">()</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span>    <span class="c"># Install everything: simply dump the entire contents of the build</span>
+</span><span class='line'><span class="c"># directory to the installation directory (that&#39;s the beauty of</span>
+</span><span class='line'><span class="c"># having a build directory!)</span>
+</span><span class='line'><span class="n">outfiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">install</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># (Optionally) compile .py to .pyc</span>
+</span><span class='line'><span class="k">if</span> <span class="n">outfiles</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">has_pure_modules</span><span class="p">():</span>
+</span><span class='line'>    <span class="bp">self</span><span class="o">.</span><span class="n">byte_compile</span><span class="p">(</span><span class="n">outfiles</span><span class="p">)</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span>
+</span><span class='line'><span class="err">与先编译再安装的直觉相反，编译生成</span><span class="n">pyc</span><span class="err">并不发生在</span><span class="n">build</span><span class="err">方法中，而是</span><span class="n">install</span><span class="err">方法执行后。所以，若重载</span><span class="n">build</span><span class="err">方法（实际调用</span><span class="n">build_py</span><span class="err">命令），则</span><span class="n">install</span><span class="err">和</span><span class="n">byte_compile</span><span class="err">都需要修改，工作量较大且复杂度较高。</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">直接能想到的办法是重载</span><span class="n">install</span><span class="err">方法，使其直接编译源码，并返回</span><span class="bp">None</span><span class="err">，从而使</span><span class="n">byte_compile</span><span class="err">不会被执行。</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="kn">import</span> <span class="nn">os</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">distutils.core</span> <span class="kn">import</span> <span class="n">setup</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">distutils.command.install_lib</span> <span class="kn">import</span> <span class="n">install_lib</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">distutils</span> <span class="kn">import</span> <span class="n">log</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">distutils.dep_util</span> <span class="kn">import</span> <span class="n">newer</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">py_compile</span> <span class="kn">import</span> <span class="nb">compile</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">class</span> <span class="nc">InstallLib</span><span class="p">(</span><span class="n">install_lib</span><span class="p">):</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">install</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>    <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build_dir</span><span class="p">):</span>
+</span><span class='line'>        <span class="n">current</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">install_dir</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dirs</span><span class="p">:</span>
+</span><span class='line'>            <span class="bp">self</span><span class="o">.</span><span class="n">mkpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+</span><span class='line'>        <span class="nb">file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">cfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;c&quot;</span>
+</span><span class='line'>        <span class="n">cfile_base</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">cfile</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">force</span> <span class="ow">or</span> <span class="n">newer</span><span class="p">(</span><span class="nb">file</span><span class="p">,</span> <span class="n">cfile</span><span class="p">):</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;byte-compiling </span><span class="si">%s</span><span class="s"> to </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="nb">file</span><span class="p">,</span> <span class="n">cfile_base</span><span class="p">)</span>
+</span><span class='line'>            <span class="nb">compile</span><span class="p">(</span><span class="nb">file</span><span class="p">,</span> <span class="n">cfile</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">else</span><span class="p">:</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;skipping byte-compilation of </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">setup</span><span class="p">(</span><span class="n">cmdclass</span><span class="o">=</span><span class="p">{</span><span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">install_lib</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;:</span> <span class="n">InstallLib</span><span class="p">},</span> <span class="n">name</span><span class="o">=&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">HelloWorld</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;,</span> <span class="n">version</span><span class="o">=&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="mf">1.0</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;)</span>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>虽然这样做达到了目的，然而仔细思考一下，更简单的办法是等安装完成后，删除目标目录的源码文件（这里仅给出InstallLib的实现，其余部分同上）：</p>
 
