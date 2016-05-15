@@ -4,7 +4,7 @@
   <title><![CDATA[Category: python | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/python/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-05-15T18:15:42+00:00</updated>
+  <updated>2016-05-15T18:48:09+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -84,7 +84,7 @@ class Publisher(Actor):
 
 <p>如此，不仅将发送者与接收者解耦，而且支持发送者发送1条消息时，多个接收者接收同1条消息。</p>
 
-<p>类似Ping-Pong的示例：</p>
+<p>类似Ping-Pong的示例，Pinger对象订阅了Ponger对象的evt.pong事件，Ponger对象订阅Pinger对象的evt.ping事件。</p>
 
 <pre><code class="python">import gevent
 
@@ -113,6 +113,57 @@ pong.start()
 
 ping.publish('start')
 gevent.joinall([ping, pong])
+</code></pre>
+
+<h2>接收消息超时(timeout)</h2>
+
+<p>某些应用场景需要周期性激活Actor，当Actor没有收到任何消息时。</p>
+
+<p>基于上述代码，利用gevent.queue.get的超时功能来实现接收消息超时。如此，进一步加强Actor的并发能力。</p>
+
+<pre><code class="python">from gevent.queue import Queue
+from gevent import Greenlet
+from message import observable
+
+
+class Actor(Greenlet):
+    def __init__(self, receive_timeout=None):
+        self.inbox = Queue()
+        self.receive_timeout = receive_timeout
+        Greenlet.__init__(self)
+
+    def send(self, message):
+        self.inbox.put(message)
+
+    def receive(self, message):
+        raise NotImplemented()
+
+    def handle_timeout(self):
+        pass
+
+    def _run(self):
+        self.running = True
+
+        while self.running:
+            try:
+                message = self.inbox.get(True, self.receive_timeout)
+            except Empty:
+                self.handle_timeout()
+            else:
+                self.receive(message)
+
+
+@observable
+class Publisher(Actor):
+    def __init__(self, subject, receive_timeout=None):
+        self.subject = subject
+        Actor.__init__(self, receive_timeout)
+
+    def subcribe(self, observer):
+        self.sub(self.subject, observer.send)
+
+    def publish(self, message):
+        self.pub(self.subject, message)
 </code></pre>
 ]]></content>
   </entry>
