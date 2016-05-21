@@ -4,7 +4,7 @@
   <title><![CDATA[Category: python | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/python/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-05-15T18:48:09+00:00</updated>
+  <updated>2016-05-21T03:08:46+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,102 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[pyenv简介——Debian/Ubuntu中管理多版本Python]]></title>
+    <link href="http://www.malike.net.cn/blog/2016/05/21/pyenv-tutorial/"/>
+    <updated>2016-05-21T00:00:00+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2016/05/21/pyenv-tutorial</id>
+    <content type="html"><![CDATA[<p><a href="https://github.com/yyuu/pyenv">pyenv</a>是一个管理Python版本的工具，它支持在多个Python版本间切换。</p>
+
+<h2>一、安装pyenv</h2>
+
+<pre><code class="bash">git clone https://github.com/yyuu/pyenv.git ~/.pyenv
+</code></pre>
+
+<p>将<code>PYENV_ROOT</code>和<code>pyenv init</code>加入bash的~/.bashrc（或zsh的~/.zshrc）</p>
+
+<pre><code class="bash">echo 'export PYENV_ROOT=~/.pyenv' &gt;&gt; ~/.bash_profile
+echo 'eval "$(pyenv init -)"' &gt;&gt; ~/.bash_profile
+</code></pre>
+
+<h2>二、pyenv常用命令</h2>
+
+<h3>列表可安装的Python版本</h3>
+
+<pre><code class="python">pyenv install -l
+</code></pre>
+
+<p>除了Python官方版本，还支持</p>
+
+<ul>
+<li>anaconda</li>
+<li>ironpython</li>
+<li>jython</li>
+<li>miniconda</li>
+<li>pypy</li>
+<li>stackless</li>
+</ul>
+
+
+<h3>安装指定版本的Python</h3>
+
+<pre><code class="bash">pyenv install 3.5.1
+pyenv rehash
+</code></pre>
+
+<p>通常安装需要，下载指定版本的Python源码，且编译该源码。这可能消耗比较长的时间。</p>
+
+<h3>卸载指定版本的Python</h3>
+
+<pre><code class="bash">pyenv unstall 3.5.1
+</code></pre>
+
+<h3>设置shell的Python版本</h3>
+
+<pre><code class="bash">pyenv shell 3.5.1
+</code></pre>
+
+<p>等同于</p>
+
+<pre><code class="bash">export PYENV_VERSION=3.5.1
+</code></pre>
+
+<p>清除PYENV_VERSION</p>
+
+<pre><code class="bash">pyenv shell --unset
+</code></pre>
+
+<h2>三、安装pyenv-virtualenv</h2>
+
+<p>pyenv-virtual是pyenv的插件，它支持管理多个virtualenv</p>
+
+<pre><code class="bash">git clone https://github.com/yyuu/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv
+echo 'eval "$(pyenv virtualenv-init -)"' &gt;&gt; ~/.bash_profile
+</code></pre>
+
+<h3>创建virtualenv</h3>
+
+<pre><code class="bash">pyenv virtualenv 3.5.1 aiohttp-virtual-env
+</code></pre>
+
+<h3>删除virtualenv</h3>
+
+<pre><code class="bash">pyenv uninstall aiohttp-virtual-env
+</code></pre>
+
+<h3>列表virtualenv</h3>
+
+<pre><code class="bash">pyenv virtualenvs
+</code></pre>
+
+<h3>激活/禁用virtualenv</h3>
+
+<pre><code class="bash">pyenv activate aiohttp-virtual-env
+pyenv deactivate
+</code></pre>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[扩展Python Gevent的Actor模型]]></title>
@@ -605,166 +701,6 @@ sudo apt-get install pep8-naming
 <h2>存在的问题</h2>
 
 <p>由于pep8尚未支持docstring规范的检查，也没有相关Flake8的插件。目前仅能用<a href="https://github.com/GreenSteam/pep257">pep257</a>来完成docstring规范的检查。期待pep257早日衍生成Flake8的插件。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[PEP 8总结]]></title>
-    <link href="http://www.malike.net.cn/blog/2013/07/25/pep8-summary/"/>
-    <updated>2013-07-25T00:00:00+00:00</updated>
-    <id>http://www.malike.net.cn/blog/2013/07/25/pep8-summary</id>
-    <content type="html"><![CDATA[<p>下述内容主要源于<a href="http://www.python.org/dev/peps/pep-0008/">PEP 8 &ndash; Style Guide for Python Code</a>。</p>
-
-<h2>最大的行长度</h2>
-
-<ul>
-<li>所有行不超过79个字符。</li>
-<li>docstring或comment应不超过72字符</li>
-</ul>
-
-
-<h2>补齐</h2>
-
-<ul>
-<li>每个补齐级别为4个空格。</li>
-<li>当一行操作最大行长度时，应尽可能按照各种括号作为纵向对齐的参照物（可以适当增加括号），如：</li>
-</ul>
-
-
-<pre><code class="python">from bottle import (get, post, delete, error, run, default_app, HTTPError,
-                    request, response, static_file)
-
-# Aligned with opening delimiter
-foo = long_function_name(var_one, var_two,
-                         var_three, var_four)
-
-# More indentation included to distinguish this from the rest.
-def long_function_name(
-        var_one, var_two, var_three,
-        var_four):
-    print(var_one)
-</code></pre>
-
-<ul>
-<li>多行情况下，关闭括号可以出现在一行开始，如：</li>
-</ul>
-
-
-<pre><code class="python">my_dict = {
-    'hello': 'foo',
-    'world': 'bar',
-}
-
-my_list = [
-    1, 2, 3,
-    4, 5, 6,
-]
-result = some_function_that_takes_arguments(
-    'a', 'b', 'c',
-    'd', 'e', 'f',
-)
-</code></pre>
-
-<p>实际工作中，不同开发语言存在不同的补齐风格要求。可以在.vimrc中针对python设置：</p>
-
-<pre><code class="vim">autocmd BufRead,BufNewFile *.py set et ts=4 sw=4 sts=4
-</code></pre>
-
-<p>仅对python源文件设置4个空格补齐。</p>
-
-<p>当然，更好的办法是在每个python源文件的最后一行追加：</p>
-
-<pre><code class="python"># vim: set ts=4 sw=4 sts=4 et:
-</code></pre>
-
-<p>从而保证vim打开该文件时满足4个空格补齐的要求。</p>
-
-<h2>空行</h2>
-
-<p>顶层函数或类定义的间隔为2行。
-类的方法定义的间隔为1行。</p>
-
-<h2>源文件编码</h2>
-
-<p>Python核心代码应为UTF-8（或ASCII，在Python 2中）。
-源文件若在Python 2中用ASCII或在Python 3中用UTF-8，则不应出现编码声明。</p>
-
-<pre><code class="python"># -*- coding: utf-8 -*-
-</code></pre>
-
-<h2>导入</h2>
-
-<ul>
-<li>每行仅导入一个模块，但每行可以导入一个模块的多个函数:</li>
-</ul>
-
-
-<pre><code class="python">import os
-import sys
-from subprocess import Popen, PIPE
-</code></pre>
-
-<ul>
-<li>保证所有import在文件的头部，仅在模块注释后面，并先于模块的全局变量和常量。</li>
-<li><p>import应按下列顺序分组：</p>
-
-<ul>
-<li>标准库的导入</li>
-<li>相关第3方库的导入</li>
-<li>本地应用程序/库的导入</li>
-</ul>
-</li>
-</ul>
-
-
-<p>每个分组间空1行
-将类似__all__定义放在所有import后面</p>
-
-<ul>
-<li>绝对导入优于相对导入</li>
-<li>避免导入模块所有的内容（通配方式， from <module> import *)，在__init__.py中导出内部API除外。</li>
-</ul>
-
-
-<h2>表达式和语句中的空格</h2>
-
-<ul>
-<li>括号前后不允许有空格</li>
-<li>操作符号（如=，>和+=等）前后各1个空格</li>
-<li>:和,之前不允许有空格，之后仅1个空格</li>
-<li>函数默认参数的等号（=）前后不允许空格</li>
-</ul>
-
-
-<h2>注释</h2>
-
-<ul>
-<li>为所有公开模块、函数、类和方法写docstring。</li>
-<li>非公开方法的comment应出现在def行之后</li>
-<li><a href="http://www.python.org/dev/peps/pep-0257/">PEP-257</a>描述良好的docstring惯例。多行docstring的第1行后应跟着1个空白行。</li>
-<li>单行docstring可保持关闭的"&ldquo;"在同一行。</li>
-</ul>
-
-
-<h2>命名规范</h2>
-
-<p>尽管Python库代码的命名存在一些混乱，新模块和包（包括第3方框架）应满足下列规范。但已有库若风格不同，应保持原来的内部一致性。</p>
-
-<ul>
-<li>单下划线开头（如：_single_leading_underscore）弱内部使用，类似from M import *不导入类似符号。</li>
-<li>单下划线结尾（如：single_trailing_underscore<em>）用于与Python关键字冲突的情况下，如classs</em>。</li>
-<li>双下划线开头（如：__double_leading_underscore）用于类属性。</li>
-<li>双下划线开头和结构用于特殊对象或属性，如__init__, __import__或__file__。多为语言定义，避免发明类似名字。</li>
-<li>避免使用小写L、大写O和大写I作为单字符变量名。</li>
-<li>模块名应简短、全小写，可包含下划线；包名类似，但不鼓励包含下划线。</li>
-<li>C/C++实现的扩展模块应伴随着提供如面向对象等高级接口的Python模块存在，且其名字以下划线开头（如_socket）</li>
-<li>类名应为驼峰词（CapWords），内部使用的类以下划线开头。</li>
-<li>异常名与类名一样，且应以Error结尾（若该异常确为一个错误）。</li>
-<li>函数名应为小写加下划线。</li>
-<li>总是使用self作为实例方法的第1个参数，总是使用cls作为类方法的第1个参数</li>
-<li>常量名应为大写加下划线（如MAX_OVERFLOW）</li>
-</ul>
-
 ]]></content>
   </entry>
   

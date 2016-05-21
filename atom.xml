@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-05-15T18:48:09+00:00</updated>
+  <updated>2016-05-21T03:08:46+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,132 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[pyenv简介——Debian/Ubuntu中管理多版本Python]]></title>
+    <link href="http://www.malike.net.cn/blog/2016/05/21/pyenv-tutorial/"/>
+    <updated>2016-05-21T00:00:00+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2016/05/21/pyenv-tutorial</id>
+    <content type="html"><![CDATA[<p><a href="https://github.com/yyuu/pyenv">pyenv</a>是一个管理Python版本的工具，它支持在多个Python版本间切换。</p>
+
+<h2>一、安装pyenv</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone https://github.com/yyuu/pyenv.git ~/.pyenv
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>将<code>PYENV_ROOT</code>和<code>pyenv init</code>加入bash的~/.bashrc（或zsh的~/.zshrc）</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="s1">&#39;export PYENV_ROOT=~/.pyenv&#39;</span> &gt;&gt; ~/.bash_profile
+</span><span class='line'><span class="nb">echo</span> <span class="s1">&#39;eval &quot;$(pyenv init -)&quot;&#39;</span> &gt;&gt; ~/.bash_profile
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>二、pyenv常用命令</h2>
+
+<h3>列表可安装的Python版本</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">pyenv</span> <span class="n">install</span> <span class="o">-</span><span class="n">l</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>除了Python官方版本，还支持</p>
+
+<ul>
+<li>anaconda</li>
+<li>ironpython</li>
+<li>jython</li>
+<li>miniconda</li>
+<li>pypy</li>
+<li>stackless</li>
+</ul>
+
+
+<h3>安装指定版本的Python</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv install 3.5.1
+</span><span class='line'>pyenv rehash
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通常安装需要，下载指定版本的Python源码，且编译该源码。这可能消耗比较长的时间。</p>
+
+<h3>卸载指定版本的Python</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv unstall 3.5.1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>设置shell的Python版本</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv shell 3.5.1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>等同于</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">PYENV_VERSION</span><span class="o">=</span>3.5.1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>清除PYENV_VERSION</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv shell --unset
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>三、安装pyenv-virtualenv</h2>
+
+<p>pyenv-virtual是pyenv的插件，它支持管理多个virtualenv</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone https://github.com/yyuu/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv
+</span><span class='line'><span class="nb">echo</span> <span class="s1">&#39;eval &quot;$(pyenv virtualenv-init -)&quot;&#39;</span> &gt;&gt; ~/.bash_profile
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>创建virtualenv</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv virtualenv 3.5.1 aiohttp-virtual-env
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>删除virtualenv</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv uninstall aiohttp-virtual-env
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>列表virtualenv</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv virtualenvs
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>激活/禁用virtualenv</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv activate aiohttp-virtual-env
+</span><span class='line'>pyenv deactivate
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[扩展Python Gevent的Actor模型]]></title>
