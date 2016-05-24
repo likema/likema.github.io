@@ -9,8 +9,8 @@
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="pyenv是一个管理Python版本的工具，它支持在多个Python版本间切换。 一、安装pyenv 1
-git clone https://github.com/yyuu/pyenv.git ~/.pyenv 将PYENV_ROOT和pyenv init加入bash的~/.bashrc（ &hellip;">
+  <meta name="description" content="pyenv是管理Python版本的工具，它支持在多个Python版本间切换。 一、安装pyenv 1
+git clone https://github.com/yyuu/pyenv.git ~/.pyenv 将PYENV_ROOT和pyenv init加入bash的~/.bashrc（或zsh的 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -104,7 +104,7 @@ git clone https://github.com/yyuu/pyenv.git ~/.pyenv 将PYENV_ROOT和pyenv init�
   </header>
 
 
-  <div class="entry-content"><p><a href="https://github.com/yyuu/pyenv">pyenv</a>是一个管理Python版本的工具，它支持在多个Python版本间切换。</p>
+  <div class="entry-content"><p><a href="https://github.com/yyuu/pyenv">pyenv</a>是管理Python版本的工具，它支持在多个Python版本间切换。</p>
 
 <h2>一、安装pyenv</h2>
 
@@ -154,6 +154,12 @@ git clone https://github.com/yyuu/pyenv.git ~/.pyenv 将PYENV_ROOT和pyenv init�
 
 <p>通常安装需要，下载指定版本的Python源码，且编译该源码。这可能消耗比较长的时间。</p>
 
+<ul>
+<li>源码（如~/Python-3.5.1.tar.gz）缓存在.pyenv/cache目录中，在安装完后可手动删除。</li>
+<li>Python版本安装在~/.pyenv/versions目录中。</li>
+</ul>
+
+
 <h3>卸载指定版本的Python</h3>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -175,7 +181,7 @@ git clone https://github.com/yyuu/pyenv.git ~/.pyenv 将PYENV_ROOT和pyenv init�
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>清除PYENV_VERSION</p>
+<p>清除<code>PYENV_VERSION</code></p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv shell --unset
@@ -199,6 +205,8 @@ git clone https://github.com/yyuu/pyenv.git ~/.pyenv 将PYENV_ROOT和pyenv init�
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv virtualenv 3.5.1 aiohttp-virtual-env
 </span></code></pre></td></tr></table></div></figure>
 
+
+<p>aiohttp-virtual-env存储在~/.pyenv/versions/3.5.1/envs目录中，且在~/.pyenv/versions目录中建立同名符号链接。</p>
 
 <h3>删除virtualenv</h3>
 

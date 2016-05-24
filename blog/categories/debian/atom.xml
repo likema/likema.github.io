@@ -4,7 +4,7 @@
   <title><![CDATA[Category: debian | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/debian/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-05-21T03:08:46+00:00</updated>
+  <updated>2016-05-24T18:03:55+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -18,7 +18,7 @@
     <link href="http://www.malike.net.cn/blog/2016/05/21/pyenv-tutorial/"/>
     <updated>2016-05-21T00:00:00+00:00</updated>
     <id>http://www.malike.net.cn/blog/2016/05/21/pyenv-tutorial</id>
-    <content type="html"><![CDATA[<p><a href="https://github.com/yyuu/pyenv">pyenv</a>是一个管理Python版本的工具，它支持在多个Python版本间切换。</p>
+    <content type="html"><![CDATA[<p><a href="https://github.com/yyuu/pyenv">pyenv</a>是管理Python版本的工具，它支持在多个Python版本间切换。</p>
 
 <h2>一、安装pyenv</h2>
 
@@ -58,6 +58,12 @@ pyenv rehash
 
 <p>通常安装需要，下载指定版本的Python源码，且编译该源码。这可能消耗比较长的时间。</p>
 
+<ul>
+<li>源码（如~/Python-3.5.1.tar.gz）缓存在.pyenv/cache目录中，在安装完后可手动删除。</li>
+<li>Python版本安装在~/.pyenv/versions目录中。</li>
+</ul>
+
+
 <h3>卸载指定版本的Python</h3>
 
 <pre><code class="bash">pyenv unstall 3.5.1
@@ -73,7 +79,7 @@ pyenv rehash
 <pre><code class="bash">export PYENV_VERSION=3.5.1
 </code></pre>
 
-<p>清除PYENV_VERSION</p>
+<p>清除<code>PYENV_VERSION</code></p>
 
 <pre><code class="bash">pyenv shell --unset
 </code></pre>
@@ -90,6 +96,8 @@ echo 'eval "$(pyenv virtualenv-init -)"' &gt;&gt; ~/.bash_profile
 
 <pre><code class="bash">pyenv virtualenv 3.5.1 aiohttp-virtual-env
 </code></pre>
+
+<p>aiohttp-virtual-env存储在~/.pyenv/versions/3.5.1/envs目录中，且在~/.pyenv/versions目录中建立同名符号链接。</p>
 
 <h3>删除virtualenv</h3>
 
