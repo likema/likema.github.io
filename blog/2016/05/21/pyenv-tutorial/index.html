@@ -114,8 +114,10 @@ git clone https://github.com/yyuu/pyenv.git ~/.pyenv 将PYENV_ROOT和pyenv init�
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="s1">&#39;export PYENV_ROOT=~/.pyenv&#39;</span> &gt;&gt; ~/.bash_profile
-</span><span class='line'><span class="nb">echo</span> <span class="s1">&#39;eval &quot;$(pyenv init -)&quot;&#39;</span> &gt;&gt; ~/.bash_profile
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="s1">&#39;export PATH=~/.pyenv/bin:$PATH&#39;</span> &gt;&gt; ~/.bashrc
+</span><span class='line'><span class="nb">echo</span> <span class="s1">&#39;export PYENV_ROOT=~/.pyenv&#39;</span> &gt;&gt; ~/.bashrc
+</span><span class='line'><span class="nb">echo</span> <span class="s1">&#39;eval &quot;$(pyenv init -)&quot;&#39;</span> &gt;&gt; ~/.bashrc
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -149,7 +151,21 @@ git clone https://github.com/yyuu/pyenv.git ~/.pyenv 将PYENV_ROOT和pyenv init�
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>通常安装需要，下载指定版本的Python源码，且编译该源码。这可能消耗比较长的时间。</p>
+<p>它会自动下载并编译指定版本的Python源码，这需要系统安装：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install -y build-essential zlib1g-dev libssl-dev
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>还可选择安装：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install libsqlite3-dev libbz2-dev  libreadline-dev
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>安装完成后：</p>
 
 <ul>
 <li>源码（如~/Python-3.5.1.tar.gz）缓存在.pyenv/cache目录中，在安装完后可手动删除。</li>
@@ -203,7 +219,11 @@ git clone https://github.com/yyuu/pyenv.git ~/.pyenv 将PYENV_ROOT和pyenv init�
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>aiohttp-virtual-env存储在~/.pyenv/versions/3.5.1/envs目录中，且在~/.pyenv/versions目录中建立同名符号链接。</p>
+<ul>
+<li>创建aiohttp-virtual-env之前，须先安装Python 3.5.1（通过系统或pyenv安装）。</li>
+<li>aiohttp-virtual-env存储在~/.pyenv/versions/3.5.1/envs目录中，且在~/.pyenv/versions目录中建立同名符号链接。</li>
+</ul>
+
 
 <h3>删除virtualenv</h3>
 
@@ -226,6 +246,8 @@ git clone https://github.com/yyuu/pyenv.git ~/.pyenv 将PYENV_ROOT和pyenv init�
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv activate aiohttp-virtual-env
 </span><span class='line'>pyenv deactivate
 </span></code></pre></td></tr></table></div></figure>
+
+
 
 </div>
 
