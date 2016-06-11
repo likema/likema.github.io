@@ -4,7 +4,7 @@
   <title><![CDATA[Category: debian | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/debian/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-05-28T16:23:15+00:00</updated>
+  <updated>2016-06-11T20:12:44+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,103 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[nvm简介——Debian/Ubuntu中管理多版本Node.js]]></title>
+    <link href="http://www.malike.net.cn/blog/2016/06/09/nvm-tutorial/"/>
+    <updated>2016-06-09T00:00:00+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2016/06/09/nvm-tutorial</id>
+    <content type="html"><![CDATA[<p><a href="https://github.com/creationix/nvm">nvm</a>是管理Node.js版本的工具，它支持在多个Node.js版本间切换。</p>
+
+<h2>一、安装nvm</h2>
+
+<pre><code class="bash">git clone https://github.com/creationix/nvm.git ~/.nvm
+cd ~/.nvm
+git checkout `git describe --abbrev=0 --tags
+</code></pre>
+
+<p>激活nvm</p>
+
+<pre><code class="bash">. $NVM_DIR/nvm.sh
+</code></pre>
+
+<p>为了每次登录后自动激活nvm，需要将<code>NMV_DIR</code>、<code>nvm.sh</code>和补齐加入bash的~/.bashrc（或zsh的~/.zshrc）</p>
+
+<pre><code class="bash">export NVM_DIR=~/.nvm
+[ -s "$NVM_DIR/nvm.sh" ] &amp;&amp; . "$NVM_DIR/nvm.sh"
+[ -r $NVM_DIR/bash_completion ] &amp;&amp; . $NVM_DIR/bash_completion
+</code></pre>
+
+<h2>二、nvm常用命令</h2>
+
+<h3>列表可安装的Node.js版本</h3>
+
+<pre><code class="bash">nvm ls-remote
+</code></pre>
+
+<p>除了Node.js官方版本，还支持io.js</p>
+
+<h3>安装指定版本的Node.js</h3>
+
+<pre><code class="bash">nvm install 6.2.1
+</code></pre>
+
+<p>它会自动下载指定版本的Node.js二进制包（不需要编译源码），安装在~/.nvm/versions/node</p>
+
+<h3>卸载指定版本的Node.js</h3>
+
+<pre><code class="bash">nvm uninstall 6.2.1
+</code></pre>
+
+<h3>设置shell的Node.js版本</h3>
+
+<pre><code class="bash">nvm use 6.2.1
+</code></pre>
+
+<p>它将Node.js指定版本的bin路径加入PATH.</p>
+
+<p>还原环境变量PATH</p>
+
+<pre><code class="bash">nvm deactivate
+</code></pre>
+
+<h3>迁移npm至新版本的Node.js</h3>
+
+<pre><code>nvm install node --reinstall-packages-from=node
+</code></pre>
+
+<p>或</p>
+
+<pre><code>nvm install v6.2.1 --reinstall-packages-from=5.0
+</code></pre>
+
+<h3>.nvmrc</h3>
+
+<p>它存储在工程根目录中，用于记录该工程依赖的Node.js版本</p>
+
+<pre><code class="bash">echo 6.2.1 &gt; .nvmrc
+</code></pre>
+
+<p>进入工程目录（当前目录），运行</p>
+
+<pre><code class="bash">nvm use
+</code></pre>
+
+<p>将根据.nvmrc指定shell的Nodejs版本</p>
+
+<h2>三、升级nvm</h2>
+
+<pre><code class="bash">cd $NVM_DIR
+git fetch origin
+git checkout `git describe --abbrev=0 --tags`
+</code></pre>
+
+<p>升级完成后，需要重新激活nvm</p>
+
+<pre><code class="bash">. $NVM_DIR/nvm.sh
+</code></pre>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[pyenv简介——Debian/Ubuntu中管理多版本Python]]></title>
@@ -472,83 +569,6 @@ git tag debian/5.1.3-2
 <p>这里的关键命令git-dch -R -a自动生成了release的版本信息，当然我们也可以根据需要再修改它们。最后一条命令，给master分支的HEAD加上标签debian/5.1.3-2，git-buildpackage将依赖于它才能继续正确工作。</p>
 
 <p>到此为止，我已经演示了git-buildpackage的补丁制作过程，可以观察../tolua-build目录中生成的文件，它们就是我们可以用于发布的deb包源码文件，形式上与ubuntu/debian中apt-get source得到的一样。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[为tolua的deb包作一个补丁]]></title>
-    <link href="http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch/"/>
-    <updated>2011-10-31T00:00:00+00:00</updated>
-    <id>http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch</id>
-    <content type="html"><![CDATA[<p>近日在学习tolua时发现在Kubuntu 11.10 amd64平台下将其链接到so时报告如下错误：</p>
-
-<blockquote><p>relocation R_X86_64_32 against &lsquo;.rodata&rsquo; can not be used when making a shared object; recompile with -fPIC</p></blockquote>
-
-<p>为此，我决定在其原deb基础上加一个补丁，这样生成的新包可以安装到其他开发机器上，省去了每次重编译tolua的重复劳动。</p>
-
-<p>为构建和修改deb安装必要的工具（配置quilt）：</p>
-
-<pre><code>sudo apt-get install build-essential debhelper quilt
-</code></pre>
-
-<p>下载libtolua-dev的源码，创建补丁add-fpic-O2-for-amd64.patch，并将config文件加入其中：</p>
-
-<pre><code>apt-get source libtolua-dev
-cd tolua-5.1.3
-mkdir -p debian/patches
-quilt new add-fpic-O2-for-amd64.patch
-quilt add config
-</code></pre>
-
-<p>将config文件中，如下内容</p>
-
-<pre><code class="makefile">CFLAGS = -g $(WARN) $(INC)
-CPPFLAGS = -g $(WARN) $(INC)
-</code></pre>
-
-<p>替换为</p>
-
-<pre><code class="makefile">CFLAGS = -fPIC -O2 -pipe -g $(WARN) $(INC)
-CPPFLAGS = -fPIC -O2 -pipe  -g $(WARN) $(INC)
-CFLAGS = -fPIC -O2 -pipe -g $(WARN) $(INC)
-</code></pre>
-
-<p>生成补丁add-fpic-O2-for-amd64.patch</p>
-
-<pre><code>quilt refresh
-</code></pre>
-
-<p>为补丁增加描述信息</p>
-
-<pre><code>quilt header -e
-</code></pre>
-
-<p>其具体内容如下：</p>
-
-<pre><code>Description: Fix relocation R_X86_64_32 against '.rodata' error for shared object.
-Author: Like Ma &lt;likemartinma@gmail.com&gt;
-
-  * config: add -fPIC -O2 -pipe to CFLAGS and CPPFLAGS
-</code></pre>
-
-<p>通过执行</p>
-
-<pre><code>dch -R
-</code></pre>
-
-<p>在debian/changelog顶部增加日志信息：</p>
-
-<pre><code>tolua (5.1.3-2) unstable; urgency=low
-
-  * Fix relocation R_X86_64_32 against '.rodata' error for shared object.
-
--- Like Ma &lt;likemartinma@gmail.com&gt; Mon, 31 Oct 2011 15:23:09 +0800
-</code></pre>
-
-<p>构建libtolua-dev_5.1.3-2_amd64.deb:</p>
-
-<pre><code>dpkg-buildpackage -d -uc -us -rfakeroot
-</code></pre>
 ]]></content>
   </entry>
   

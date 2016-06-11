@@ -9,8 +9,12 @@
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="pyenv是管理Python版本的工具，它支持在多个Python版本间切换。 一、安装pyenv 1
-git clone https://github.com/yyuu/pyenv.git ~/.pyenv 将PYENV_ROOT和pyenv init加入bash的~/.bashrc（或zsh的 &hellip;">
+  <meta name="description" content="nvm是管理Node.js版本的工具，它支持在多个Node.js版本间切换。 一、安装nvm 1
+2
+3
+git clone https://github.com/creationix/nvm.git ~/.nvm
+cd ~/.nvm
+git checkout `git describe -- &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +83,160 @@ git clone https://github.com/yyuu/pyenv.git ~/.pyenv 将PYENV_ROOT和pyenv init�
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/06/09/nvm-tutorial/">nvm简介——Debian/Ubuntu中管理多版本Node.js</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-06-09T00:00:00+00:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/blog/2016/06/09/nvm-tutorial/#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn/blog/2016/06/09/nvm-tutorial/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="https://github.com/creationix/nvm">nvm</a>是管理Node.js版本的工具，它支持在多个Node.js版本间切换。</p>
+
+<h2>一、安装nvm</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone https://github.com/creationix/nvm.git ~/.nvm
+</span><span class='line'><span class="nb">cd</span> ~/.nvm
+</span><span class='line'>git checkout <span class="sb">`</span>git describe --abbrev<span class="o">=</span><span class="m">0</span> --tags
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>激活nvm</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>. <span class="nv">$NVM_DIR</span>/nvm.sh
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了每次登录后自动激活nvm，需要将<code>NMV_DIR</code>、<code>nvm.sh</code>和补齐加入bash的~/.bashrc（或zsh的~/.zshrc）</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">NVM_DIR</span><span class="o">=</span>~/.nvm
+</span><span class='line'><span class="o">[</span> -s <span class="s2">&quot;$NVM_DIR/nvm.sh&quot;</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> . <span class="s2">&quot;$NVM_DIR/nvm.sh&quot;</span>
+</span><span class='line'><span class="o">[</span> -r <span class="nv">$NVM_DIR</span>/bash_completion <span class="o">]</span> <span class="o">&amp;&amp;</span> . <span class="nv">$NVM_DIR</span>/bash_completion
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>二、nvm常用命令</h2>
+
+<h3>列表可安装的Node.js版本</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm ls-remote
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>除了Node.js官方版本，还支持io.js</p>
+
+<h3>安装指定版本的Node.js</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm install 6.2.1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>它会自动下载指定版本的Node.js二进制包（不需要编译源码），安装在~/.nvm/versions/node</p>
+
+<h3>卸载指定版本的Node.js</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm uninstall 6.2.1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>设置shell的Node.js版本</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm use 6.2.1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>它将Node.js指定版本的bin路径加入PATH.</p>
+
+<p>还原环境变量PATH</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm deactivate
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>迁移npm至新版本的Node.js</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm install node --reinstall-packages-from<span class="o">=</span>node
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>或</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm install v6.2.1 --reinstall-packages-from<span class="o">=</span>5.0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>.nvmrc</h3>
+
+<p>它存储在工程根目录中，用于记录该工程依赖的Node.js版本</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo </span>6.2.1 &gt; .nvmrc
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>进入工程目录（当前目录），运行</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm use
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>将根据.nvmrc指定shell的Nodejs版本</p>
+
+<h2>三、升级nvm</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> <span class="nv">$NVM_DIR</span>
+</span><span class='line'>git fetch origin
+</span><span class='line'>git checkout <span class="sb">`</span>git describe --abbrev<span class="o">=</span><span class="m">0</span> --tags<span class="sb">`</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>升级完成后，需要重新激活nvm</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>. <span class="nv">$NVM_DIR</span>/nvm.sh
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1674,204 +1832,6 @@ git clone https://github.com/yyuu/pyenv.git ~/.pyenv 将PYENV_ROOT和pyenv init�
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/11/03/python-constants/">Python常量</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2013-11-03T00:00:00+00:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>3</span><span class='date-suffix'>rd</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/blog/2013/11/03/python-constants/#disqus_thread"
-             data-disqus-identifier="http://www.malike.net.cn/blog/2013/11/03/python-constants/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>与C/C++不同，Python在语法上并没有定义常量，尽管<a href="/blog/2013/07/25/pep8-summary/">PEP 8</a>定义了常量的命名规范为大写字母和下划线组成。</p>
-
-<p>在实际项目中，常量首次赋值后， 无法阻止其他代码对其进行修改或删除。</p>
-
-<h2>现存的办法</h2>
-
-<p>幸运的是该问题在2001年就有人给出了解决方案<a href="http://code.activestate.com/recipes/65207-constants-in-python/">Constants in Python</a>，基本内容如下：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">class</span> <span class="nc">_const</span><span class="p">:</span>
-</span><span class='line'>    <span class="k">class</span> <span class="nc">ConstError</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">):</span>
-</span><span class='line'>        <span class="k">pass</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-</span><span class='line'>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-</span><span class='line'>            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">ConstError</span><span class="p">,</span> <span class="s">&quot;Can&#39;t rebind const instance attribute (</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">name</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-</span><span class='line'>
-</span><span class='line'><span class="kn">import</span> <span class="nn">sys</span>
-</span><span class='line'><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">__name__</span><span class="p">]</span> <span class="o">=</span> <span class="n">_const</span><span class="p">()</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>其大致含义为：</p>
-
-<ul>
-<li>通过_const的__setattr__对象方法判断该对象是否存在属性name，若存在则抛出自定义异常ConstError，否则创建该属性。</li>
-<li>将_const实例化的对象赋值sys.modules[__name__]，const模块被绑定成_const对象。__name__在首次载入const过程中为'const'，而<a href="http://docs.python.org/2.7/library/sys.html#sys.modules">sys.modules</a>是模块名与已加载模块的dict。</li>
-</ul>
-
-
-<p>如何使用const模块呢？</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">const</span>
-</span><span class='line'><span class="n">const</span><span class="o">.</span><span class="n">magic</span> <span class="o">=</span> <span class="mi">23</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>若再次赋值const.magic，</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">const</span><span class="o">.</span><span class="n">magic</span> <span class="o">=</span> <span class="mi">88</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>则将抛出ConstError的异常。</p>
-
-<h2>如何避免常量被删除？</h2>
-
-<p>实际项目中，常量并不希望被其他代码删除。在_const类中加入：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">def</span> <span class="nf">__delattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-</span><span class='line'>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-</span><span class='line'>        <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">ConstError</span><span class="p">,</span> <span class="s">&quot;Can&#39;t unbind const const instance attribute (</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">name</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">,</span> <span class="s">&quot;const instance has no attribute &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="n">name</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如此，删除已定义的常量（假设const.magic已经赋值）：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">del</span> <span class="n">const</span><span class="o">.</span><span class="n">magic</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>则将抛出ConstError的异常。</p>
-
-<h2>配置文件与常量</h2>
-
-<p>实际项目中，为了让应用程序灵活部署，一般会用配置文件存储应用程序的各种参数；而这些参数通常都以常量语义存在于应用程序中。</p>
-
-<p>在上述代码基础上，根据应用程序的实际情况将常量划分为3类：</p>
-
-<ul>
-<li>特殊含义的数值或字符串，如 ETC_FSTAB = &ldquo;/etc/fstab&rdquo; 。其作用为
-
-<ul>
-<li>避免程序中到处出现类似特殊值，因为人为输入特殊值的低级错误将耗费不必要的调试/测试时间</li>
-<li>另一方面, 神秘数值（magic number），如 LUN_BLOCK_SIZE = 4096，将影响程序的可读性。</li>
-</ul>
-</li>
-<li>应用程序参数的默认值，如 URLOPEN_DEFAULT_TIMEOUT = 15 。其作用主要为配置文件参数的默认值。</li>
-<li>通过配置文件载入的参数，如通过<a href="http://docs.python.org/2/library/configparser.html#ConfigParser.SafeConfigParser">ConfigParser.SafeConfigParser</a>解析形如ini文件的参数。</li>
-</ul>
-
-
-<p>第1和2类常量作为_const类的类属性，第3类常量可以在__init__方法中初始化。如：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">class</span> <span class="nc">_const</span><span class="p">:</span>
-</span><span class='line'>    <span class="n">ETC_FSTAB</span> <span class="o">=</span> <span class="s">&quot;/etc/fstab&quot;</span>
-</span><span class='line'>    <span class="n">LUN_BLOCK_SIZE</span> <span class="o">=</span> <span class="mi">4096</span>
-</span><span class='line'>    <span class="n">URLOPEN_DEFAULT_TIMEOUT</span> <span class="o">=</span> <span class="mi">15</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span class='line'>        <span class="n">conf</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="o">.</span><span class="n">SafeConfigParser</span><span class="p">()</span>
-</span><span class='line'>        <span class="n">conf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CONF_PATH</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">try</span><span class="p">:</span>
-</span><span class='line'>            <span class="bp">self</span><span class="o">.</span><span class="n">URLOPEN_TIMEOUT</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s">&quot;DEFAULT&quot;</span><span class="p">,</span> <span class="s">&quot;urlopen_timeout&quot;</span><span class="p">)</span>
-</span><span class='line'>        <span class="k">except</span><span class="p">:</span>
-</span><span class='line'>            <span class="bp">self</span><span class="o">.</span><span class="n">URLOPEN_TIMEOUT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">URLOPEN_DEFAULT_TIMEOUT</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="o">...</span> <span class="o">...</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>某些情况下，应用程序可能并不希望const模块在被外部调用时绑定新属性（常量），实现如下：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span class='line'>    <span class="c"># Constant definition area</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">_const</span><span class="o">.</span><span class="n">__setattr__</span> <span class="o">=</span> <span class="n">_const</span><span class="o">.</span><span class="n">_setattr_impl</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">def</span> <span class="nf">_setattr_impl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-</span><span class='line'>    <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">ConstError</span><span class="p">,</span> <span class="s">&quot;Can&#39;t bind const instance attribute (</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">name</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>其原理为_const对象初始化完成后将__setattr__设置为禁止绑定属性的实现。若在_const类中实现__setattr__为禁止绑定属性，则__init__也将无法初始化（绑定）对象属性。</p>
-
-<h2>存在的小问题</h2>
-
-<p>该问题并不影响该解决方案的使用，具体请参考:</p>
-
-<p><a href="http://stackoverflow.com/questions/5365562/why-is-the-value-of-name-changing-after-assignment-to-sys-modules-name">http://stackoverflow.com/questions/5365562/why-is-the-value-of-name-changing-after-assignment-to-sys-modules-name</a></p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -1887,6 +1847,10 @@ git clone https://github.com/yyuu/pyenv.git ~/.pyenv 将PYENV_ROOT和pyenv init�
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/06/09/nvm-tutorial/">nvm简介——Debian/Ubuntu中管理多版本Node.js</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/05/21/pyenv-tutorial/">pyenv简介——Debian/Ubuntu中管理多版本Python</a>
       </li>
     
@@ -1900,10 +1864,6 @@ git clone https://github.com/yyuu/pyenv.git ~/.pyenv 将PYENV_ROOT和pyenv init�
     
       <li class="post">
         <a href="/blog/2014/12/23/autossh-tutorial/">AutoSSH简介</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/10/27/ssh-tunnel-tutorial/">SSH隧道简介</a>
       </li>
     
   </ul>
@@ -1952,7 +1912,7 @@ git clone https://github.com/yyuu/pyenv.git ~/.pyenv 将PYENV_ROOT和pyenv init�
 
 <section>
   <h1>Categories</h1>
-    <ul id="category-list"><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-'>c++ (1)</a></li><li><a href='/blog/categories/debian'>debian (5)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (11)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/proxy'>proxy (3)</a></li><li><a href='/blog/categories/python'>python (6)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (6)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
+    <ul id="category-list"><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-'>c++ (1)</a></li><li><a href='/blog/categories/debian'>debian (6)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (11)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (3)</a></li><li><a href='/blog/categories/python'>python (6)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (7)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
 </section>
 
   
