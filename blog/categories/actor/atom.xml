@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: gevent | Like的世界]]></title>
-  <link href="http://www.malike.net.cn/blog/categories/gevent/atom.xml" rel="self"/>
+  <title><![CDATA[Category: actor | Like的世界]]></title>
+  <link href="http://www.malike.net.cn/blog/categories/actor/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
   <updated>2016-06-12T19:34:24+00:00</updated>
   <id>http://www.malike.net.cn/</id>
