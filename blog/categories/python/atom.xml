@@ -4,7 +4,7 @@
   <title><![CDATA[Category: python | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/python/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-06-12T19:34:24+00:00</updated>
+  <updated>2016-07-03T15:34:57+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,192 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[基于Python 3.5异步的Actor模型]]></title>
+    <link href="http://www.malike.net.cn/blog/2016/06/02/python-3-dot-5-async-actor/"/>
+    <updated>2016-06-02T00:00:00+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2016/06/02/python-3-dot-5-async-actor</id>
+    <content type="html"><![CDATA[<h2>Python 3.5异步模型</h2>
+
+<p>Python 3.5推出了async/await语法，在语法层面简化了异步编程。官方库asyncio是应用async/await的途径。</p>
+
+<p>Ubuntu 16.04默认安装Python 3.5，或者通过<a href="/blog/2016/05/21/pyenv-tutorial/">pyenv</a>安装它。</p>
+
+<h2>异步Actor的实现</h2>
+
+<p>基于asyncio，可以实现async actor.</p>
+
+<pre><code class="python">import asyncio
+
+
+class Actor(object):
+    def __init__(self):
+        self.inbox = asyncio.Queue()
+
+    async def receive(self, message):
+        raise NotImplemented()
+
+    async def run(self):
+        self.running = True
+
+        while self.running:
+            message = await self.inbox.get()
+            await self.receive(message)
+</code></pre>
+
+<p>上述代码的关键是通过asyncio.Queue异步接收消息，并异步处理接收到的消息。</p>
+
+<p>通过这个类，实现Ping-Pong示例：</p>
+
+<pre><code class="python">import asyncio
+
+from actor import Actor
+
+
+class Pinger(Actor):
+    async def receive(self, message):
+        print(message)
+        pong.inbox.put_nowait('ping')
+        await asyncio.sleep(3)
+
+
+class Ponger(Actor):
+    async def receive(self, message):
+        print(message)
+        ping.inbox.put_nowait('pong')
+        await asyncio.sleep(3)
+
+
+ping = Pinger()
+pong = Ponger()
+
+ping.inbox.put_nowait('start')
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(asyncio.wait((ping.run(), pong.run())))
+loop.close()
+</code></pre>
+
+<p>该示例代码中，actor之间同步发送消息（asyncio.Queue.put_nowait），由于运行在单线程上，并不存在竞争。</p>
+
+<h2>接收消息超时(timeout)</h2>
+
+<p>某些应用场景需要周期性激活Actor，当Actor没有收到任何消息时。</p>
+
+<p>基于上述代码，利用asyncio.wait_for的超时功能来实现接收消息超时。如此，进一步加强Actor的并发能力。</p>
+
+<pre><code class="python">import asyncio
+
+
+class Actor(object):
+    def __init__(self, receive_timeout=None):
+        self.inbox = asyncio.Queue()
+        self.receive_timeout = receive_timeout
+
+    async def receive(self, message):
+        raise NotImplemented()
+
+    async def handle_timeout(self):
+        pass
+
+    async def run(self):
+        self.running = True
+
+        while self.running:
+            try:
+                message = await asyncio.wait_for(self.inbox.get(),
+                                                 self.receive_timeout)
+            except asyncio.TimeoutError:
+                await self.handle_timeout()
+            else:
+                await self.receive(message)
+</code></pre>
+
+<h2>基于message的扩展</h2>
+
+<p>由于<a href="http://blog.csdn.net/gzlaiyonghao/article/details/7215315">message</a>仅支持Python 2，而且Google Code已经停止服务。</p>
+
+<p>基于原代码基础上，我在GitHub创建<a href="https://github.com/likema/python-message">python-message</a>，并扩展支持Python 3.</p>
+
+<p>新版本message，也可以通过pip安装：</p>
+
+<pre><code class="bash">pip install https://github.com/likema/python-message/archive/master.zip
+</code></pre>
+
+<p>在此基础上，将异步Actor扩展为发布-订阅者模式。</p>
+
+<pre><code class="python">from message import observable
+
+from actor import Actor
+
+
+@observable
+class Publisher(Actor):
+    def __init__(self, subject, receive_timeout=None):
+        self.subject = subject
+        Actor.__init__(self, receive_timeout)
+
+    def subcribe(self, observer):
+        self.sub(self.subject, observer.send)
+
+    def publish(self, message):
+        self.pub(self.subject, message)
+</code></pre>
+
+<p>基于Publisher实现Ping-Pong，从而解耦发送者与接收者，且支持发送者发送1条消息时，多个接收者接收同1条消息。</p>
+
+<pre><code class="python">import asyncio
+
+from actor import Actor
+from publisher import Publisher
+
+
+class Pinger(Publisher):
+    async def receive(self, message):
+        print(message)
+        await asyncio.sleep(3)
+        self.publish('ping')
+
+    async def handle_timeout(self):
+        print('Pinger timeout')
+
+
+class Ponger(Publisher):
+    async def receive(self, message):
+        print(message)
+        await asyncio.sleep(3)
+        self.publish('pong')
+
+    async def handle_timeout(self):
+        print('Ponger timeout')
+
+
+ping = Pinger('evt.ping', 1)
+pong = Ponger('evt.pong', 1)
+
+ping.subcribe(pong)
+pong.subcribe(ping)
+ping.publish('start')
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(asyncio.wait((ping.run(), pong.run())))
+loop.close()
+</code></pre>
+
+<h2>存在的问题</h2>
+
+<p>相比<a href="/blog/2016/04/20/python-gevent-actor/">Gevent实现的Actor</a>，异步Actor并不透明支持所有的I/O函数，它依赖于asyncio及基于asyncio实现的库，如<a href="http://aiohttp.readthedocs.io/en/stable/">aiohttp</a>。</p>
+
+<h2>参考</h2>
+
+<ul>
+<li><a href="http://stackabuse.com/python-async-await-tutorial/">Python async/await Tutorial</a></li>
+<li><a href="https://github.com/mehmetkose/python3.5-async-crawler">python3.5-async-crawler</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[pyenv简介——Debian/Ubuntu中管理多版本Python]]></title>
@@ -545,185 +731,6 @@ const.magic = 23
 </code></pre>
 
 <p>如此非常简洁，实际只增加了2行代码，其余皆copy-paste。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Flake8简介]]></title>
-    <link href="http://www.malike.net.cn/blog/2013/10/23/flake8-tutorial/"/>
-    <updated>2013-10-23T00:00:00+00:00</updated>
-    <id>http://www.malike.net.cn/blog/2013/10/23/flake8-tutorial</id>
-    <content type="html"><![CDATA[<p><a href="http://flake8.readthedocs.org/">Flake8</a>包装了下列工具：</p>
-
-<ul>
-<li><a href="https://launchpad.net/pyflakes">PyFlakes</a>：静态检查Python代码逻辑错误的工具。</li>
-<li><a href="http://pep8.readthedocs.org/en/latest/">pep8</a>： 静态检查<a href="/blog/2013/07/25/pep8-summary/">PEP 8</a>编码风格的工具。</li>
-<li><a href="http://nedbatchelder.com/blog/200803/python_code_complexity_microtool.html">Ned Batchelder’s McCabe script</a>：静态分析Python代码复杂度的工具。</li>
-</ul>
-
-
-<p>它综合上述三者的功能，在简化操作的同时，还提供了扩展开发接口。</p>
-
-<h2>安装</h2>
-
-<p>这里仅介绍Ubuntu的安装方法，其他安装方法见Flake8官网。</p>
-
-<ul>
-<li>添加ppa:cjohnston/flake8。Ubuntu 12.04、12.10和13.04官方源仅提供pep8的包，而该PPA不仅提供了最新的python-flake8包，还提供最新的pep8包。Ubuntu 13.10和14.04默认已经提供最新的pep8和python-flake8，所以可以跳过这一步。</li>
-</ul>
-
-
-<pre><code>sudo add-apt-repository ppa:likemartinma/python
-sudo apt-get update
-sudo apt-get -y --force-yes dist-upgrade
-</code></pre>
-
-<ul>
-<li>安装python-flake8</li>
-</ul>
-
-
-<pre><code class="sh">sudo apt-get install python-flake8
-</code></pre>
-
-<h2>使用</h2>
-
-<ul>
-<li>递归检查当前目录的所有Python文件：</li>
-</ul>
-
-
-<pre><code class="sh">flake8 .
-</code></pre>
-
-<ul>
-<li>检查指定文件</li>
-</ul>
-
-
-<pre><code class="sh">flake8 foo.py bar.py
-</code></pre>
-
-<ul>
-<li>通过setup.py检查工程的所有Python文件：</li>
-</ul>
-
-
-<pre><code class="sh">python setup.py flake8
-</code></pre>
-
-<p>为了保证其在其他环境中正确运行，需要将flake8增加到setup_requires中，例如：</p>
-
-<pre><code class="python">setup(
-    name="project",
-    packages=["project"],
-
-    setup_requires=[
-        "flake8"
-    ]
-)
-</code></pre>
-
-<ul>
-<li>由于默认禁用代码条件复杂度检查，需要通过&ndash;max-complexity激活该功能：</li>
-</ul>
-
-
-<pre><code class="sh">flake8 --max-complexity 12 .
-</code></pre>
-
-<p>该功能对于发现代码过度复杂非常有用，根据Thomas J. McCabe, Sr（<a href="https://en.wikipedia.org/wiki/Cyclomatic_complexity">Cyclomatic complexity</a>的创造者）研究，代码复杂度不宜超过10，而Flake8官网建议值为12。</p>
-
-<h2>配置</h2>
-
-<ul>
-<li>用户相关的配置存在~/.config/flake8中，如：</li>
-</ul>
-
-
-<pre><code class="ini">[flake8]
-max-complexity=12
-</code></pre>
-
-<p>个人感觉除了代码复杂度因子（max-complexity）外，其他参数的默认值已经很好，基本不需要再作配置。</p>
-
-<ul>
-<li>工程相关的设置，可以存放在工程顶级目录的tox.ini或setup.cfg，格式与用户相关的配置一致。</li>
-</ul>
-
-
-<h2>与Git整合</h2>
-
-<p>在.git/hooks目录中，创建Git的pre-commit钩子脚本，Flake8可以对每次提交的代码进行检查。该脚本如下：</p>
-
-<pre><code class="python">#!/usr/bin/python
-
-import sys
-from flake8.run import git_hook
-
-COMPLEXITY = 12
-STRICT = True
-
-if __name__ == '__main__':
-    sys.exit(git_hook(complexity=COMPLEXITY, strict=STRICT))
-</code></pre>
-
-<p>若strict为True，任何warning都将阻挡提交。否则（或缺省），warning仅会被打印到标准输出。</p>
-
-<h2>与vim整合</h2>
-
-<p>这里仅介绍vim插件vim-flake8的安装和配置</p>
-
-<ul>
-<li>安装vim插件pathogen：</li>
-</ul>
-
-
-<pre><code class="sh">mkdir -p ~/.vim/autoload ~/.vim/bundle
-curl -Sso ~/.vim/autoload/pathogen.vim \
-    https://raw.github.com/tpope/vim-pathogen/master/autoload/pathogen.vim
-</code></pre>
-
-<ul>
-<li>添加下列配置至~/.vimrc中：</li>
-</ul>
-
-
-<pre><code class="vim">execute pathogen#infect()
-syntax on
-filetype plugin indent on
-</code></pre>
-
-<ul>
-<li>安装vim-flake8：</li>
-</ul>
-
-
-<pre><code class="sh">cd ~/.vim/bundle
-git clone git://github.com/nvie/vim-flake8.git
-</code></pre>
-
-<p>至此，当vim打开Python源码后，按F7就会执行Flake8对当前文件进行检查。</p>
-
-<h2>插件</h2>
-
-<p>Flake8相比pep8的优势在于其良好的扩展性，pep8 1.4.6尚未支持命名规范的检查，却已有人开发Flake8的插件<a href="https://github.com/flintwork/pep8-naming">pep8-naming</a>来弥补这个缺陷。</p>
-
-<p>pep8-naming处于早期开发阶段，尚无人为其制作deb包。我花时间做了deb包，并上传到我的ppa:likemartinma/python上。通过下述步骤可以轻松安装它：</p>
-
-<pre><code class="sh">sudo add-apt-repository ppa:likemartinma/python
-sudo apt-get update
-sudo apt-get -y --force-yes dist-upgrade
-sudo apt-get install pep8-naming
-</code></pre>
-
-<p>由于Python部分核心库的函数命令存在“历史遗留”问题，与PEP 8并不保持完全一致，如<a href="http://docs.python.org/2/library/pyexpat.html#xml.parsers.expat.xmlparser.StartElementHandler">xml.parsers.expat.xmlparser.StartElementHandler</a>，这给pep8-naming带来一定的误报困扰。</p>
-
-<p>解决的办法是这样的代码行追加 # noqa 的注释，从避免flake8发出类似warning。</p>
-
-<h2>存在的问题</h2>
-
-<p>由于pep8尚未支持docstring规范的检查，也没有相关Flake8的插件。目前仅能用<a href="https://github.com/GreenSteam/pep257">pep257</a>来完成docstring规范的检查。期待pep257早日衍生成Flake8的插件。</p>
 ]]></content>
   </entry>
   

@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-06-12T19:34:24+00:00</updated>
+  <updated>2016-07-03T15:34:57+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -140,6 +140,319 @@
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>. <span class="nv">$NVM_DIR</span>/nvm.sh
 </span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[基于Python 3.5异步的Actor模型]]></title>
+    <link href="http://www.malike.net.cn/blog/2016/06/02/python-3-dot-5-async-actor/"/>
+    <updated>2016-06-02T00:00:00+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2016/06/02/python-3-dot-5-async-actor</id>
+    <content type="html"><![CDATA[<h2>Python 3.5异步模型</h2>
+
+<p>Python 3.5推出了async/await语法，在语法层面简化了异步编程。官方库asyncio是应用async/await的途径。</p>
+
+<p>Ubuntu 16.04默认安装Python 3.5，或者通过<a href="http://www.malike.net.cn/blog/2016/05/21/pyenv-tutorial/">pyenv</a>安装它。</p>
+
+<h2>异步Actor的实现</h2>
+
+<p>基于asyncio，可以实现async actor.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">asyncio</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Actor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">raise</span> <span class="bp">NotImplemented</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="bp">True</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">running</span><span class="p">:</span>
+</span><span class='line'>            <span class="n">message</span> <span class="o">=</span> <span class="n">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+</span><span class='line'>            <span class="n">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">receive</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上述代码的关键是通过asyncio.Queue异步接收消息，并异步处理接收到的消息。</p>
+
+<p>通过这个类，实现Ping-Pong示例：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">asyncio</span>
+</span><span class='line'>
+</span><span class='line'><span class="kn">from</span> <span class="nn">actor</span> <span class="kn">import</span> <span class="n">Actor</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Pinger</span><span class="p">(</span><span class="n">Actor</span><span class="p">):</span>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">pong</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">put_nowait</span><span class="p">(</span><span class="s">&#39;ping&#39;</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Ponger</span><span class="p">(</span><span class="n">Actor</span><span class="p">):</span>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">ping</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">put_nowait</span><span class="p">(</span><span class="s">&#39;pong&#39;</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="n">ping</span> <span class="o">=</span> <span class="n">Pinger</span><span class="p">()</span>
+</span><span class='line'><span class="n">pong</span> <span class="o">=</span> <span class="n">Ponger</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">ping</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">put_nowait</span><span class="p">(</span><span class="s">&#39;start&#39;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
+</span><span class='line'><span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">wait</span><span class="p">((</span><span class="n">ping</span><span class="o">.</span><span class="n">run</span><span class="p">(),</span> <span class="n">pong</span><span class="o">.</span><span class="n">run</span><span class="p">())))</span>
+</span><span class='line'><span class="n">loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>该示例代码中，actor之间同步发送消息（asyncio.Queue.put_nowait），由于运行在单线程上，并不存在竞争。</p>
+
+<h2>接收消息超时(timeout)</h2>
+
+<p>某些应用场景需要周期性激活Actor，当Actor没有收到任何消息时。</p>
+
+<p>基于上述代码，利用asyncio.wait_for的超时功能来实现接收消息超时。如此，进一步加强Actor的并发能力。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">asyncio</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Actor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">receive_timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">receive_timeout</span> <span class="o">=</span> <span class="n">receive_timeout</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">raise</span> <span class="bp">NotImplemented</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">handle_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">pass</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="bp">True</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">running</span><span class="p">:</span>
+</span><span class='line'>            <span class="k">try</span><span class="p">:</span>
+</span><span class='line'>                <span class="n">message</span> <span class="o">=</span> <span class="n">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">wait_for</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
+</span><span class='line'>                                                 <span class="bp">self</span><span class="o">.</span><span class="n">receive_timeout</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">:</span>
+</span><span class='line'>                <span class="n">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_timeout</span><span class="p">()</span>
+</span><span class='line'>            <span class="k">else</span><span class="p">:</span>
+</span><span class='line'>                <span class="n">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">receive</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>基于message的扩展</h2>
+
+<p>由于<a href="http://blog.csdn.net/gzlaiyonghao/article/details/7215315">message</a>仅支持Python 2，而且Google Code已经停止服务。</p>
+
+<p>基于原代码基础上，我在GitHub创建<a href="https://github.com/likema/python-message">python-message</a>，并扩展支持Python 3.</p>
+
+<p>新版本message，也可以通过pip安装：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>pip install https://github.com/likema/python-message/archive/master.zip
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在此基础上，将异步Actor扩展为发布-订阅者模式。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">from</span> <span class="nn">message</span> <span class="kn">import</span> <span class="n">observable</span>
+</span><span class='line'>
+</span><span class='line'><span class="kn">from</span> <span class="nn">actor</span> <span class="kn">import</span> <span class="n">Actor</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="nd">@observable</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">Publisher</span><span class="p">(</span><span class="n">Actor</span><span class="p">):</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subject</span><span class="p">,</span> <span class="n">receive_timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">subject</span> <span class="o">=</span> <span class="n">subject</span>
+</span><span class='line'>        <span class="n">Actor</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">receive_timeout</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">subcribe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observer</span><span class="p">):</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subject</span><span class="p">,</span> <span class="n">observer</span><span class="o">.</span><span class="n">send</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">publish</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">pub</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subject</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>基于Publisher实现Ping-Pong，从而解耦发送者与接收者，且支持发送者发送1条消息时，多个接收者接收同1条消息。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">asyncio</span>
+</span><span class='line'>
+</span><span class='line'><span class="kn">from</span> <span class="nn">actor</span> <span class="kn">import</span> <span class="n">Actor</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">publisher</span> <span class="kn">import</span> <span class="n">Publisher</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Pinger</span><span class="p">(</span><span class="n">Publisher</span><span class="p">):</span>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s">&#39;ping&#39;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">handle_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Pinger timeout&#39;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Ponger</span><span class="p">(</span><span class="n">Publisher</span><span class="p">):</span>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s">&#39;pong&#39;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">handle_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Ponger timeout&#39;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="n">ping</span> <span class="o">=</span> <span class="n">Pinger</span><span class="p">(</span><span class="s">&#39;evt.ping&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</span><span class='line'><span class="n">pong</span> <span class="o">=</span> <span class="n">Ponger</span><span class="p">(</span><span class="s">&#39;evt.pong&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">ping</span><span class="o">.</span><span class="n">subcribe</span><span class="p">(</span><span class="n">pong</span><span class="p">)</span>
+</span><span class='line'><span class="n">pong</span><span class="o">.</span><span class="n">subcribe</span><span class="p">(</span><span class="n">ping</span><span class="p">)</span>
+</span><span class='line'><span class="n">ping</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s">&#39;start&#39;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
+</span><span class='line'><span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">wait</span><span class="p">((</span><span class="n">ping</span><span class="o">.</span><span class="n">run</span><span class="p">(),</span> <span class="n">pong</span><span class="o">.</span><span class="n">run</span><span class="p">())))</span>
+</span><span class='line'><span class="n">loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>存在的问题</h2>
+
+<p>相比<a href="http://www.malike.net.cn/blog/2016/04/20/python-gevent-actor/">Gevent实现的Actor</a>，异步Actor并不透明支持所有的I/O函数，它依赖于asyncio及基于asyncio实现的库，如<a href="http://aiohttp.readthedocs.io/en/stable/">aiohttp</a>。</p>
+
+<h2>参考</h2>
+
+<ul>
+<li><a href="http://stackabuse.com/python-async-await-tutorial/">Python async/await Tutorial</a></li>
+<li><a href="https://github.com/mehmetkose/python3.5-async-crawler">python3.5-async-crawler</a></li>
+</ul>
 
 ]]></content>
   </entry>

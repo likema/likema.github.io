@@ -243,6 +243,342 @@ git checkout `git describe -- &hellip;">
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2016/06/02/python-3-dot-5-async-actor/">基于Python 3.5异步的Actor模型</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-06-02T00:00:00+00:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/blog/2016/06/02/python-3-dot-5-async-actor/#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn/blog/2016/06/02/python-3-dot-5-async-actor/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Python 3.5异步模型</h2>
+
+<p>Python 3.5推出了async/await语法，在语法层面简化了异步编程。官方库asyncio是应用async/await的途径。</p>
+
+<p>Ubuntu 16.04默认安装Python 3.5，或者通过<a href="/blog/2016/05/21/pyenv-tutorial/">pyenv</a>安装它。</p>
+
+<h2>异步Actor的实现</h2>
+
+<p>基于asyncio，可以实现async actor.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">asyncio</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Actor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">raise</span> <span class="bp">NotImplemented</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="bp">True</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">running</span><span class="p">:</span>
+</span><span class='line'>            <span class="n">message</span> <span class="o">=</span> <span class="n">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+</span><span class='line'>            <span class="n">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">receive</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上述代码的关键是通过asyncio.Queue异步接收消息，并异步处理接收到的消息。</p>
+
+<p>通过这个类，实现Ping-Pong示例：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">asyncio</span>
+</span><span class='line'>
+</span><span class='line'><span class="kn">from</span> <span class="nn">actor</span> <span class="kn">import</span> <span class="n">Actor</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Pinger</span><span class="p">(</span><span class="n">Actor</span><span class="p">):</span>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">pong</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">put_nowait</span><span class="p">(</span><span class="s">&#39;ping&#39;</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Ponger</span><span class="p">(</span><span class="n">Actor</span><span class="p">):</span>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">ping</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">put_nowait</span><span class="p">(</span><span class="s">&#39;pong&#39;</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="n">ping</span> <span class="o">=</span> <span class="n">Pinger</span><span class="p">()</span>
+</span><span class='line'><span class="n">pong</span> <span class="o">=</span> <span class="n">Ponger</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">ping</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">put_nowait</span><span class="p">(</span><span class="s">&#39;start&#39;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
+</span><span class='line'><span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">wait</span><span class="p">((</span><span class="n">ping</span><span class="o">.</span><span class="n">run</span><span class="p">(),</span> <span class="n">pong</span><span class="o">.</span><span class="n">run</span><span class="p">())))</span>
+</span><span class='line'><span class="n">loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>该示例代码中，actor之间同步发送消息（asyncio.Queue.put_nowait），由于运行在单线程上，并不存在竞争。</p>
+
+<h2>接收消息超时(timeout)</h2>
+
+<p>某些应用场景需要周期性激活Actor，当Actor没有收到任何消息时。</p>
+
+<p>基于上述代码，利用asyncio.wait_for的超时功能来实现接收消息超时。如此，进一步加强Actor的并发能力。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">asyncio</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Actor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">receive_timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">receive_timeout</span> <span class="o">=</span> <span class="n">receive_timeout</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">raise</span> <span class="bp">NotImplemented</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">handle_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">pass</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="bp">True</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">running</span><span class="p">:</span>
+</span><span class='line'>            <span class="k">try</span><span class="p">:</span>
+</span><span class='line'>                <span class="n">message</span> <span class="o">=</span> <span class="n">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">wait_for</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
+</span><span class='line'>                                                 <span class="bp">self</span><span class="o">.</span><span class="n">receive_timeout</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">:</span>
+</span><span class='line'>                <span class="n">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_timeout</span><span class="p">()</span>
+</span><span class='line'>            <span class="k">else</span><span class="p">:</span>
+</span><span class='line'>                <span class="n">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">receive</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>基于message的扩展</h2>
+
+<p>由于<a href="http://blog.csdn.net/gzlaiyonghao/article/details/7215315">message</a>仅支持Python 2，而且Google Code已经停止服务。</p>
+
+<p>基于原代码基础上，我在GitHub创建<a href="https://github.com/likema/python-message">python-message</a>，并扩展支持Python 3.</p>
+
+<p>新版本message，也可以通过pip安装：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>pip install https://github.com/likema/python-message/archive/master.zip
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在此基础上，将异步Actor扩展为发布-订阅者模式。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">from</span> <span class="nn">message</span> <span class="kn">import</span> <span class="n">observable</span>
+</span><span class='line'>
+</span><span class='line'><span class="kn">from</span> <span class="nn">actor</span> <span class="kn">import</span> <span class="n">Actor</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="nd">@observable</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">Publisher</span><span class="p">(</span><span class="n">Actor</span><span class="p">):</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subject</span><span class="p">,</span> <span class="n">receive_timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">subject</span> <span class="o">=</span> <span class="n">subject</span>
+</span><span class='line'>        <span class="n">Actor</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">receive_timeout</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">subcribe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observer</span><span class="p">):</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subject</span><span class="p">,</span> <span class="n">observer</span><span class="o">.</span><span class="n">send</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">publish</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">pub</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subject</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>基于Publisher实现Ping-Pong，从而解耦发送者与接收者，且支持发送者发送1条消息时，多个接收者接收同1条消息。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">asyncio</span>
+</span><span class='line'>
+</span><span class='line'><span class="kn">from</span> <span class="nn">actor</span> <span class="kn">import</span> <span class="n">Actor</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">publisher</span> <span class="kn">import</span> <span class="n">Publisher</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Pinger</span><span class="p">(</span><span class="n">Publisher</span><span class="p">):</span>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s">&#39;ping&#39;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">handle_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Pinger timeout&#39;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Ponger</span><span class="p">(</span><span class="n">Publisher</span><span class="p">):</span>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s">&#39;pong&#39;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">handle_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Ponger timeout&#39;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="n">ping</span> <span class="o">=</span> <span class="n">Pinger</span><span class="p">(</span><span class="s">&#39;evt.ping&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</span><span class='line'><span class="n">pong</span> <span class="o">=</span> <span class="n">Ponger</span><span class="p">(</span><span class="s">&#39;evt.pong&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">ping</span><span class="o">.</span><span class="n">subcribe</span><span class="p">(</span><span class="n">pong</span><span class="p">)</span>
+</span><span class='line'><span class="n">pong</span><span class="o">.</span><span class="n">subcribe</span><span class="p">(</span><span class="n">ping</span><span class="p">)</span>
+</span><span class='line'><span class="n">ping</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s">&#39;start&#39;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
+</span><span class='line'><span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">wait</span><span class="p">((</span><span class="n">ping</span><span class="o">.</span><span class="n">run</span><span class="p">(),</span> <span class="n">pong</span><span class="o">.</span><span class="n">run</span><span class="p">())))</span>
+</span><span class='line'><span class="n">loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>存在的问题</h2>
+
+<p>相比<a href="/blog/2016/04/20/python-gevent-actor/">Gevent实现的Actor</a>，异步Actor并不透明支持所有的I/O函数，它依赖于asyncio及基于asyncio实现的库，如<a href="http://aiohttp.readthedocs.io/en/stable/">aiohttp</a>。</p>
+
+<h2>参考</h2>
+
+<ul>
+<li><a href="http://stackabuse.com/python-async-await-tutorial/">Python async/await Tutorial</a></li>
+<li><a href="https://github.com/mehmetkose/python3.5-async-crawler">python3.5-async-crawler</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2016/05/21/pyenv-tutorial/">pyenv简介——Debian/Ubuntu中管理多版本Python</a></h1>
     
     
@@ -1635,205 +1971,6 @@ git checkout `git describe -- &hellip;">
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/11/10/lxc-tutorial/">LXC简介</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2013-11-10T00:00:00+00:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/blog/2013/11/10/lxc-tutorial/#disqus_thread"
-             data-disqus-identifier="http://www.malike.net.cn/blog/2013/11/10/lxc-tutorial/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><a href="http://linuxcontainers.org/">LXC</a> (Linux Containters) 是一种基于内核容器属性的用户空间接口。 它被认为介于chroot和完全虚拟化之间，其目标为创建一个不需要独立内核，但近可能接近标准Linux安装的环境。</p>
-
-<p>其特性如下：</p>
-
-<ul>
-<li>内核空间（ipc, uts, mount, pid, network和user)</li>
-<li>支持Apparmor和SELinux</li>
-<li><a href="http://en.wikipedia.org/wiki/Seccomp">seccomp</a>策略</li>
-<li>chroots (使用pivot_root)</li>
-<li><a href="https://www.kernel.org/pub/linux/libs/security/linux-privs/kernel-2.2/capfaq-0.2.txt">Kernel capabilities</a></li>
-<li>支持<a href="http://en.wikipedia.org/wiki/Cgroups">cgroups</a> (Control groups)</li>
-</ul>
-
-
-<p>由于没有完全虚拟化CPU，也没有虚拟化硬盘，其性能是与物理机接近的。实际经验，我发现在LXC中编译C/C++源码（如构建基于C/C++源码的RPM或DEB）的性能是VirtualBox的3倍。强烈建议使用LXC代替KVM和VirtualBox作为RPM或DEB的构建环境。</p>
-
-<p>以下操作基于Ubuntu 12.04，那么需要安装LXC包：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo apt-get install -y lxc
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>创建LXC</h2>
-
-<p>以创建一个名为precise的Ubuntu 12.04容器为例。</p>
-
-<p>需要创建一个基础的配置文件。由于创建LXC完成后，不再需要该配置文件（可以删除），故该文件的名字和路径没有特殊要求。这里命名为precise.conf，放在当前路径下：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>lxc.network.type <span class="o">=</span> veth
-</span><span class='line'>lxc.network.flags <span class="o">=</span> up
-</span><span class='line'>lxc.network.name <span class="o">=</span> eth0
-</span><span class='line'>lxc.network.link <span class="o">=</span> lxcbr0
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>lxcbr0为由LXC包创建的虚拟网桥，通过ifconfig可以知道其IP地址10.0.3.1，网段10.0.3.1/24，容器将通过lxcbr0与外界通信。</p>
-
-<p>如此，可以开始创建容器了：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo lxc-create -n precise -f precise.conf -t ubuntu -- -r precise
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>-n指定容器名，这里为precise。</li>
-<li>-f指定基础配置文件，即上一步骤创建的precise.conf。</li>
-<li>-t指定模板名，这里必须为ubuntu（创建Ubuntu 12.04)。每个模板名，对应一个脚本，它们存放在/usr/lib/lxc/templates目录（文件名形如lxc-&lt;模板名>）中。</li>
-<li>&ndash;以后的参数被传递给模板脚本；</li>
-<li>-r为ubuntu模板脚本的参数，表示<a href="http://en.wikipedia.org/w/index.php?title=Ubuntu_(operating_system)#Releases">Ubuntu发行版代号</a>，这里必须为precise（它是12.04的发行代号）。</li>
-</ul>
-
-
-<p>创建过程可能会比较漫长。通过阅读/usr/lib/lxc/templates/lxc-ubuntu，不难发现创建ubuntu容器主要依靠deboostrap来完成。另一方面，变量MIRROR和SECURITY_MIRROR决定了镜像的设置，它们默认为：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">MIRROR</span><span class="o">=</span>http://archive.ubuntu.com/ubuntu
-</span><span class='line'><span class="nv">SECURITY_MIRROR</span><span class="o">=</span>http://security.ubuntu.com/ubuntu
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在大陆地区，使用默认镜像的网速较慢。为了加快创建过程，可以将它们都换成大陆或香港的镜像，如<a href="http://ftp.cuhk.edu.hk/pub/Linux/ubuntu">http://ftp.cuhk.edu.hk/pub/Linux/ubuntu</a></p>
-
-<p>具体问题是lxc-ubuntu并没有提供命令行参数来设置MIRROR和SECURITY_MIRROR。在不修改lxc-ubuntu代码的情况下，唯一的办法就是通过设置相关环境变量来达到这个目的，如：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo <span class="nv">MIRROR</span><span class="o">=</span><span class="s2">&quot;http://ftp.cuhk.edu.hk/pub/Linux/ubuntu&quot;</span> <span class="se">\</span>
-</span><span class='line'>     <span class="nv">SECURITY_MIRROR</span><span class="o">=</span><span class="s2">&quot;http://ftp.cuhk.edu.hk/pub/Linux/ubuntu&quot;</span> <span class="se">\</span>
-</span><span class='line'>     lxc-create -n precise -f precise.conf -t ubuntu -- -r precise
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>我司为了加快内部开发和测试人员安装Ubuntu，部署了<a href="https://www.unix-ag.uni-kl.de/~bloch/acng/">apt-cacher-ng</a>——一种deb包HTTP缓存代理。由于lxc-ubuntu基于deboostrap，可以通过设置环境变量http_proxy来设置deboostrap的缓存代理（请见<a href="http://unix.stackexchange.com/questions/38993/global-cache-config-of-debootstrap">Global cache config of debootstrap</a>）:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo <span class="nv">http_proxy</span><span class="o">=</span><span class="s2">&quot;http://192.168.88.10:3142/&quot;</span> <span class="se">\</span>
-</span><span class='line'>   <span class="nv">MIRROR</span><span class="o">=</span><span class="s2">&quot;http://ftp.cuhk.edu.hk/pub/Linux/ubuntu&quot;</span> <span class="se">\</span>
-</span><span class='line'>     <span class="nv">SECURITY_MIRROR</span><span class="o">=</span><span class="s2">&quot;http://ftp.cuhk.edu.hk/pub/Linux/ubuntu&quot;</span> <span class="se">\</span>
-</span><span class='line'>     lxc-create -n precise -f precise.conf -t ubuntu -- -r precise
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如此，在尽可能节约外部带宽的同时，最大限度的加快了创建过程。</p>
-
-<p>上述创建方法，容器的架构将与host os的相同（如amd64）。若需要在amd64的host os上创建i386或i686架构的容器，则需要通过模板脚本的-a参数指定i686，如：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo lxc-create -n precise -f precise.conf -t ubuntu -- -r precise -a i686
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>启动LXC</h2>
-
-<p>若需立即启动LXC，则：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo lxc-start -n precise
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>若需以daemon方式运行，则:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo lxc-start -n precise -d
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>若需随host os启动而自动启动，则:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo ln -s /var/lib/lxc/precise/config /etc/lxc/auto/precise.conf
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>打开LXC控制台</h2>
-
-<p>在没有给容器设置IP时，打开其控制台</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo lxc-console -n precise
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>将看到文本登录界面。 通过按热键ctrl-a和q，可以退出容器控制台。</p>
-
-<p>更多的时候，通过ssh登录将更方便，特别是key认证方式登录。</p>
-
-<h2>停止LXC</h2>
-
-<p>多数情况下，可以通过在guest os（容器）内执行poweroff或shutdown -h now来关闭容器。但有些时候却需要在host os上强行关闭容器，如：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo lxc-stop -n precise
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>删除LXC</h2>
-
-<p>容器创建后，配置和数据存放在/var/lib/lxc/precise目录中。执行</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo lxc-destroy -n precise
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>与手动删除该目录效果一样。</p>
-
-<h2>其他模板</h2>
-
-<ul>
-<li>ubuntu-cloud：从Ubuntu云上下载根文件系统镜像。</li>
-<li>fedora: 它依赖于yum包，通过模板脚本参数-R指定版本号，如19和20都无法创建成功。默认版本号为14，可以继续安装。</li>
-<li>opensuse：它依赖于zypper，Ubuntu 12.04默认没有zypper包。虽然<a href="https://launchpad.net/~thopiekar/+archive/zypper">ppa:thopiekar/zypper</a>提供了zypper，但是创建失败。</li>
-<li>busybox：仅有busybox的容器，默认不能远程登录，可以用于练习简单的命令行操作。</li>
-<li>sshd：将host os中各个系统目录（/bin, /sbin/和/lib等）以只读方式绑定到容器中，仅运行ssh服务器，支持ssh登录，可用于练习复杂的命令行操作。</li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -1853,6 +1990,10 @@ git checkout `git describe -- &hellip;">
       </li>
     
       <li class="post">
+        <a href="/blog/2016/06/02/python-3-dot-5-async-actor/">基于Python 3.5异步的Actor模型</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/05/21/pyenv-tutorial/">pyenv简介——Debian/Ubuntu中管理多版本Python</a>
       </li>
     
@@ -1862,10 +2003,6 @@ git checkout `git describe -- &hellip;">
     
       <li class="post">
         <a href="/blog/2015/03/15/ssh-proxy-cluster/">SSH翻墙集群</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/12/23/autossh-tutorial/">AutoSSH简介</a>
       </li>
     
   </ul>
@@ -1914,7 +2051,7 @@ git checkout `git describe -- &hellip;">
 
 <section>
   <h1>Categories</h1>
-    <ul id="category-list"><li><a href='/blog/categories/actor'>actor (1)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-'>c++ (1)</a></li><li><a href='/blog/categories/debian'>debian (6)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (11)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (3)</a></li><li><a href='/blog/categories/python'>python (6)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (7)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
+    <ul id="category-list"><li><a href='/blog/categories/actor'>actor (2)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-'>c++ (1)</a></li><li><a href='/blog/categories/debian'>debian (6)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (11)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (3)</a></li><li><a href='/blog/categories/python'>python (7)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (7)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
 </section>
 
   
