@@ -4,7 +4,7 @@
   <title><![CDATA[Category: actor | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/actor/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-07-03T15:34:57+00:00</updated>
+  <updated>2016-07-03T17:38:21+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[基于Python 3.5异步的Actor模型]]></title>
-    <link href="http://www.malike.net.cn/blog/2016/06/02/python-3-dot-5-async-actor/"/>
-    <updated>2016-06-02T00:00:00+00:00</updated>
-    <id>http://www.malike.net.cn/blog/2016/06/02/python-3-dot-5-async-actor</id>
+    <link href="http://www.malike.net.cn/blog/2016/07/03/python-3-dot-5-async-actor/"/>
+    <updated>2016-07-03T00:00:00+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2016/07/03/python-3-dot-5-async-actor</id>
     <content type="html"><![CDATA[<h2>Python 3.5异步模型</h2>
 
 <p>Python 3.5推出了async/await语法，在语法层面简化了异步编程。官方库asyncio是应用async/await的途径。</p>
@@ -187,7 +187,7 @@ loop.close()
 
 <h2>存在的问题</h2>
 
-<p>相比<a href="/blog/2016/04/20/python-gevent-actor/">Gevent实现的Actor</a>，异步Actor并不透明支持所有的I/O函数，它依赖于asyncio及基于asyncio实现的库，如<a href="http://aiohttp.readthedocs.io/en/stable/">aiohttp</a>。</p>
+<p>相比<a href="/blog/2016/04/20/python-gevent-actor/">Gevent实现的Actor</a>，异步Actor并不透明支持所有的I/O函数，它仅支持基于asyncio实现的库，如<a href="http://aiohttp.readthedocs.io/en/stable/">aiohttp</a>。</p>
 
 <h2>参考</h2>
 

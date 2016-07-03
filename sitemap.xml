@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
-<loc>http://www.malike.net.cn/blog/2016/06/09/nvm-tutorial/</loc>
-<lastmod>2016-06-09T00:00:00+00:00</lastmod>
+<loc>http://www.malike.net.cn/blog/2016/07/03/python-3-dot-5-async-actor/</loc>
+<lastmod>2016-07-03T00:00:00+00:00</lastmod>
 </url>
 <url>
-<loc>http://www.malike.net.cn/blog/2016/06/02/python-3-dot-5-async-actor/</loc>
-<lastmod>2016-06-02T00:00:00+00:00</lastmod>
+<loc>http://www.malike.net.cn/blog/2016/06/09/nvm-tutorial/</loc>
+<lastmod>2016-06-09T00:00:00+00:00</lastmod>
 </url>
 <url>
 <loc>http://www.malike.net.cn/blog/2016/05/21/pyenv-tutorial/</loc>
