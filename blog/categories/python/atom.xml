@@ -4,7 +4,7 @@
   <title><![CDATA[Category: python | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/python/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-07-03T17:38:21+00:00</updated>
+  <updated>2016-07-09T16:54:26+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -377,7 +377,7 @@ class Actor(Greenlet):
 @observable
 class Publisher(Actor):
     def __init__(self, subject):
-        self.subject(subject)
+        self.subject = subject
         Actor.__init__(self)
 
     def subcribe(self, observer):
@@ -426,7 +426,7 @@ gevent.joinall([ping, pong])
 
 <p>基于上述代码，利用gevent.queue.get的超时功能来实现接收消息超时。如此，进一步加强Actor的并发能力。</p>
 
-<pre><code class="python">from gevent.queue import Queue
+<pre><code class="python">from gevent.queue import Queue, Empty
 from gevent import Greenlet
 from message import observable
 
