@@ -4,7 +4,7 @@
   <title><![CDATA[Category: actor | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/actor/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-07-09T16:54:26+00:00</updated>
+  <updated>2016-07-10T14:38:49+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -35,6 +35,9 @@ class Actor(object):
     def __init__(self):
         self.inbox = asyncio.Queue()
 
+    def send(self, message):
+        self.inbox.put_nowait(message)
+
     async def receive(self, message):
         raise NotImplemented()
 
@@ -58,21 +61,21 @@ from actor import Actor
 class Pinger(Actor):
     async def receive(self, message):
         print(message)
-        pong.inbox.put_nowait('ping')
+        pong.send('ping')
         await asyncio.sleep(3)
 
 
 class Ponger(Actor):
     async def receive(self, message):
         print(message)
-        ping.inbox.put_nowait('pong')
+        ping.send('pong')
         await asyncio.sleep(3)
 
 
 ping = Pinger()
 pong = Ponger()
 
-ping.inbox.put_nowait('start')
+ping.send('start')
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(asyncio.wait((ping.run(), pong.run())))
@@ -94,6 +97,9 @@ class Actor(object):
     def __init__(self, receive_timeout=None):
         self.inbox = asyncio.Queue()
         self.receive_timeout = receive_timeout
+
+    def send(self, message):
+        self.inbox.put_nowait(message)
 
     async def receive(self, message):
         raise NotImplemented()
