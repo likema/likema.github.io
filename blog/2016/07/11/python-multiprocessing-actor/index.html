@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>基于Python 3.5异步的Actor模型 - Like的世界</title>
+  <title>基于Python multiprocessing的Actor模型 - Like的世界</title>
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="Python 3.5异步模型 Python 3.5推出了async/await语法，在语法层面简化了异步编程。官方库asyncio是应用async/await的途径。 Ubuntu 16.04默认安装Python 3.5，或者通过pyenv安装它。 异步Actor的实现 基于asyncio， &hellip;">
+  <meta name="description" content="虽然基于Gevent的Actor和基于Python 3.5异步的Actor都支持并发（concurrent）计算（仅运行于单进程中），但是不支持并行（parallel）计算，即无法利用多核。 Python内置的multiprocessing模块不仅支持并行计算，而且与Gevent接口相似。所以， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://www.malike.net.cn/blog/2016/07/03/python-3-dot-5-async-actor/">
+  <link rel="canonical" href="http://www.malike.net.cn/blog/2016/07/11/python-multiprocessing-actor/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Like的世界" type="application/atom+xml">
@@ -81,7 +81,7 @@
   
   <header>
     
-      <h1 class="entry-title">基于Python 3.5异步的Actor模型</h1>
+      <h1 class="entry-title">基于Python multiprocessing的Actor模型</h1>
     
     
       <p class="meta">
@@ -90,7 +90,7 @@
 
 
 
-<time class='entry-date' datetime='2016-07-03T00:00:00+00:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>3</span><span class='date-suffix'>rd</span>, <span class='date-year'>2016</span></span> <span class='time'>12:00 am</span></time>
+<time class='entry-date' datetime='2016-07-11T00:00:00+00:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>11</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>12:00 am</span></time>
         
            | <a href="#disqus_thread"
              data-disqus-identifier="http://www.malike.net.cn">Comments</a>
@@ -100,125 +100,11 @@
   </header>
 
 
-<div class="entry-content"><h2>Python 3.5异步模型</h2>
+<div class="entry-content"><p>虽然<a href="/blog/2016/04/20/python-gevent-actor/">基于Gevent的Actor</a>和<a href="/blog/2016/07/03/python-3-dot-5-async-actor/">基于Python 3.5异步的Actor</a>都支持并发（concurrent）计算（仅运行于单进程中），但是不支持并行（parallel）计算，即无法利用多核。</p>
 
-<p>Python 3.5推出了async/await语法，在语法层面简化了异步编程。官方库asyncio是应用async/await的途径。</p>
+<p>Python内置的multiprocessing模块不仅支持并行计算，而且与Gevent接口相似。所以，模仿Gevent的Actor实现multiprocessing的Actor并不困难。</p>
 
-<p>Ubuntu 16.04默认安装Python 3.5，或者通过<a href="/blog/2016/05/21/pyenv-tutorial/">pyenv</a>安装它。</p>
-
-<h2>异步Actor的实现</h2>
-
-<p>基于asyncio，可以实现async actor.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">asyncio</span>
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'><span class="k">class</span> <span class="nc">Actor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span class='line'>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">put_nowait</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-</span><span class='line'>        <span class="k">raise</span> <span class="bp">NotImplemented</span><span class="p">()</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="bp">True</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">running</span><span class="p">:</span>
-</span><span class='line'>            <span class="n">message</span> <span class="o">=</span> <span class="n">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-</span><span class='line'>            <span class="n">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">receive</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>上述代码的关键是通过asyncio.Queue异步接收消息，并异步处理接收到的消息。</p>
-
-<p>通过这个类，实现Ping-Pong示例：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">asyncio</span>
-</span><span class='line'>
-</span><span class='line'><span class="kn">from</span> <span class="nn">actor</span> <span class="kn">import</span> <span class="n">Actor</span>
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'><span class="k">class</span> <span class="nc">Pinger</span><span class="p">(</span><span class="n">Actor</span><span class="p">):</span>
-</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span class='line'>        <span class="n">pong</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s">&#39;ping&#39;</span><span class="p">)</span>
-</span><span class='line'>        <span class="n">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'><span class="k">class</span> <span class="nc">Ponger</span><span class="p">(</span><span class="n">Actor</span><span class="p">):</span>
-</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span class='line'>        <span class="n">ping</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s">&#39;pong&#39;</span><span class="p">)</span>
-</span><span class='line'>        <span class="n">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'><span class="n">ping</span> <span class="o">=</span> <span class="n">Pinger</span><span class="p">()</span>
-</span><span class='line'><span class="n">pong</span> <span class="o">=</span> <span class="n">Ponger</span><span class="p">()</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">ping</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s">&#39;start&#39;</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
-</span><span class='line'><span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">wait</span><span class="p">((</span><span class="n">ping</span><span class="o">.</span><span class="n">run</span><span class="p">(),</span> <span class="n">pong</span><span class="o">.</span><span class="n">run</span><span class="p">())))</span>
-</span><span class='line'><span class="n">loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>该示例代码中，actor之间同步发送消息（asyncio.Queue.put_nowait），由于运行在单线程上，并不存在竞争。</p>
-
-<h2>接收消息超时(timeout)</h2>
-
-<p>某些应用场景需要周期性激活Actor，当Actor没有收到任何消息时。</p>
-
-<p>基于上述代码，利用asyncio.wait_for的超时功能来实现接收消息超时。如此，进一步加强Actor的并发能力。</p>
+<h2>multiprocessing的Actor实现</h2>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -248,51 +134,48 @@
 <span class='line-number'>26</span>
 <span class='line-number'>27</span>
 <span class='line-number'>28</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">asyncio</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Process</span><span class="p">,</span> <span class="n">Queue</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">try</span><span class="p">:</span>
+</span><span class='line'>    <span class="kn">from</span> <span class="nn">Queue</span> <span class="kn">import</span> <span class="n">Empty</span>
+</span><span class='line'><span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+</span><span class='line'>    <span class="kn">from</span> <span class="nn">queue</span> <span class="kn">import</span> <span class="n">Empty</span>
 </span><span class='line'>
 </span><span class='line'>
-</span><span class='line'><span class="k">class</span> <span class="nc">Actor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">Actor</span><span class="p">(</span><span class="n">Process</span><span class="p">):</span>
 </span><span class='line'>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">receive_timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+</span><span class='line'>        <span class="n">Process</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
 </span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">receive_timeout</span> <span class="o">=</span> <span class="n">receive_timeout</span>
 </span><span class='line'>
 </span><span class='line'>    <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
 </span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">put_nowait</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </span><span class='line'>
-</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
 </span><span class='line'>        <span class="k">raise</span> <span class="bp">NotImplemented</span><span class="p">()</span>
 </span><span class='line'>
-</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">handle_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">handle_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span class='line'>        <span class="k">pass</span>
 </span><span class='line'>
-</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="bp">True</span>
-</span><span class='line'>
 </span><span class='line'>        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">running</span><span class="p">:</span>
 </span><span class='line'>            <span class="k">try</span><span class="p">:</span>
-</span><span class='line'>                <span class="n">message</span> <span class="o">=</span> <span class="n">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">wait_for</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-</span><span class='line'>                                                 <span class="bp">self</span><span class="o">.</span><span class="n">receive_timeout</span><span class="p">)</span>
-</span><span class='line'>            <span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">:</span>
-</span><span class='line'>                <span class="n">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_timeout</span><span class="p">()</span>
+</span><span class='line'>                <span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">receive_timeout</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">except</span> <span class="n">Empty</span><span class="p">:</span>
+</span><span class='line'>                <span class="bp">self</span><span class="o">.</span><span class="n">handle_timeout</span><span class="p">()</span>
 </span><span class='line'>            <span class="k">else</span><span class="p">:</span>
-</span><span class='line'>                <span class="n">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">receive</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span class='line'>                <span class="bp">self</span><span class="o">.</span><span class="n">receive</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
 <h2>基于message的扩展</h2>
 
-<p>由于<a href="http://blog.csdn.net/gzlaiyonghao/article/details/7215315">message</a>仅支持Python 2，而且Google Code已经停止服务。</p>
-
-<p>基于原代码基础上，我在GitHub创建<a href="https://github.com/likema/python-message">python-message</a>，并扩展支持Python 3.</p>
-
-<p>新版本message，也可以通过pip安装：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>pip install https://github.com/likema/python-message/archive/master.zip
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在此基础上，将异步Actor扩展为发布-订阅者模式。</p>
+<p>将并行Actor扩展为发布-订阅者模式，基本与Gevent的实现一样。</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -329,7 +212,9 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>基于Publisher实现Ping-Pong，从而解耦发送者与接收者，且支持发送者发送1条消息时，多个接收者接收同1条消息。</p>
+<p>基于Publisher实现Ping-Pong，与Gevent的实现差异也不大。</p>
+
+<p>不同的是它实际启动3个进程。除主进程外，每个actor分别运行于1个独立的进程，从而实现多核计算。主进程监督2个actor进程运行，如启动、停止以及异常处理等。</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -366,29 +251,31 @@
 <span class='line-number'>33</span>
 <span class='line-number'>34</span>
 <span class='line-number'>35</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">asyncio</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">time</span>
 </span><span class='line'>
 </span><span class='line'><span class="kn">from</span> <span class="nn">publisher</span> <span class="kn">import</span> <span class="n">Publisher</span>
 </span><span class='line'>
 </span><span class='line'>
 </span><span class='line'><span class="k">class</span> <span class="nc">Pinger</span><span class="p">(</span><span class="n">Publisher</span><span class="p">):</span>
-</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
 </span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span class='line'>        <span class="n">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 </span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s">&#39;ping&#39;</span><span class="p">)</span>
 </span><span class='line'>
-</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">handle_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Pinger timeout&#39;</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">handle_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="s">&#39;pinger timeout&#39;</span><span class="p">)</span>
 </span><span class='line'>
 </span><span class='line'>
 </span><span class='line'><span class="k">class</span> <span class="nc">Ponger</span><span class="p">(</span><span class="n">Publisher</span><span class="p">):</span>
-</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
 </span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span class='line'>        <span class="n">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s">&#39;pong&#39;</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s">&#39;ping&#39;</span><span class="p">)</span>
 </span><span class='line'>
-</span><span class='line'>    <span class="n">async</span> <span class="k">def</span> <span class="nf">handle_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Ponger timeout&#39;</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">handle_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="s">&#39;ponger timeout&#39;</span><span class="p">)</span>
 </span><span class='line'>
 </span><span class='line'>
 </span><span class='line'><span class="n">ping</span> <span class="o">=</span> <span class="n">Pinger</span><span class="p">(</span><span class="s">&#39;evt.ping&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
@@ -396,24 +283,14 @@
 </span><span class='line'>
 </span><span class='line'><span class="n">ping</span><span class="o">.</span><span class="n">subcribe</span><span class="p">(</span><span class="n">pong</span><span class="p">)</span>
 </span><span class='line'><span class="n">pong</span><span class="o">.</span><span class="n">subcribe</span><span class="p">(</span><span class="n">ping</span><span class="p">)</span>
+</span><span class='line'><span class="n">ping</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+</span><span class='line'><span class="n">pong</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+</span><span class='line'>
 </span><span class='line'><span class="n">ping</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s">&#39;start&#39;</span><span class="p">)</span>
 </span><span class='line'>
-</span><span class='line'><span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
-</span><span class='line'><span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">wait</span><span class="p">((</span><span class="n">ping</span><span class="o">.</span><span class="n">run</span><span class="p">(),</span> <span class="n">pong</span><span class="o">.</span><span class="n">run</span><span class="p">())))</span>
-</span><span class='line'><span class="n">loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span class='line'><span class="n">pong</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+</span><span class='line'><span class="n">ping</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
 </span></code></pre></td></tr></table></div></figure>
-
-
-<h2>存在的问题</h2>
-
-<p>相比<a href="/blog/2016/04/20/python-gevent-actor/">Gevent实现的Actor</a>，异步Actor并不透明支持所有的I/O函数，它仅支持基于asyncio实现的库，如<a href="http://aiohttp.readthedocs.io/en/stable/">aiohttp</a>。</p>
-
-<h2>参考</h2>
-
-<ul>
-<li><a href="http://stackabuse.com/python-async-await-tutorial/">Python async/await Tutorial</a></li>
-<li><a href="https://github.com/mehmetkose/python3.5-async-crawler">python3.5-async-crawler</a></li>
-</ul>
 
 </div>
 
@@ -430,7 +307,7 @@
 
 
 
-<time class='entry-date' datetime='2016-07-03T00:00:00+00:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>3</span><span class='date-suffix'>rd</span>, <span class='date-year'>2016</span></span> <span class='time'>12:00 am</span></time>
+<time class='entry-date' datetime='2016-07-11T00:00:00+00:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>11</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>12:00 am</span></time>
       
 
 <span class="categories">
@@ -444,7 +321,7 @@
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.malike.net.cn/blog/2016/07/03/python-3-dot-5-async-actor/" data-via="" data-counturl="http://www.malike.net.cn/blog/2016/07/03/python-3-dot-5-async-actor/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.malike.net.cn/blog/2016/07/11/python-multiprocessing-actor/" data-via="" data-counturl="http://www.malike.net.cn/blog/2016/07/11/python-multiprocessing-actor/" >Tweet</a>
   
   
   <div class="g-plusone" data-size="medium"></div>
@@ -457,10 +334,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2016/06/09/nvm-tutorial/" title="Previous Post: nvm简介——Debian/Ubuntu中管理多版本Node.js">&laquo; nvm简介——Debian/Ubuntu中管理多版本Node.js</a>
+        <a class="basic-alignment left" href="/blog/2016/07/03/python-3-dot-5-async-actor/" title="Previous Post: 基于Python 3.5异步的Actor模型">&laquo; 基于Python 3.5异步的Actor模型</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2016/07/11/python-multiprocessing-actor/" title="Next Post: 基于Python multiprocessing的Actor模型">基于Python multiprocessing的Actor模型 &raquo;</a>
       
     </p>
   </footer>
@@ -568,8 +443,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://www.malike.net.cn/blog/2016/07/03/python-3-dot-5-async-actor/';
-        var disqus_url = 'http://www.malike.net.cn/blog/2016/07/03/python-3-dot-5-async-actor/';
+        var disqus_identifier = 'http://www.malike.net.cn/blog/2016/07/11/python-multiprocessing-actor/';
+        var disqus_url = 'http://www.malike.net.cn/blog/2016/07/11/python-multiprocessing-actor/';
         var disqus_script = 'embed.js';
       
     (function () {
