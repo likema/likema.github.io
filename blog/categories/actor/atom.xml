@@ -4,7 +4,7 @@
   <title><![CDATA[Category: actor | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/actor/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-07-10T19:23:12+00:00</updated>
+  <updated>2016-07-30T08:47:45+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -82,7 +82,7 @@ class Publisher(Actor):
 
 <p>基于Publisher实现Ping-Pong，与Gevent的实现差异也不大。</p>
 
-<p>不同的是它实际启动3个进程。除主进程外，每个actor分别运行于1个独立的进程，从而实现多核计算。主进程监督2个actor进程运行，如启动、停止以及异常处理等。</p>
+<p>不同的是它实际启动3个进程。除主进程外，每个actor分别运行于独立进程，从而实现多核计算。主进程监督2个actor进程运行，如启动、停止以及异常处理等。</p>
 
 <pre><code class="python">import time
 
