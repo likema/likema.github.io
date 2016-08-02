@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-08-02T17:57:00+00:00</updated>
+  <updated>2016-08-02T18:27:47+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -2802,7 +2802,7 @@
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Git-buildpackage示例（二）]]></title>
+    <title type="html"><![CDATA[git-buildpackage示例（二）]]></title>
     <link href="http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2/"/>
     <updated>2012-10-23T00:00:00+00:00</updated>
     <id>http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2</id>
@@ -2937,7 +2937,7 @@
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Git-buildpackage示例（一）]]></title>
+    <title type="html"><![CDATA[git-buildpackage示例（一）]]></title>
     <link href="http://www.malike.net.cn/blog/2012/02/19/git-buildpackage-1/"/>
     <updated>2012-02-19T00:00:00+00:00</updated>
     <id>http://www.malike.net.cn/blog/2012/02/19/git-buildpackage-1</id>
