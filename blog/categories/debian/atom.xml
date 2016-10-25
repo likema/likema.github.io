@@ -4,7 +4,7 @@
   <title><![CDATA[Category: debian | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/debian/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-10-18T12:26:57+00:00</updated>
+  <updated>2016-10-25T06:59:03+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -197,7 +197,7 @@ pyenv rehash
 <p>pyenv-virtual是pyenv的插件，它支持管理多个virtualenv</p>
 
 <pre><code class="bash">git clone https://github.com/yyuu/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv
-echo 'eval "$(pyenv virtualenv-init -)"' &gt;&gt; ~/.bash_profile
+echo 'eval "$(pyenv virtualenv-init -)"' &gt;&gt; ~/.bashrc
 </code></pre>
 
 <h3>创建virtualenv</h3>
