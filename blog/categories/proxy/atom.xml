@@ -4,7 +4,7 @@
   <title><![CDATA[Category: proxy | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/proxy/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-10-25T06:59:03+00:00</updated>
+  <updated>2016-11-28T18:04:38+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,133 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Shadowsocks简介]]></title>
+    <link href="http://www.malike.net.cn/blog/2016/11/29/shadowsocks-tutorial/"/>
+    <updated>2016-11-29T01:39:55+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2016/11/29/shadowsocks-tutorial</id>
+    <content type="html"><![CDATA[<p><a href="https://shadowsocks.org/en/index.html">Shadowsocks</a>（中文名: 影梭） 是一款开源的安全SOCKS 5代理，它主要用于在大陆翻墙。</p>
+
+<h2>原理</h2>
+
+<p>与SSH动态代理相似，客户端呈现为SOCKS 5代理服务，客户端与服务器之间采用加密通信。服务器部署于GFW之外，从而实现代理翻墙服务。</p>
+
+<h2>特点</h2>
+
+<ul>
+<li>使用自行设计的协议加密通信，支持多种加密算法：AES、Blowfish、IDEA、RC4等。除创建TCP连接外无需握手，每次请求只转发1个连接，因此使用起来网速较快，在移动设备上较省电。</li>
+<li>通过异步I/O和事件驱动实现，响应速度快。</li>
+<li>客户端支持主流操作系统平台：Windows、Linux、OS X、Android、iOS和OpenWrt</li>
+</ul>
+
+
+<h2>shadowsocks-libev简介</h2>
+
+<p>网络中普遍采用Python版本的<a href="https://pypi.python.org/pypi/shadowsocks">shadowsocks</a>，该版本看似安装简单，却存在如下缺点：</p>
+
+<ul>
+<li>没有Linux操作系统原生安装包（如：RPM和DEB）。</li>
+<li>没有操作系统的服务脚本（如init.d和upstart）。</li>
+<li>Python程序占用内存较多，运行效率不佳。</li>
+</ul>
+
+
+<p>而<a href="https://github.com/shadowsocks/shadowsocks-libev">shadowsocks-libev</a>是Shadowsocks在嵌入式和低端设备的轻量级实现：</p>
+
+<ul>
+<li>纯C实现，不仅占用内存极小，且运行效率更快。</li>
+<li>在几乎所有Linux平台都存在原生安装包，且具有对应平台的服务启动脚本。</li>
+</ul>
+
+
+<p>下面主要面向Ubuntu 14.04/16.04介绍它的安装和配置。</p>
+
+<h2>安装shadowsocks-libev</h2>
+
+<p>虽然shadowsocks-libev可以编译出DEB，但是默认没有提供Ubuntu的包仓库。为了方便快速，我将它构建于我的PPA中。</p>
+
+<p>客户端和服务端的安装方法相同：</p>
+
+<pre><code class="bash">sudo add-apt-repository ppa:likemartinma/net
+sudo apt-get update
+sudo apt-get install shadowsocks-libev
+</code></pre>
+
+<h2>配置shadowsocks-libev服务端</h2>
+
+<pre><code class="json">{
+    "server_port": 8388,
+    "password": "&lt;共享密码&gt;",
+    "timeout": 60,
+    "method": "aes-256-cfb"
+}
+</code></pre>
+
+<ul>
+<li><code>server_port</code>为服务端监听端口</li>
+<li><code>password</code>为客户端和服务端预设的共享密码，它最好由安全密码生成器生成（如<a href="https://www.lastpass.com/">LastPass</a>或<a href="http://keepass.info/">KeePass</a>），且长度不小于6个字符。</li>
+<li><code>timeout</code>为连接超时时间。</li>
+<li><code>method</code>为加密算法，<code>aes-256-cfb</code>的安全性较好。</li>
+</ul>
+
+
+<p>配置完成后，需重启：</p>
+
+<pre><code class="bash">sudo service shadowsocks-libev restart
+</code></pre>
+
+<h2>配置shadowsocks-libev客户端</h2>
+
+<p>由于安装包没有客户端的系统服务脚本，故须自己创建Upstart脚本/etc/init/ss-local.conf （文件名可修改）：</p>
+
+<pre><code class="upstart"># ss-local
+
+description "shadowsocks client"
+
+start on (net-device-up IFACE=eth0 or net-device-up IFACE=wlan0)
+stop on (net-device-down IFACE=eth0 and net-device-down IFACE=wlan0)
+
+respawn
+
+setuid nobody
+setgid nogroup
+
+exec ss-local -c /etc/shadowsocks-libev/client.json
+</code></pre>
+
+<p>创建/etc/shadowsocks-libev/client.json （文件名可修改，但需与Upstart脚本对应）：</p>
+
+<pre><code class="json">{
+    "server": "&lt;服务端地址&gt;",
+    "server_port": "&lt;服务端端口&gt;",
+    "local_port": "22357",
+    "password": "&lt;共享密码&gt;",
+    "method": "aes-256-cfb"
+}
+</code></pre>
+
+<p>为了client.json的安全：</p>
+
+<pre><code class="bash">sudo chmod og-rwx /etc/shadowsocks-libev/client.json
+sudo chown root:nogroup /etc/shadowsocks-libev/client.json
+</code></pre>
+
+<p>启动客户端</p>
+
+<pre><code class="bash">sudo start ss-local
+</code></pre>
+
+<p>最后，通过修改/etc/default/shadowsocks-libev的<code>START=no</code>禁止在客户机启动服务端程序——它在客户机没有作用。</p>
+
+<pre><code class="bash">sudo service shadowsocks-libev stop
+</code></pre>
+
+<h2>集群化</h2>
+
+<p>类似SSH集群，多个shadowsocks也可以构建SOCKS 5集群，具体请参考《<a href="http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster/">SSH翻墙集群</a>》的“HAProxy的配置方法”。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[SSH翻墙集群]]></title>

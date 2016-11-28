@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ubuntu | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/ubuntu/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-10-25T06:59:03+00:00</updated>
+  <updated>2016-11-28T18:04:38+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,133 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Shadowsocks简介]]></title>
+    <link href="http://www.malike.net.cn/blog/2016/11/29/shadowsocks-tutorial/"/>
+    <updated>2016-11-29T01:39:55+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2016/11/29/shadowsocks-tutorial</id>
+    <content type="html"><![CDATA[<p><a href="https://shadowsocks.org/en/index.html">Shadowsocks</a>（中文名: 影梭） 是一款开源的安全SOCKS 5代理，它主要用于在大陆翻墙。</p>
+
+<h2>原理</h2>
+
+<p>与SSH动态代理相似，客户端呈现为SOCKS 5代理服务，客户端与服务器之间采用加密通信。服务器部署于GFW之外，从而实现代理翻墙服务。</p>
+
+<h2>特点</h2>
+
+<ul>
+<li>使用自行设计的协议加密通信，支持多种加密算法：AES、Blowfish、IDEA、RC4等。除创建TCP连接外无需握手，每次请求只转发1个连接，因此使用起来网速较快，在移动设备上较省电。</li>
+<li>通过异步I/O和事件驱动实现，响应速度快。</li>
+<li>客户端支持主流操作系统平台：Windows、Linux、OS X、Android、iOS和OpenWrt</li>
+</ul>
+
+
+<h2>shadowsocks-libev简介</h2>
+
+<p>网络中普遍采用Python版本的<a href="https://pypi.python.org/pypi/shadowsocks">shadowsocks</a>，该版本看似安装简单，却存在如下缺点：</p>
+
+<ul>
+<li>没有Linux操作系统原生安装包（如：RPM和DEB）。</li>
+<li>没有操作系统的服务脚本（如init.d和upstart）。</li>
+<li>Python程序占用内存较多，运行效率不佳。</li>
+</ul>
+
+
+<p>而<a href="https://github.com/shadowsocks/shadowsocks-libev">shadowsocks-libev</a>是Shadowsocks在嵌入式和低端设备的轻量级实现：</p>
+
+<ul>
+<li>纯C实现，不仅占用内存极小，且运行效率更快。</li>
+<li>在几乎所有Linux平台都存在原生安装包，且具有对应平台的服务启动脚本。</li>
+</ul>
+
+
+<p>下面主要面向Ubuntu 14.04/16.04介绍它的安装和配置。</p>
+
+<h2>安装shadowsocks-libev</h2>
+
+<p>虽然shadowsocks-libev可以编译出DEB，但是默认没有提供Ubuntu的包仓库。为了方便快速，我将它构建于我的PPA中。</p>
+
+<p>客户端和服务端的安装方法相同：</p>
+
+<pre><code class="bash">sudo add-apt-repository ppa:likemartinma/net
+sudo apt-get update
+sudo apt-get install shadowsocks-libev
+</code></pre>
+
+<h2>配置shadowsocks-libev服务端</h2>
+
+<pre><code class="json">{
+    "server_port": 8388,
+    "password": "&lt;共享密码&gt;",
+    "timeout": 60,
+    "method": "aes-256-cfb"
+}
+</code></pre>
+
+<ul>
+<li><code>server_port</code>为服务端监听端口</li>
+<li><code>password</code>为客户端和服务端预设的共享密码，它最好由安全密码生成器生成（如<a href="https://www.lastpass.com/">LastPass</a>或<a href="http://keepass.info/">KeePass</a>），且长度不小于6个字符。</li>
+<li><code>timeout</code>为连接超时时间。</li>
+<li><code>method</code>为加密算法，<code>aes-256-cfb</code>的安全性较好。</li>
+</ul>
+
+
+<p>配置完成后，需重启：</p>
+
+<pre><code class="bash">sudo service shadowsocks-libev restart
+</code></pre>
+
+<h2>配置shadowsocks-libev客户端</h2>
+
+<p>由于安装包没有客户端的系统服务脚本，故须自己创建Upstart脚本/etc/init/ss-local.conf （文件名可修改）：</p>
+
+<pre><code class="upstart"># ss-local
+
+description "shadowsocks client"
+
+start on (net-device-up IFACE=eth0 or net-device-up IFACE=wlan0)
+stop on (net-device-down IFACE=eth0 and net-device-down IFACE=wlan0)
+
+respawn
+
+setuid nobody
+setgid nogroup
+
+exec ss-local -c /etc/shadowsocks-libev/client.json
+</code></pre>
+
+<p>创建/etc/shadowsocks-libev/client.json （文件名可修改，但需与Upstart脚本对应）：</p>
+
+<pre><code class="json">{
+    "server": "&lt;服务端地址&gt;",
+    "server_port": "&lt;服务端端口&gt;",
+    "local_port": "22357",
+    "password": "&lt;共享密码&gt;",
+    "method": "aes-256-cfb"
+}
+</code></pre>
+
+<p>为了client.json的安全：</p>
+
+<pre><code class="bash">sudo chmod og-rwx /etc/shadowsocks-libev/client.json
+sudo chown root:nogroup /etc/shadowsocks-libev/client.json
+</code></pre>
+
+<p>启动客户端</p>
+
+<pre><code class="bash">sudo start ss-local
+</code></pre>
+
+<p>最后，通过修改/etc/default/shadowsocks-libev的<code>START=no</code>禁止在客户机启动服务端程序——它在客户机没有作用。</p>
+
+<pre><code class="bash">sudo service shadowsocks-libev stop
+</code></pre>
+
+<h2>集群化</h2>
+
+<p>类似SSH集群，多个shadowsocks也可以构建SOCKS 5集群，具体请参考《<a href="http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster/">SSH翻墙集群</a>》的“HAProxy的配置方法”。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[nvm简介——Debian/Ubuntu中管理多版本Node.js]]></title>
@@ -512,76 +639,6 @@ exec /usr/bin/ssh \
     -oServerAliveInterval=300 \
     -oServerAliveCountMax=2 \
     -q -N -D localhost:12348 sshproxy
-</code></pre>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Rinse简介——Debian/Ubuntu中创建RPM安装环境]]></title>
-    <link href="http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial/"/>
-    <updated>2014-07-15T12:34:58+00:00</updated>
-    <id>http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial</id>
-    <content type="html"><![CDATA[<p><a href="http://collab-maint.alioth.debian.org/rinse/">Rinse</a>是一个Debian环境中创建RPM发行版本（如CentOS，Scientific Linux和openSUSE）的工具。你可以利用它轻松创建各种RPM发行版本的chroot环境。</p>
-
-<p>以下基于Ubuntu 12.04 amd64，主要以创建CentOS 6 x86_64为例。</p>
-
-<h2>安装Rinse</h2>
-
-<pre><code class="sh">sudo apt-get install -y rinse
-</code></pre>
-
-<h2>创建CentOS 6</h2>
-
-<pre><code class="sh">sudo rinse --distribution centos-6 --arch amd64 --directory centos-6
-</code></pre>
-
-<p>运行该命令将创建CentOS 6 amd64于当前工作目录的centos-6目录中。其中，</p>
-
-<ul>
-<li>&ndash;distribution指定发行版本，类似还可以centos-{4,5}， fedora-core-{4,5,6,7,8,9}和opensuse-{10.1,10.2,10.3,11.0,11.1,12.1}等。可以下述命令获取：</li>
-</ul>
-
-
-<pre><code class="sh">rinse --list-distributions
-</code></pre>
-
-<p>具体对应于/etc/rinse/*.packages的模板名，它们主要包含RPM包列表。换一句话说，你根据需要定制自己的模板。另一方面，你也可以通过&ndash;pkgs-dir指定不同于/etc/rinse的模板目录。</p>
-
-<ul>
-<li>&ndash;arch指定架构，amd64表示64位架构，i386表示32位架构。缺省为i386.</li>
-<li>&ndash;directory指定为安装目录，安装结束后便可以chroot该目录了。</li>
-</ul>
-
-
-<p>另外，需要额外安装某些包，可以通过指定&ndash;add-pkg-list来完成。</p>
-
-<h2>配置RPM缓存</h2>
-
-<p>rinse默认使用/var/rinse/cache作为缓存目录，它大大缩短了重复运行同样命令的时间。具体通过：</p>
-
-<ul>
-<li>&ndash;cache 0指禁用缓存，缺省为1</li>
-<li>&ndash;cache-dir指定不同于/var/rinse/cache作为缓存目录。</li>
-<li>&ndash;clean-cache指清楚缓存</li>
-</ul>
-
-
-<h2>定制安装后执行脚本</h2>
-
-<p>&ndash;after-post-install, &ndash;before-post-install和&ndash;post-install顾名思义，需要指出的是&ndash;post-install默认执行/usr/lib/rinse/<distribution>/post-install.sh.</p>
-
-<h2>如何提高安装速度？</h2>
-
-<p>通过修改/etc/rinse/rinse.conf中对应发行版的镜像地址可以加速安装，如CentOS 6 x86_64的镜像地址可以修改为</p>
-
-<pre><code>http://centos.ustc.edu.cn/centos/6/os/x86_64/CentOS/
-</code></pre>
-
-<p>也可以通过&ndash;config指定不同于/etc/rinse/rinse.conf的配置文件。</p>
-
-<p>若内网存在HTTP cache服务器（如Squid)，还可以设置环境变量http_proxy来缓存rpm以及加速安装，如：</p>
-
-<pre><code class="sh">sudo http_proxy=http://&lt;http proxy address&gt; rinse --distribution centos-6 --arch amd64 --directory centos-6
 </code></pre>
 ]]></content>
   </entry>
