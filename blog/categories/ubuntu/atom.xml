@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ubuntu | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/ubuntu/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-11-28T18:04:38+00:00</updated>
+  <updated>2016-11-28T18:07:31+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -92,7 +92,7 @@ sudo apt-get install shadowsocks-libev
 
 <p>由于安装包没有客户端的系统服务脚本，故须自己创建Upstart脚本/etc/init/ss-local.conf （文件名可修改）：</p>
 
-<pre><code class="upstart"># ss-local
+<pre><code># ss-local
 
 description "shadowsocks client"
 
