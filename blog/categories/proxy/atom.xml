@@ -4,7 +4,7 @@
   <title><![CDATA[Category: proxy | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/proxy/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-11-29T06:48:16+00:00</updated>
+  <updated>2016-11-29T06:51:44+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -138,11 +138,13 @@ sudo chown root:nogroup /etc/shadowsocks-libev/client.json
 
 <h3>Ubuntu 16.04</h3>
 
-<p>安装包提供了systemd的服务模板/lib/systemd/system/shadowsocks-libev-local\@.service:</p>
+<p>安装包提供了systemd的服务模板/lib/systemd/system/shadowsocks-libev-local@.service:</p>
 
 <pre><code class="bash">sudo systemctl enable shadowsocks-libev-local@client
 sudo systemctl start shadowsocks-libev-local@client
 </code></pre>
+
+<p>注意，@client与client.json的基本名必须一致。</p>
 
 <p>最后，禁用并停止服务端程序：</p>
 

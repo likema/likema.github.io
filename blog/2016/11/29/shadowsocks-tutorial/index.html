@@ -269,7 +269,7 @@
 
 <h3>Ubuntu 16.04</h3>
 
-<p>安装包提供了systemd的服务模板/lib/systemd/system/shadowsocks-libev-local\@.service:</p>
+<p>安装包提供了systemd的服务模板/lib/systemd/system/shadowsocks-libev-local@.service:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -277,6 +277,8 @@
 </span><span class='line'>sudo systemctl start shadowsocks-libev-local@client
 </span></code></pre></td></tr></table></div></figure>
 
+
+<p>注意，@client与client.json的基本名必须一致。</p>
 
 <p>最后，禁用并停止服务端程序：</p>
 

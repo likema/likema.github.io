@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-11-29T06:48:16+00:00</updated>
+  <updated>2016-11-29T06:51:44+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -180,7 +180,7 @@
 
 <h3>Ubuntu 16.04</h3>
 
-<p>安装包提供了systemd的服务模板/lib/systemd/system/shadowsocks-libev-local\@.service:</p>
+<p>安装包提供了systemd的服务模板/lib/systemd/system/shadowsocks-libev-local@.service:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -188,6 +188,8 @@
 </span><span class='line'>sudo systemctl start shadowsocks-libev-local@client
 </span></code></pre></td></tr></table></div></figure>
 
+
+<p>注意，@client与client.json的基本名必须一致。</p>
 
 <p>最后，禁用并停止服务端程序：</p>
 
