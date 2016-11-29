@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-11-28T18:07:31+00:00</updated>
+  <updated>2016-11-29T06:48:16+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -103,38 +103,7 @@
 
 <h2>配置shadowsocks-libev客户端</h2>
 
-<p>由于安装包没有客户端的系统服务脚本，故须自己创建Upstart脚本/etc/init/ss-local.conf （文件名可修改）：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># ss-local</span>
-</span><span class='line'>
-</span><span class='line'>description <span class="s2">&quot;shadowsocks client&quot;</span>
-</span><span class='line'>
-</span><span class='line'>start on <span class="o">(</span>net-device-up <span class="nv">IFACE</span><span class="o">=</span>eth0 or net-device-up <span class="nv">IFACE</span><span class="o">=</span>wlan0<span class="o">)</span>
-</span><span class='line'>stop on <span class="o">(</span>net-device-down <span class="nv">IFACE</span><span class="o">=</span>eth0 and net-device-down <span class="nv">IFACE</span><span class="o">=</span>wlan0<span class="o">)</span>
-</span><span class='line'>
-</span><span class='line'>respawn
-</span><span class='line'>
-</span><span class='line'>setuid nobody
-</span><span class='line'>setgid nogroup
-</span><span class='line'>
-</span><span class='line'><span class="nb">exec </span>ss-local -c /etc/shadowsocks-libev/client.json
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>创建/etc/shadowsocks-libev/client.json （文件名可修改，但需与Upstart脚本对应）：</p>
+<p>创建/etc/shadowsocks-libev/client.json （文件名可修改）：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -150,6 +119,39 @@
 </span><span class='line'>    <span class="nt">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;共享密码&gt;&quot;</span><span class="p">,</span>
 </span><span class='line'>    <span class="nt">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;aes-256-cfb&quot;</span>
 </span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Ubuntu 14.04</h3>
+
+<p>安装包没有提供系统服务脚本，故须自己创建Upstart脚本/etc/init/ss-local.conf （文件名可修改）：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="err">#</span> <span class="err">ss-local</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">description</span> <span class="s2">&quot;shadowsocks client&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">start</span> <span class="err">on</span> <span class="err">(net-device-up</span> <span class="err">IFACE=eth</span><span class="mi">0</span> <span class="err">or</span> <span class="err">net-device-up</span> <span class="err">IFACE=wlan</span><span class="mi">0</span><span class="err">)</span>
+</span><span class='line'><span class="err">stop</span> <span class="err">on</span> <span class="err">(net-device-down</span> <span class="err">IFACE=eth</span><span class="mi">0</span> <span class="err">and</span> <span class="err">net-device-down</span> <span class="err">IFACE=wlan</span><span class="mi">0</span><span class="err">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">respawn</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">setuid</span> <span class="err">nobody</span>
+</span><span class='line'><span class="err">setgid</span> <span class="err">nogroup</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">exec</span> <span class="err">ss-local</span> <span class="err">-c</span> <span class="err">/etc/shadowsocks-libev/client.json</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -173,6 +175,26 @@
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo service shadowsocks-libev stop
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Ubuntu 16.04</h3>
+
+<p>安装包提供了systemd的服务模板/lib/systemd/system/shadowsocks-libev-local\@.service:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo systemctl <span class="nb">enable </span>shadowsocks-libev-local@client
+</span><span class='line'>sudo systemctl start shadowsocks-libev-local@client
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最后，禁用并停止服务端程序：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo systemctl disable shadowsocks-libev
+</span><span class='line'>sudo systemctl stop shadowsocks-libev
 </span></code></pre></td></tr></table></div></figure>
 
 

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: linux | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/linux/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-11-28T18:07:31+00:00</updated>
+  <updated>2016-11-29T06:48:16+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -90,7 +90,20 @@ sudo apt-get install shadowsocks-libev
 
 <h2>配置shadowsocks-libev客户端</h2>
 
-<p>由于安装包没有客户端的系统服务脚本，故须自己创建Upstart脚本/etc/init/ss-local.conf （文件名可修改）：</p>
+<p>创建/etc/shadowsocks-libev/client.json （文件名可修改）：</p>
+
+<pre><code class="json">{
+    "server": "&lt;服务端地址&gt;",
+    "server_port": "&lt;服务端端口&gt;",
+    "local_port": "22357",
+    "password": "&lt;共享密码&gt;",
+    "method": "aes-256-cfb"
+}
+</code></pre>
+
+<h3>Ubuntu 14.04</h3>
+
+<p>安装包没有提供系统服务脚本，故须自己创建Upstart脚本/etc/init/ss-local.conf （文件名可修改）：</p>
 
 <pre><code># ss-local
 
@@ -107,17 +120,6 @@ setgid nogroup
 exec ss-local -c /etc/shadowsocks-libev/client.json
 </code></pre>
 
-<p>创建/etc/shadowsocks-libev/client.json （文件名可修改，但需与Upstart脚本对应）：</p>
-
-<pre><code class="json">{
-    "server": "&lt;服务端地址&gt;",
-    "server_port": "&lt;服务端端口&gt;",
-    "local_port": "22357",
-    "password": "&lt;共享密码&gt;",
-    "method": "aes-256-cfb"
-}
-</code></pre>
-
 <p>为了client.json的安全：</p>
 
 <pre><code class="bash">sudo chmod og-rwx /etc/shadowsocks-libev/client.json
@@ -132,6 +134,20 @@ sudo chown root:nogroup /etc/shadowsocks-libev/client.json
 <p>最后，通过修改/etc/default/shadowsocks-libev的<code>START=no</code>禁止在客户机启动服务端程序——它在客户机没有作用。</p>
 
 <pre><code class="bash">sudo service shadowsocks-libev stop
+</code></pre>
+
+<h3>Ubuntu 16.04</h3>
+
+<p>安装包提供了systemd的服务模板/lib/systemd/system/shadowsocks-libev-local\@.service:</p>
+
+<pre><code class="bash">sudo systemctl enable shadowsocks-libev-local@client
+sudo systemctl start shadowsocks-libev-local@client
+</code></pre>
+
+<p>最后，禁用并停止服务端程序：</p>
+
+<pre><code class="bash">sudo systemctl disable shadowsocks-libev
+sudo systemctl stop shadowsocks-libev
 </code></pre>
 
 <h2>集群化</h2>
