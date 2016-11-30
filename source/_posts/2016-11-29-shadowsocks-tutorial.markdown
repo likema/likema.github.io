@@ -47,6 +47,8 @@ sudo apt-get install shadowsocks-libev
 
 ## 配置shadowsocks-libev服务端
 
+编辑/etc/shadowsocks-libev/config.json：
+
 ```json
 {
     "server_port": 8388,
@@ -104,8 +106,9 @@ exec ss-local -c /etc/shadowsocks-libev/client.json
 为了client.json的安全：
 
 ```bash
-sudo chmod og-rwx /etc/shadowsocks-libev/client.json
-sudo chown root:nogroup /etc/shadowsocks-libev/client.json
+sudo chown -R root:nogroup /etc/shadowsocks-libev
+sudo chmod 0750 /etc/shadowsocks-libev
+sudo chmod 0640 /etc/shadowsocks-libev/client.json
 ```
 
 启动客户端
