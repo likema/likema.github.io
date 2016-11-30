@@ -163,6 +163,8 @@
 
 <h2>配置shadowsocks-libev服务端</h2>
 
+<p>编辑/etc/shadowsocks-libev/config.json：</p>
+
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -251,8 +253,10 @@
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo chmod og-rwx /etc/shadowsocks-libev/client.json
-</span><span class='line'>sudo chown root:nogroup /etc/shadowsocks-libev/client.json
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo chown -R root:nogroup /etc/shadowsocks-libev
+</span><span class='line'>sudo chmod <span class="m">0750</span> /etc/shadowsocks-libev
+</span><span class='line'>sudo chmod <span class="m">0640</span> /etc/shadowsocks-libev/client.json
 </span></code></pre></td></tr></table></div></figure>
 
 

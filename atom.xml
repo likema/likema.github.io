@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-11-29T16:36:32+00:00</updated>
+  <updated>2016-11-30T07:24:36+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -70,6 +70,8 @@
 
 
 <h2>配置shadowsocks-libev服务端</h2>
+
+<p>编辑/etc/shadowsocks-libev/config.json：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -159,8 +161,10 @@
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo chmod og-rwx /etc/shadowsocks-libev/client.json
-</span><span class='line'>sudo chown root:nogroup /etc/shadowsocks-libev/client.json
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo chown -R root:nogroup /etc/shadowsocks-libev
+</span><span class='line'>sudo chmod <span class="m">0750</span> /etc/shadowsocks-libev
+</span><span class='line'>sudo chmod <span class="m">0640</span> /etc/shadowsocks-libev/client.json
 </span></code></pre></td></tr></table></div></figure>
 
 

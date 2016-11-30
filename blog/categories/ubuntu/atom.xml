@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ubuntu | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/ubuntu/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-11-29T16:36:32+00:00</updated>
+  <updated>2016-11-30T07:24:36+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -67,6 +67,8 @@ sudo apt-get install shadowsocks-libev
 
 <h2>配置shadowsocks-libev服务端</h2>
 
+<p>编辑/etc/shadowsocks-libev/config.json：</p>
+
 <pre><code class="json">{
     "server_port": 8388,
     "password": "&lt;共享密码&gt;",
@@ -122,8 +124,9 @@ exec ss-local -c /etc/shadowsocks-libev/client.json
 
 <p>为了client.json的安全：</p>
 
-<pre><code class="bash">sudo chmod og-rwx /etc/shadowsocks-libev/client.json
-sudo chown root:nogroup /etc/shadowsocks-libev/client.json
+<pre><code class="bash">sudo chown -R root:nogroup /etc/shadowsocks-libev
+sudo chmod 0750 /etc/shadowsocks-libev
+sudo chmod 0640 /etc/shadowsocks-libev/client.json
 </code></pre>
 
 <p>启动客户端</p>
