@@ -123,3 +123,38 @@ pyenv activate aiohttp-virtual-env
 pyenv deactivate
 ```
 
+## 四、配置Upstart脚本
+
+若python程序须要通过Upstart启动，则其Upstart脚本可以类似：
+
+```
+# service name
+
+description "service description ..."
+
+respawn
+
+setuid <username>
+setgid <group>
+
+env PYENV_ROOT=/home/<username>/.pyenv
+env PATH=/home/<username>/.pyenv/bin::/sbin:/usr/sbin:/bin:/usr/bin
+env PYENV_VERSION=<python version or virtualenv name>
+
+chdir <app dir>
+
+script
+        eval "$(pyenv init -)"
+        exec ./<app>
+end script
+# vim: ts=4 sw=4 sts=4 ft=upstart
+```
+
+* `username`为服务运行的用户名，通常为`PYENV_ROOT`所属用户。
+* `group`为服务运行的组名，通常为`PYENV_ROOT`所属组。
+* `PYENV_VERSION`为Python版本号或virtualenv的名字。
+* `app dir`为Python程序的目录。
+* `app`为Python程序或启动脚本。
+
+
+
