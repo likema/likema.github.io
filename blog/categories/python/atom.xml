@@ -4,7 +4,7 @@
   <title><![CDATA[Category: python | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/python/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-11-30T07:24:36+00:00</updated>
+  <updated>2016-12-25T18:08:42+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -432,6 +432,41 @@ echo 'eval "$(pyenv virtualenv-init -)"' &gt;&gt; ~/.bashrc
 <pre><code class="bash">pyenv activate aiohttp-virtual-env
 pyenv deactivate
 </code></pre>
+
+<h2>四、配置Upstart脚本</h2>
+
+<p>若python程序须要通过Upstart启动，则其Upstart脚本可以类似：</p>
+
+<pre><code># service name
+
+description "service description ..."
+
+respawn
+
+setuid &lt;username&gt;
+setgid &lt;group&gt;
+
+env PYENV_ROOT=/home/&lt;username&gt;/.pyenv
+env PATH=/home/&lt;username&gt;/.pyenv/bin::/sbin:/usr/sbin:/bin:/usr/bin
+env PYENV_VERSION=&lt;python version or virtualenv name&gt;
+
+chdir &lt;app dir&gt;
+
+script
+        eval "$(pyenv init -)"
+        exec ./&lt;app&gt;
+end script
+# vim: ts=4 sw=4 sts=4 ft=upstart
+</code></pre>
+
+<ul>
+<li><code>username</code>为服务运行的用户名，通常为<code>PYENV_ROOT</code>所属用户。</li>
+<li><code>group</code>为服务运行的组名，通常为<code>PYENV_ROOT</code>所属组。</li>
+<li><code>PYENV_VERSION</code>为Python版本号或virtualenv的名字。</li>
+<li><code>app dir</code>为Python程序的目录。</li>
+<li><code>app</code>为Python程序或启动脚本。</li>
+</ul>
+
 ]]></content>
   </entry>
   

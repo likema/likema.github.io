@@ -1230,6 +1230,60 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
+<h2>四、配置Upstart脚本</h2>
+
+<p>若python程序须要通过Upstart启动，则其Upstart脚本可以类似：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># service name</span>
+</span><span class='line'>
+</span><span class='line'>description <span class="s2">&quot;service description ...&quot;</span>
+</span><span class='line'>
+</span><span class='line'>respawn
+</span><span class='line'>
+</span><span class='line'>setuid &lt;username&gt;
+</span><span class='line'>setgid &lt;group&gt;
+</span><span class='line'>
+</span><span class='line'>env <span class="nv">PYENV_ROOT</span><span class="o">=</span>/home/&lt;username&gt;/.pyenv
+</span><span class='line'>env <span class="nv">PATH</span><span class="o">=</span>/home/&lt;username&gt;/.pyenv/bin::/sbin:/usr/sbin:/bin:/usr/bin
+</span><span class='line'>env <span class="nv">PYENV_VERSION</span><span class="o">=</span>&lt;python version or virtualenv name&gt;
+</span><span class='line'>
+</span><span class='line'>chdir &lt;app dir&gt;
+</span><span class='line'>
+</span><span class='line'>script
+</span><span class='line'>        <span class="nb">eval</span> <span class="s2">&quot;$(pyenv init -)&quot;</span>
+</span><span class='line'>        <span class="nb">exec</span> ./&lt;app&gt;
+</span><span class='line'>end script
+</span><span class='line'><span class="c"># vim: ts=4 sw=4 sts=4 ft=upstart</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>username</code>为服务运行的用户名，通常为<code>PYENV_ROOT</code>所属用户。</li>
+<li><code>group</code>为服务运行的组名，通常为<code>PYENV_ROOT</code>所属组。</li>
+<li><code>PYENV_VERSION</code>为Python版本号或virtualenv的名字。</li>
+<li><code>app dir</code>为Python程序的目录。</li>
+<li><code>app</code>为Python程序或启动脚本。</li>
+</ul>
 
 </div>
   
