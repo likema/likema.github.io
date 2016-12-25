@@ -138,7 +138,7 @@ setuid <username>
 setgid <group>
 
 env PYENV_ROOT=/home/<username>/.pyenv
-env PATH=/home/<username>/.pyenv/bin::/sbin:/usr/sbin:/bin:/usr/bin
+env PATH=/home/<username>/.pyenv/bin:/sbin:/usr/sbin:/bin:/usr/bin
 env PYENV_VERSION=<python version or virtualenv name>
 
 chdir <app dir>
