@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ubuntu | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/ubuntu/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-12-25T18:08:42+00:00</updated>
+  <updated>2016-12-25T18:11:02+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -389,7 +389,7 @@ setuid &lt;username&gt;
 setgid &lt;group&gt;
 
 env PYENV_ROOT=/home/&lt;username&gt;/.pyenv
-env PATH=/home/&lt;username&gt;/.pyenv/bin::/sbin:/usr/sbin:/bin:/usr/bin
+env PATH=/home/&lt;username&gt;/.pyenv/bin:/sbin:/usr/sbin:/bin:/usr/bin
 env PYENV_VERSION=&lt;python version or virtualenv name&gt;
 
 chdir &lt;app dir&gt;

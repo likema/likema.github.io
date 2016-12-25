@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-12-25T18:08:42+00:00</updated>
+  <updated>2016-12-25T18:11:02+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -1052,7 +1052,7 @@
 </span><span class='line'>setgid &lt;group&gt;
 </span><span class='line'>
 </span><span class='line'>env <span class="nv">PYENV_ROOT</span><span class="o">=</span>/home/&lt;username&gt;/.pyenv
-</span><span class='line'>env <span class="nv">PATH</span><span class="o">=</span>/home/&lt;username&gt;/.pyenv/bin::/sbin:/usr/sbin:/bin:/usr/bin
+</span><span class='line'>env <span class="nv">PATH</span><span class="o">=</span>/home/&lt;username&gt;/.pyenv/bin:/sbin:/usr/sbin:/bin:/usr/bin
 </span><span class='line'>env <span class="nv">PYENV_VERSION</span><span class="o">=</span>&lt;python version or virtualenv name&gt;
 </span><span class='line'>
 </span><span class='line'>chdir &lt;app dir&gt;
