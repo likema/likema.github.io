@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-12-25T18:11:02+00:00</updated>
+  <updated>2017-02-05T13:48:17+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -749,7 +749,7 @@
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone https://github.com/creationix/nvm.git ~/.nvm
 </span><span class='line'><span class="nb">cd</span> ~/.nvm
-</span><span class='line'>git checkout <span class="sb">`</span>git describe --abbrev<span class="o">=</span><span class="m">0</span> --tags
+</span><span class='line'>git checkout <span class="sb">`</span>git describe --abbrev<span class="o">=</span><span class="m">0</span> --tags<span class="sb">`</span>
 </span></code></pre></td></tr></table></div></figure>
 
 

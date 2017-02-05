@@ -4,7 +4,7 @@
   <title><![CDATA[Category: debian | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/debian/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2016-12-25T18:11:02+00:00</updated>
+  <updated>2017-02-05T13:48:17+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -24,7 +24,7 @@
 
 <pre><code class="bash">git clone https://github.com/creationix/nvm.git ~/.nvm
 cd ~/.nvm
-git checkout `git describe --abbrev=0 --tags
+git checkout `git describe --abbrev=0 --tags`
 </code></pre>
 
 <p>激活nvm</p>
