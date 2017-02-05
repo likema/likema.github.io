@@ -150,6 +150,28 @@ end script
 # vim: ts=4 sw=4 sts=4 ft=upstart
 ```
 
+或
+
+```
+# service name
+
+description "service description ..."
+
+respawn
+
+setuid <username>
+setgid <group>
+
+env PYENV_ROOT=/home/<username>/.pyenv
+env PATH=/home/<username>/.pyenv/shims:/home/<username>/.pyenv/bin:/sbin:/usr/sbin:/bin:/usr/bin
+env PYENV_VERSION=<python version or virtualenv name>
+
+chdir <app dir>
+
+exec ./<app>
+# vim: ts=4 sw=4 sts=4 ft=upstart
+```
+
 * `username`为服务运行的用户名，通常为`PYENV_ROOT`所属用户。
 * `group`为服务运行的组名，通常为`PYENV_ROOT`所属组。
 * `PYENV_VERSION`为Python版本号或virtualenv的名字。
