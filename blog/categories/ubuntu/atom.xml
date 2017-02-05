@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ubuntu | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/ubuntu/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2017-02-05T13:48:17+00:00</updated>
+  <updated>2017-02-05T17:53:02+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -398,6 +398,27 @@ script
         eval "$(pyenv init -)"
         exec ./&lt;app&gt;
 end script
+# vim: ts=4 sw=4 sts=4 ft=upstart
+</code></pre>
+
+<p>或</p>
+
+<pre><code># service name
+
+description "service description ..."
+
+respawn
+
+setuid &lt;username&gt;
+setgid &lt;group&gt;
+
+env PYENV_ROOT=/home/&lt;username&gt;/.pyenv
+env PATH=/home/&lt;username&gt;/.pyenv/shims:/home/&lt;username&gt;/.pyenv/bin:/sbin:/usr/sbin:/bin:/usr/bin
+env PYENV_VERSION=&lt;python version or virtualenv name&gt;
+
+chdir &lt;app dir&gt;
+
+exec ./&lt;app&gt;
 # vim: ts=4 sw=4 sts=4 ft=upstart
 </code></pre>
 
