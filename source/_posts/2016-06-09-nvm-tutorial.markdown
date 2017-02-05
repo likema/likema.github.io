@@ -12,7 +12,7 @@ categories: [nodejs, Debian, Ubuntu]
 ```bash
 git clone https://github.com/creationix/nvm.git ~/.nvm
 cd ~/.nvm
-git checkout `git describe --abbrev=0 --tags
+git checkout `git describe --abbrev=0 --tags`
 ```
 
 激活nvm
