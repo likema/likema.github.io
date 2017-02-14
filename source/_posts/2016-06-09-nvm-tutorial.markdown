@@ -18,7 +18,7 @@ git checkout `git describe --abbrev=0 --tags`
 激活nvm
 
 ```bash
-. $NVM_DIR/nvm.sh
+. ~/.nvm/nvm.sh
 ```
 
 为了每次登录后自动激活nvm，需要将`NMV_DIR`、`nvm.sh`和补齐加入bash的~/.bashrc（或zsh的~/.zshrc）
