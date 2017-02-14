@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2017-02-05T17:53:02+00:00</updated>
+  <updated>2017-02-14T08:31:20+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -756,7 +756,7 @@
 <p>激活nvm</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>. <span class="nv">$NVM_DIR</span>/nvm.sh
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>. ~/.nvm/nvm.sh
 </span></code></pre></td></tr></table></div></figure>
 
 
