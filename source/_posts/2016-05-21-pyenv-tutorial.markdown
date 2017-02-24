@@ -54,7 +54,7 @@ sudo apt-get install -y build-essential zlib1g-dev libssl-dev
 还可选择安装：
 
 ```bash
-sudo apt-get install libsqlite3-dev libbz2-dev  libreadline-dev
+sudo apt-get install libsqlite3-dev libbz2-dev libreadline-dev
 ```
 
 安装完成后：
@@ -65,7 +65,7 @@ sudo apt-get install libsqlite3-dev libbz2-dev  libreadline-dev
 ### 卸载指定版本的Python
 
 ```bash
-pyenv uninstall 3.5.1
+pyenv unstall 3.5.1
 ```
 
 ### 设置shell的Python版本
