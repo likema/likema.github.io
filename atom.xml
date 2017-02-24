@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2017-02-24T06:28:26+00:00</updated>
+  <updated>2017-02-24T06:30:34+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -931,7 +931,7 @@
 <p>还可选择安装：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install libsqlite3-dev libbz2-dev  libreadline-dev
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install libsqlite3-dev libbz2-dev libreadline-dev
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -946,7 +946,7 @@
 <h3>卸载指定版本的Python</h3>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv uninstall 3.5.1
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv unstall 3.5.1
 </span></code></pre></td></tr></table></div></figure>
 
 
