@@ -65,7 +65,7 @@ sudo apt-get install libsqlite3-dev libbz2-dev  libreadline-dev
 ### 卸载指定版本的Python
 
 ```bash
-pyenv unstall 3.5.1
+pyenv uninstall 3.5.1
 ```
 
 ### 设置shell的Python版本
