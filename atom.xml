@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2017-02-24T06:35:41+00:00</updated>
+  <updated>2017-03-02T09:34:54+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,106 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[在Docker容器中创建GlusterFS]]></title>
+    <link href="http://www.malike.net.cn/blog/2017/03/02/glusterfs-docker-tutorial/"/>
+    <updated>2017-03-02T18:06:07+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2017/03/02/glusterfs-docker-tutorial</id>
+    <content type="html"><![CDATA[<p>本文展示如何在一台Linux物理机/虚拟机上，创建GlusterFS集群。目的在于测试和学习GlusterFS，而非将GlusterFs应用生产环境。</p>
+
+<h2>下载节点容器镜像</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker pull gluster/gluster-centos
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>创建元数据目录</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mkdir -p /etc/glusterfs<span class="o">{</span>1,2,3<span class="o">}</span> /var/lib/glusterd<span class="o">{</span>1,2,3<span class="o">}</span> /var/log/glusterfs<span class="o">{</span>1,2,3<span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>创建节点容器实例</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="k">for</span> i in <span class="sb">`</span>seq <span class="m">1</span> 3<span class="sb">`</span><span class="p">;</span> <span class="k">do</span>
+</span><span class='line'>        mkdir -p <span class="nv">$etc$i</span> <span class="nv">$var$i</span> <span class="nv">$log$i</span>
+</span><span class='line'>        docker run -d --privileged<span class="o">=</span><span class="nb">true</span> --name gluster<span class="nv">$i</span> --hostname<span class="o">=</span>gluster<span class="nv">$i</span> <span class="se">\</span>
+</span><span class='line'>                -v /etc/glusterfs<span class="nv">$i</span>:/etc/glusterfs:z <span class="se">\</span>
+</span><span class='line'>                -v /var/lib/glusterd<span class="nv">$i</span>:/var/lib/glusterd:z <span class="se">\</span>
+</span><span class='line'>                -v /var/log/glusterfs<span class="nv">$i</span>:/var/log/glusterfs:z <span class="se">\</span>
+</span><span class='line'>                -v /sys/fs/cgroup:/sys/fs/cgroup:ro <span class="se">\</span>
+</span><span class='line'>                -v /dev:/dev <span class="se">\</span>
+</span><span class='line'>                gluster/gluster-centos
+</span><span class='line'><span class="k">done</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>组建集群</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker <span class="nb">exec</span> -ti gluster1 /bin/bash
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gluster peer probe &lt;gluster2 ip addr&gt;
+</span><span class='line'>gluster peer probe &lt;gluster3 ip addr&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>创建卷</h2>
+
+<h3>冗余卷 (replica)</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gluster peer volume create v1 replica <span class="m">3</span> 172.17.0.<span class="o">{</span>2,3,4<span class="o">}</span>:/mnt/v1 force
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>条带卷 (stripe)</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gluster peer volume create v2 strip <span class="m">3</span> 172.17.0.<span class="o">{</span>2,3,4<span class="o">}</span>:/mnt/v2 force
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>纠删码卷 (disperse)</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gluster peer volume create e3 disperse <span class="m">3</span> redundancy <span class="m">1</span> 172.17.0.<span class="o">{</span>2,3,4<span class="o">}</span>:/mnt/v3 force
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>由于这些容器实例的/mnt与/在同一个分区，故需要指定force参数。</li>
+<li>创建卷时，目录/mnt/v{1,2,3}将被gluster自动创建，前提是父目录 (/mnt)已存在</li>
+</ul>
+
+
+<h2>挂载卷</h2>
+
+<h3>通过FUSE挂载</h3>
+
+<p>```bash
+mount -t glusterfs 172.17.0.2:/v1 /mnt/glusterfs/</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Shadowsocks简介]]></title>
@@ -3455,81 +3555,6 @@
 <p>这里的关键命令git-dch -R -a自动生成了release的版本信息，当然我们也可以根据需要再修改它们。最后一条命令，给master分支的HEAD加上标签debian/5.1.3-2，git-buildpackage将依赖于它才能继续正确工作。</p>
 
 <p>到此为止，我已经演示了git-buildpackage的补丁制作过程，可以观察../tolua-build目录中生成的文件，它们就是我们可以用于发布的deb包源码文件，形式上与ubuntu/debian中apt-get source得到的一样。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Ubuntu 11.10 VirtualBox的Host-only网卡上外网和DHCP永久地址]]></title>
-    <link href="http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp/"/>
-    <updated>2011-12-20T00:00:00+00:00</updated>
-    <id>http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp</id>
-    <content type="html"><![CDATA[<p>VirtualBox支持各种虚拟网络：NAT, Bridge Adapter, Internal Network和Host-only Adapter等。其中Bridged Adapter最为简单和常用，它几乎是0配置，直接桥接有线或无线物理网卡就可以与互联网通信。</p>
-
-<p>然而，我工作场所内部网和家里内部网的网段不相同，DHCP存在一定租赁时间，如果使用Bridged Adapter并DHCP获取IP地址的时候，虚拟机地址经常会改变。为此，我将笔记本电脑的VirtualBox虚拟机都修改为Host-only Adapter模式。</p>
-
-<p>一个问题是Host-only Adapter（网段为192.168.56.0/24）默认不能与互联网通信。google之后发现网上早有人遇到类似问题，他们给出的解决办法是在/etc/rc.local中加入：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>另一个问题是VirtualBox内置DHCP的IP租赁时间设置，也无法将MAC地址与IP地址静态绑定，这造成虚拟机IP地址每隔一段时间改变一次，给使用带来诸多不方便。另一方面，我也不想静态设置IP地址，因为如果这样做，我必须每安装一次虚拟机都要重新设置IP地址。</p>
-
-<p>以前就听说过dnsmasq，不仅集成DNS、DHCP和TFTP功能，而且占用资源很少，设置也相对简单。</p>
-
-<ul>
-<li>安装dnsmasq</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo apt-get install dnsmasq
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>打开/etc/dnsmasq.conf，针对vboxnet0配置DHCP。</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>interface=vboxnet0
-</span><span class='line'>
-</span><span class='line'># 192.168.56.1是默认网关（host机器的vboxnet0地址）
-</span><span class='line'># 208.67.222.222和208.67.220.220是DNS地址(这里使用了OpenDNS)
-</span><span class='line'>dhcp-option=vboxnet0,option:dns-server,192.168.56.1,208.67.222.222,208.67.220.220
-</span><span class='line'>
-</span><span class='line'># 192.168.56.2和192.168.56.254为分配地址范围
-</span><span class='line'># infinite表示IP永远不过期
-</span><span class='line'>dhcp-range=vboxnet0,192.168.56.2,192.168.56.254,infinite</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>重启动dnsmasq</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo service dnsmasq restart
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>当然，dnsmasq也支持MAC地址与IP地址静态绑定。比如，在/etc/dnsmasq.conf中针对MAC地址08:00:27:81:51:85，分配机器名vbox-xp，分配IP地址192.168.56.2</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>dhcp-host=vbox-xp,08:00:27:81:51:85,192.168.56.2</span></code></pre></td></tr></table></div></figure>
-
-
-<p>最后，不要忘了重启动dnsmasq。</p>
 ]]></content>
   </entry>
   

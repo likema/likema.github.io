@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
+<loc>http://www.malike.net.cn/blog/2017/03/02/glusterfs-docker-tutorial/</loc>
+<lastmod>2017-03-02T18:06:07+00:00</lastmod>
+</url>
+<url>
 <loc>http://www.malike.net.cn/blog/2016/11/29/shadowsocks-tutorial/</loc>
 <lastmod>2016-11-29T01:39:55+00:00</lastmod>
 </url>
@@ -156,5 +160,11 @@
 </url>
 <url>
 <loc>http://www.malike.net.cn/blog/categories/nodejs/</loc>
+</url>
+<url>
+<loc>http://www.malike.net.cn/blog/categories/glusterfs/</loc>
+</url>
+<url>
+<loc>http://www.malike.net.cn/blog/categories/docker/</loc>
 </url>
 </urlset>

@@ -5,11 +5,13 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>为tolua的deb包作一个补丁 - Like的世界</title>
+  <title>在Docker容器中创建GlusterFS - Like的世界</title>
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="近日在学习tolua时发现在Kubuntu 11.10 amd64平台下将其链接到so时报告如下错误： relocation R_X86_64_32 against &lsquo;.rodata&rsquo; can not be used when making a shared object &hellip;">
+  <meta name="description" content="本文展示如何在一台Linux物理机/虚拟机上，创建GlusterFS集群。目的在于测试和学习GlusterFS，而非将GlusterFs应用生产环境。 下载节点容器镜像 1
+docker pull gluster/gluster-centos 创建元数据目录 1
+mkdir -p /etc/ &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +20,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch">
+  <link rel="canonical" href="http://www.malike.net.cn/blog/2017/03/02/glusterfs-docker-tutorial">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Like的世界" type="application/atom+xml">
@@ -81,7 +83,7 @@
   
   <header>
     
-      <h1 class="entry-title">为tolua的deb包作一个补丁</h1>
+      <h1 class="entry-title">在Docker容器中创建GlusterFS</h1>
     
     
       <p class="meta">
@@ -97,7 +99,7 @@
   
 
 
-<time datetime="2011-10-31T00:00:00+00:00" pubdate data-updated="true"></time>
+<time datetime="2017-03-02T18:06:07+00:00" pubdate data-updated="true"></time>
         
            | <a href="#disqus_thread"
              data-disqus-identifier="http://www.malike.net.cn">Comments</a>
@@ -107,82 +109,98 @@
   </header>
 
 
-<div class="entry-content"><p>近日在学习tolua时发现在Kubuntu 11.10 amd64平台下将其链接到so时报告如下错误：</p>
+<div class="entry-content"><p>本文展示如何在一台Linux物理机/虚拟机上，创建GlusterFS集群。目的在于测试和学习GlusterFS，而非将GlusterFs应用生产环境。</p>
 
-<blockquote><p>relocation R_X86_64_32 against &lsquo;.rodata&rsquo; can not be used when making a shared object; recompile with -fPIC</p></blockquote>
-
-<p>为此，我决定在其原deb基础上加一个补丁，这样生成的新包可以安装到其他开发机器上，省去了每次重编译tolua的重复劳动。</p>
-
-<p>为构建和修改deb安装必要的工具（配置quilt）：</p>
-
-<pre><code>sudo apt-get install build-essential debhelper quilt
-</code></pre>
-
-<p>下载libtolua-dev的源码，创建补丁add-fpic-O2-for-amd64.patch，并将config文件加入其中：</p>
-
-<pre><code>apt-get source libtolua-dev
-cd tolua-5.1.3
-mkdir -p debian/patches
-quilt new add-fpic-O2-for-amd64.patch
-quilt add config
-</code></pre>
-
-<p>将config文件中，如下内容</p>
+<h2>下载节点容器镜像</h2>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nv">CFLAGS</span> <span class="o">=</span> -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
-</span><span class='line'><span class="nv">CPPFLAGS</span> <span class="o">=</span> -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker pull gluster/gluster-centos
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>替换为</p>
+<h2>创建元数据目录</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mkdir -p /etc/glusterfs<span class="o">{</span>1,2,3<span class="o">}</span> /var/lib/glusterd<span class="o">{</span>1,2,3<span class="o">}</span> /var/log/glusterfs<span class="o">{</span>1,2,3<span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>创建节点容器实例</h2>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nv">CFLAGS</span> <span class="o">=</span> -fPIC -O2 -pipe -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
-</span><span class='line'><span class="nv">CPPFLAGS</span> <span class="o">=</span> -fPIC -O2 -pipe  -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
-</span><span class='line'><span class="nv">CFLAGS</span> <span class="o">=</span> -fPIC -O2 -pipe -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="k">for</span> i in <span class="sb">`</span>seq <span class="m">1</span> 3<span class="sb">`</span><span class="p">;</span> <span class="k">do</span>
+</span><span class='line'>        mkdir -p <span class="nv">$etc$i</span> <span class="nv">$var$i</span> <span class="nv">$log$i</span>
+</span><span class='line'>        docker run -d --privileged<span class="o">=</span><span class="nb">true</span> --name gluster<span class="nv">$i</span> --hostname<span class="o">=</span>gluster<span class="nv">$i</span> <span class="se">\</span>
+</span><span class='line'>                -v /etc/glusterfs<span class="nv">$i</span>:/etc/glusterfs:z <span class="se">\</span>
+</span><span class='line'>                -v /var/lib/glusterd<span class="nv">$i</span>:/var/lib/glusterd:z <span class="se">\</span>
+</span><span class='line'>                -v /var/log/glusterfs<span class="nv">$i</span>:/var/log/glusterfs:z <span class="se">\</span>
+</span><span class='line'>                -v /sys/fs/cgroup:/sys/fs/cgroup:ro <span class="se">\</span>
+</span><span class='line'>                -v /dev:/dev <span class="se">\</span>
+</span><span class='line'>                gluster/gluster-centos
+</span><span class='line'><span class="k">done</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>生成补丁add-fpic-O2-for-amd64.patch</p>
+<h2>组建集群</h2>
 
-<pre><code>quilt refresh
-</code></pre>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker <span class="nb">exec</span> -ti gluster1 /bin/bash
+</span></code></pre></td></tr></table></div></figure>
 
-<p>为补丁增加描述信息</p>
 
-<pre><code>quilt header -e
-</code></pre>
 
-<p>其具体内容如下：</p>
 
-<pre><code>Description: Fix relocation R_X86_64_32 against '.rodata' error for shared object.
-Author: Like Ma &lt;likemartinma@gmail.com&gt;
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gluster peer probe &lt;gluster2 ip addr&gt;
+</span><span class='line'>gluster peer probe &lt;gluster3 ip addr&gt;
+</span></code></pre></td></tr></table></div></figure>
 
-  * config: add -fPIC -O2 -pipe to CFLAGS and CPPFLAGS
-</code></pre>
 
-<p>通过执行</p>
+<h2>创建卷</h2>
 
-<pre><code>dch -R
-</code></pre>
+<h3>冗余卷 (replica)</h3>
 
-<p>在debian/changelog顶部增加日志信息：</p>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gluster peer volume create v1 replica <span class="m">3</span> 172.17.0.<span class="o">{</span>2,3,4<span class="o">}</span>:/mnt/v1 force
+</span></code></pre></td></tr></table></div></figure>
 
-<pre><code>tolua (5.1.3-2) unstable; urgency=low
 
-  * Fix relocation R_X86_64_32 against '.rodata' error for shared object.
+<h3>条带卷 (stripe)</h3>
 
--- Like Ma &lt;likemartinma@gmail.com&gt; Mon, 31 Oct 2011 15:23:09 +0800
-</code></pre>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gluster peer volume create v2 strip <span class="m">3</span> 172.17.0.<span class="o">{</span>2,3,4<span class="o">}</span>:/mnt/v2 force
+</span></code></pre></td></tr></table></div></figure>
 
-<p>构建libtolua-dev_5.1.3-2_amd64.deb:</p>
 
-<pre><code>dpkg-buildpackage -d -uc -us -rfakeroot
-</code></pre>
+<h3>纠删码卷 (disperse)</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gluster peer volume create e3 disperse <span class="m">3</span> redundancy <span class="m">1</span> 172.17.0.<span class="o">{</span>2,3,4<span class="o">}</span>:/mnt/v3 force
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>由于这些容器实例的/mnt与/在同一个分区，故需要指定force参数。</li>
+<li>创建卷时，目录/mnt/v{1,2,3}将被gluster自动创建，前提是父目录 (/mnt)已存在</li>
+</ul>
+
+
+<h2>挂载卷</h2>
+
+<h3>通过FUSE挂载</h3>
+
+<p>```bash
+mount -t glusterfs 172.17.0.2:/v1 /mnt/glusterfs/</p>
 </div>
 
 
@@ -205,12 +223,12 @@ Author: Like Ma &lt;likemartinma@gmail.com&gt;
   
 
 
-<time datetime="2011-10-31T00:00:00+00:00" pubdate data-updated="true"></time>
+<time datetime="2017-03-02T18:06:07+00:00" pubdate data-updated="true"></time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/debian/'>debian</a>, <a class='category' href='/blog/categories/linux/'>linux</a>, <a class='category' href='/blog/categories/lua/'>lua</a>
+    <a class='category' href='/blog/categories/docker/'>docker</a>, <a class='category' href='/blog/categories/glusterfs/'>glusterfs</a>
   
 </span>
 
@@ -219,7 +237,7 @@ Author: Like Ma &lt;likemartinma@gmail.com&gt;
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch/" data-via="" data-counturl="http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.malike.net.cn/blog/2017/03/02/glusterfs-docker-tutorial/" data-via="" data-counturl="http://www.malike.net.cn/blog/2017/03/02/glusterfs-docker-tutorial/" >Tweet</a>
   
   
   <div class="g-plusone" data-size="medium"></div>
@@ -232,10 +250,8 @@ Author: Like Ma &lt;likemartinma@gmail.com&gt;
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2008/10/05/mpc-tutorial/" title="Previous Post: MakeProjectCreator (MPC) 简介">&laquo; MakeProjectCreator (MPC) 简介</a>
+        <a class="basic-alignment left" href="/blog/2016/11/29/shadowsocks-tutorial/" title="Previous Post: Shadowsocks简介">&laquo; Shadowsocks简介</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2011/12/20/vbox-hostonly-dhcp/" title="Next Post: Ubuntu 11.10 VirtualBox的Host-only网卡上外网和DHCP永久地址">Ubuntu 11.10 VirtualBox的Host-only网卡上外网和DHCP永久地址 &raquo;</a>
       
     </p>
   </footer>
@@ -343,8 +359,8 @@ Author: Like Ma &lt;likemartinma@gmail.com&gt;
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch/';
-        var disqus_url = 'http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch/';
+        var disqus_identifier = 'http://www.malike.net.cn/blog/2017/03/02/glusterfs-docker-tutorial/';
+        var disqus_url = 'http://www.malike.net.cn/blog/2017/03/02/glusterfs-docker-tutorial/';
         var disqus_script = 'embed.js';
       
     (function () {

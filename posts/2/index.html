@@ -9,7 +9,8 @@
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="Rinse是一个Debian环境中创建RPM发行版本（如CentOS，Scientific Linux和openSUSE）的工具。你可以利用它轻松创建各种RPM发行版本的chroot环境。 以下基于Ubuntu 12.04 amd64，主要以创建CentOS 6 x86_64为例。 安装Rinse &hellip;">
+  <meta name="description" content="我的工作环境是Ubuntu，然而经常需要CentOS来编译或测试。一般存在3种解决办法： 创建VirtualBox或KVM虚拟机： 优点：部署容易，且可以运行各种应用（如Oracle）。
+缺点：运行速度相对LXC和chroot慢，特别是I/O. 创建CentOS的LXC： 优点：运行速度快， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +79,146 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/08/07/create-chroot-for-ssh-access/">创建通过SSH访问的chroot</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-08-07T10:09:48+00:00" pubdate data-updated="true"></time>
+        
+           | <a href="/blog/2014/08/07/create-chroot-for-ssh-access/#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn/blog/2014/08/07/create-chroot-for-ssh-access/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>我的工作环境是Ubuntu，然而经常需要CentOS来编译或测试。一般存在3种解决办法：</p>
+
+<ul>
+<li>创建VirtualBox或KVM虚拟机：
+
+<ul>
+<li>优点：部署容易，且可以运行各种应用（如Oracle）。</li>
+<li>缺点：运行速度相对LXC和chroot慢，特别是I/O.</li>
+</ul>
+</li>
+<li>创建CentOS的LXC：
+
+<ul>
+<li>优点：运行速度快，且具有独立IP，可以通过SSH访问。</li>
+<li>缺点: 需要修改启动脚本。</li>
+</ul>
+</li>
+<li>创建CentOS的chroot：
+
+<ul>
+<li>优点：不需要修改任何配置。</li>
+<li>缺点：无法直接通过SSH访问，且需要root权限才能运行chroot。</li>
+</ul>
+</li>
+</ul>
+
+
+<h2>创建CentOS的chroot</h2>
+
+<p>具体参看<a href="/blog/2014/07/15/rinse-tutorial/">Rinse简介</a></p>
+
+<h2>创建SSH用户（或组）</h2>
+
+<p>在当前OS环境中，创建用户centos6.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo useradd -m -s /bin/bash centos6
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>获取centos6的uid和gid</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>id -u centos6
+</span><span class='line'>id -g centos6
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在chroot环境中创建同名用户，且保持uid和gid相同。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo chroot /var/lib/centos-6 /bin/bash
+</span><span class='line'>groupadd -g &lt;gid&gt; centos6
+</span><span class='line'>useradd -s /bin/bash -m -u &lt;uid&gt; -g centos6 centos6
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>配置sshd</h2>
+
+<p>将下述内容追加至/etc/ssh/sshd_config</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>Match group centos6
+</span><span class='line'>  ChrootDirectory /var/lib/centos-6
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>确保/var/lib/centos-6的每一级目录的属主为root，且其他用户或组没有写权限。</p>
+
+<p>然后，重启ssh</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>service ssh restart
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样保证centos6组的用户登录ssh时，chroot至/var/lib/centos-6目录中。</p>
+
+<h2>配置dev, proc和sysfs</h2>
+
+<p>chroot环境中rpm安装和卸载的前/后置脚本依赖dev, proc和sysfs，否则可能将造成安装和卸载错误。</p>
+
+<p>在/etc/fstab中，增加proc和sysfs的挂载选项</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>proc /var/lib/centos-6/proc proc  defaults      <span class="m">0</span> 0
+</span><span class='line'>none /var/lib/centos-6/sys  sysfs defaults      <span class="m">0</span> 0
+</span><span class='line'>/dev /var/lib/centos-6/dev  none  defaults,bind <span class="m">0</span> 0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>配置ssh密钥登录</h2>
+
+<p>chroot的ssh密钥登录与常规情况的唯一区别在于公钥应存放在当前OS环境（而非chroot环境）的~/.ssh/authorized_keys，因为sshd在执行chroot之前需要检查公钥是否正确。</p>
+
+<p>因此，本例中应该存放在当前OS的/home/centos-6/.ssh/authorized_keys.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1858,111 +1999,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/12/20/vbox-hostonly-dhcp/">Ubuntu 11.10 VirtualBox的Host-only网卡上外网和DHCP永久地址</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-12-20T00:00:00+00:00" pubdate data-updated="true"></time>
-        
-           | <a href="/blog/2011/12/20/vbox-hostonly-dhcp/#disqus_thread"
-             data-disqus-identifier="http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>VirtualBox支持各种虚拟网络：NAT, Bridge Adapter, Internal Network和Host-only Adapter等。其中Bridged Adapter最为简单和常用，它几乎是0配置，直接桥接有线或无线物理网卡就可以与互联网通信。</p>
-
-<p>然而，我工作场所内部网和家里内部网的网段不相同，DHCP存在一定租赁时间，如果使用Bridged Adapter并DHCP获取IP地址的时候，虚拟机地址经常会改变。为此，我将笔记本电脑的VirtualBox虚拟机都修改为Host-only Adapter模式。</p>
-
-<p>一个问题是Host-only Adapter（网段为192.168.56.0/24）默认不能与互联网通信。google之后发现网上早有人遇到类似问题，他们给出的解决办法是在/etc/rc.local中加入：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>另一个问题是VirtualBox内置DHCP的IP租赁时间设置，也无法将MAC地址与IP地址静态绑定，这造成虚拟机IP地址每隔一段时间改变一次，给使用带来诸多不方便。另一方面，我也不想静态设置IP地址，因为如果这样做，我必须每安装一次虚拟机都要重新设置IP地址。</p>
-
-<p>以前就听说过dnsmasq，不仅集成DNS、DHCP和TFTP功能，而且占用资源很少，设置也相对简单。</p>
-
-<ul>
-<li>安装dnsmasq</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo apt-get install dnsmasq
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>打开/etc/dnsmasq.conf，针对vboxnet0配置DHCP。</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>interface=vboxnet0
-</span><span class='line'>
-</span><span class='line'># 192.168.56.1是默认网关（host机器的vboxnet0地址）
-</span><span class='line'># 208.67.222.222和208.67.220.220是DNS地址(这里使用了OpenDNS)
-</span><span class='line'>dhcp-option=vboxnet0,option:dns-server,192.168.56.1,208.67.222.222,208.67.220.220
-</span><span class='line'>
-</span><span class='line'># 192.168.56.2和192.168.56.254为分配地址范围
-</span><span class='line'># infinite表示IP永远不过期
-</span><span class='line'>dhcp-range=vboxnet0,192.168.56.2,192.168.56.254,infinite</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>重启动dnsmasq</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo service dnsmasq restart
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>当然，dnsmasq也支持MAC地址与IP地址静态绑定。比如，在/etc/dnsmasq.conf中针对MAC地址08:00:27:81:51:85，分配机器名vbox-xp，分配IP地址192.168.56.2</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>dhcp-host=vbox-xp,08:00:27:81:51:85,192.168.56.2</span></code></pre></td></tr></table></div></figure>
-
-
-<p>最后，不要忘了重启动dnsmasq。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="3">&larr; Older</a>
@@ -1980,6 +2016,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2017/03/02/glusterfs-docker-tutorial/">在Docker容器中创建GlusterFS</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/11/29/shadowsocks-tutorial/">Shadowsocks简介</a>
       </li>
     
@@ -1993,10 +2033,6 @@
     
       <li class="post">
         <a href="/blog/2016/06/09/nvm-tutorial/">nvm简介——Debian/Ubuntu中管理多版本Node.js</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/05/21/pyenv-tutorial/">pyenv简介——Debian/Ubuntu中管理多版本Python</a>
       </li>
     
   </ul>
@@ -2045,7 +2081,7 @@
 
 <section>
   <h1>Categories</h1>
-    <ul id="category-list"><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (1)</a></li><li><a href='/blog/categories/debian'>debian (6)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (12)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (4)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (8)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
+    <ul id="category-list"><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (1)</a></li><li><a href='/blog/categories/debian'>debian (6)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (12)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (4)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (8)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
 </section>
 
   

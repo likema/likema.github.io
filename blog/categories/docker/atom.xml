@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: docker | Like的世界]]></title>
+  <link href="http://www.malike.net.cn/blog/categories/docker/atom.xml" rel="self"/>
+  <link href="http://www.malike.net.cn/"/>
+  <updated>2017-03-02T09:34:54+00:00</updated>
+  <id>http://www.malike.net.cn/</id>
+  <author>
+    <name><![CDATA[Like Ma]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[在Docker容器中创建GlusterFS]]></title>
+    <link href="http://www.malike.net.cn/blog/2017/03/02/glusterfs-docker-tutorial/"/>
+    <updated>2017-03-02T18:06:07+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2017/03/02/glusterfs-docker-tutorial</id>
+    <content type="html"><![CDATA[<p>本文展示如何在一台Linux物理机/虚拟机上，创建GlusterFS集群。目的在于测试和学习GlusterFS，而非将GlusterFs应用生产环境。</p>
+
+<h2>下载节点容器镜像</h2>
+
+<pre><code class="bash">docker pull gluster/gluster-centos
+</code></pre>
+
+<h2>创建元数据目录</h2>
+
+<pre><code class="bash">mkdir -p /etc/glusterfs{1,2,3} /var/lib/glusterd{1,2,3} /var/log/glusterfs{1,2,3}
+</code></pre>
+
+<h2>创建节点容器实例</h2>
+
+<pre><code class="bash">for i in `seq 1 3`; do
+        mkdir -p $etc$i $var$i $log$i
+        docker run -d --privileged=true --name gluster$i --hostname=gluster$i \
+                -v /etc/glusterfs$i:/etc/glusterfs:z \
+                -v /var/lib/glusterd$i:/var/lib/glusterd:z \
+                -v /var/log/glusterfs$i:/var/log/glusterfs:z \
+                -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
+                -v /dev:/dev \
+                gluster/gluster-centos
+done
+</code></pre>
+
+<h2>组建集群</h2>
+
+<pre><code class="bash">docker exec -ti gluster1 /bin/bash
+</code></pre>
+
+<pre><code class="bash">gluster peer probe &lt;gluster2 ip addr&gt;
+gluster peer probe &lt;gluster3 ip addr&gt;
+</code></pre>
+
+<h2>创建卷</h2>
+
+<h3>冗余卷 (replica)</h3>
+
+<pre><code class="bash">gluster peer volume create v1 replica 3 172.17.0.{2,3,4}:/mnt/v1 force
+</code></pre>
+
+<h3>条带卷 (stripe)</h3>
+
+<pre><code class="bash">gluster peer volume create v2 strip 3 172.17.0.{2,3,4}:/mnt/v2 force
+</code></pre>
+
+<h3>纠删码卷 (disperse)</h3>
+
+<pre><code class="bash">gluster peer volume create e3 disperse 3 redundancy 1 172.17.0.{2,3,4}:/mnt/v3 force
+</code></pre>
+
+<ul>
+<li>由于这些容器实例的/mnt与/在同一个分区，故需要指定force参数。</li>
+<li>创建卷时，目录/mnt/v{1,2,3}将被gluster自动创建，前提是父目录 (/mnt)已存在</li>
+</ul>
+
+
+<h2>挂载卷</h2>
+
+<h3>通过FUSE挂载</h3>
+
+<p>```bash
+mount -t glusterfs 172.17.0.2:/v1 /mnt/glusterfs/</p>
+]]></content>
+  </entry>
+  
+</feed>
