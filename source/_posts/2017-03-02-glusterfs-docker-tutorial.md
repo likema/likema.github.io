@@ -75,3 +75,4 @@ gluster peer volume create e3 disperse 3 redundancy 1 172.17.0.{2,3,4}:/mnt/v3 f
 
 ```bash
 mount -t glusterfs 172.17.0.2:/v1 /mnt/glusterfs/
+```
