@@ -4,7 +4,7 @@
   <title><![CDATA[Category: glusterfs | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/glusterfs/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2017-03-02T09:35:30+00:00</updated>
+  <updated>2017-03-02T10:48:32+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -82,6 +82,138 @@ gluster peer probe &lt;gluster3 ip addr&gt;
 
 <pre><code class="bash">mount -t glusterfs 172.17.0.2:/v1 /mnt/glusterfs/
 </code></pre>
+
+<h2>脚本化</h2>
+
+<p>为了便于测试，我将上述诸多过程归纳成脚本：</p>
+
+<p><div><script src='https://gist.github.com/69f6617c7567766302ec1ee4a53a0f6c.js?file=gluster_docker'></script>
+<noscript><pre><code>#!/bin/sh
+
+gluster_ip_addr() {
+	local name=$1
+	docker inspect $1  | sed -n &#39;s/.*&quot;IPAddress&quot;:[[:blank:]]\+&quot;\([^&quot;]\+\)&quot;.*/\1/p&#39; | sort -u
+}
+
+gluster_status() {
+	local nodes=$1
+	for i in `seq 1 $nodes`; do
+		echo &quot;== gluster$i (`gluster_ip_addr gluster$i`) status ==&quot;
+		docker exec -ti gluster$i gluster peer status
+		echo
+	done
+}
+
+gluster_probe() {
+	local nodes=$1
+	for i in `seq 2 $nodes`; do
+		docker exec -ti gluster1 gluster peer probe `gluster_ip_addr gluster$i`
+	done
+}
+
+gluster_vol_do() {
+	docker exec -ti gluster1 gluster volume $*
+}
+
+gluster_run() {
+	local nodes=$1
+	local etc=/etc/glusterfs
+	local var=/var/lib/glusterd
+	local log=/var/log/glusterfs
+	local cgroup=/sys/fs/cgroup
+
+	for i in `seq 1 $nodes`; do
+		mkdir -p $etc$i $var$i $log$i
+		docker run -d --privileged=true --name gluster$i --hostname=gluster$i \
+			-v $etc$i:$etc:z \
+			-v $var$i:$var:z \
+			-v $log$i:$log:z \
+			-v $cgroup:$cgroup:ro \
+			-v /dev/:/dev \
+			gluster/gluster-centos
+	done
+}
+
+gluster_do() {
+	local op=$1
+	local nodes=$2
+	for i in `seq 1 $nodes`; do
+		docker $op gluster$i
+	done
+}
+
+gluster_rm() {
+	local nodes=$1
+	for i in `seq 1 $nodes`; do
+		docker rm gluster$i
+	done
+}
+
+if [ $# -lt 1 ]; then
+	echo &quot;gluster_docker run|start|stop|rm|probe|status|vol [&lt;options&gt;]&quot; &gt;&amp;2
+	exit 1
+fi
+
+op=$1
+shift
+
+if [ &quot;$op&quot; = &quot;vol&quot; ]; then
+	if [ $# -lt 2 ]; then
+		echo &quot;gluster_docker vol create|start|stop|info|status|delete|heal &lt;volume&gt; [&lt;options&gt;]&quot; &gt;&amp;2
+		exit 1
+	fi
+
+	vol_op=$1
+	vol=$2
+	shift 2
+
+	case &quot;$vol_op&quot; in
+	create|start|stop|info|status|delete|heal)
+		[ &quot;$vol_op&quot; = &quot;delete&quot; ] &amp;&amp; gluster_vol_do stop $vol
+		if gluster_vol_do $vol_op $vol $* &amp;&amp; [ &quot;$vol_op&quot; = &quot;create&quot; ]; then
+			gluster_vol_do start $vol
+		fi
+		;;
+	*)
+		echo &quot;Unknown vol operation: $vol_op&quot; &gt;&amp;2
+		exit 1
+		;;
+	esac
+else
+	if [ $# -lt 1 ]; then
+		echo &quot;gluster_docker $op &lt;nodes&gt;&quot; &gt;&amp;2
+		exit 1
+	fi
+
+	nodes=$1
+	if [ $nodes -lt 2 ]; then
+		echo &quot;The number of nodes must be at least 2.&quot; &gt;&amp;2
+		exit 1
+	fi
+
+	case &quot;$op&quot; in
+	run)
+		gluster_run $nodes
+		gluster_probe $nodes
+		;;
+	status)
+		gluster_status $nodes
+		;;
+	probe)
+		gluster_probe $nodes
+		;;
+	start|stop|rm)
+		[ &quot;$op&quot; = &quot;rm&quot; ] &amp;&amp; gluster_do stop $nodes
+		gluster_do $op $nodes
+		;;
+	*)
+		echo &quot;Unknown operation: $op&quot; &gt;&amp;2
+		exit 1
+		;;
+	esac
+fi
+</code></pre></noscript></div>
+</p>
 ]]></content>
   </entry>
   
