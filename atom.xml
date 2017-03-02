@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2017-03-02T09:34:54+00:00</updated>
+  <updated>2017-03-02T09:35:30+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -108,8 +108,10 @@
 
 <h3>通过FUSE挂载</h3>
 
-<p>```bash
-mount -t glusterfs 172.17.0.2:/v1 /mnt/glusterfs/</p>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mount -t glusterfs 172.17.0.2:/v1 /mnt/glusterfs/
+</span></code></pre></td></tr></table></div></figure>
+
 ]]></content>
   </entry>
   

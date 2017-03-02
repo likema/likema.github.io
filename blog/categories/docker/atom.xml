@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2017-03-02T09:34:54+00:00</updated>
+  <updated>2017-03-02T09:35:30+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -80,8 +80,8 @@ gluster peer probe &lt;gluster3 ip addr&gt;
 
 <h3>通过FUSE挂载</h3>
 
-<p>```bash
-mount -t glusterfs 172.17.0.2:/v1 /mnt/glusterfs/</p>
+<pre><code class="bash">mount -t glusterfs 172.17.0.2:/v1 /mnt/glusterfs/
+</code></pre>
 ]]></content>
   </entry>
   
