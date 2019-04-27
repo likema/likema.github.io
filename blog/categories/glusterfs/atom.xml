@@ -4,7 +4,7 @@
   <title><![CDATA[Category: glusterfs | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/glusterfs/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2019-04-27T18:38:22+00:00</updated>
+  <updated>2019-04-27T19:44:59+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -18,7 +18,7 @@
     <link href="http://www.malike.net.cn/blog/2017/03/02/glusterfs-docker-tutorial/"/>
     <updated>2017-03-02T18:06:07+00:00</updated>
     <id>http://www.malike.net.cn/blog/2017/03/02/glusterfs-docker-tutorial</id>
-    <content type="html"><![CDATA[<p>本文展示如何在一台Linux物理机/虚拟机上，创建GlusterFS集群。目的在于测试和学习GlusterFS，而非将GlusterFs应用生产环境。</p>
+    <content type="html"><![CDATA[<p>本文展示如何在一台Linux物理机/虚拟机上，创建GlusterFS集群。目的在于测试和学习GlusterFS，而非将GlusterFS应用生产环境。</p>
 
 <h2>下载节点容器镜像</h2>
 
