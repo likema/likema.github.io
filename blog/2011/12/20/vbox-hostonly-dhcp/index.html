@@ -121,14 +121,14 @@
 
 <p>以前就听说过dnsmasq，不仅集成DNS、DHCP和TFTP功能，而且占用资源很少，设置也相对简单。</p>
 
-<p>h2. 安装dnsmasq</p>
+<h2>安装dnsmasq</h2>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo apt-get install -y dnsmasq
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>h2. 创建<code>/etc/dnsmasq.d-available/vboxnet0</code>，针对vboxnet0配置DHCP。</p>
+<h2>创建<code>/etc/dnsmasq.d-available/vboxnet0</code>，针对vboxnet0配置DHCP。</h2>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -148,7 +148,7 @@
 </ul>
 
 
-<p>h2. 创建<code>/etc/network/interfaces.d/vboxnet0</code></p>
+<h2>创建<code>/etc/network/interfaces.d/vboxnet0</code></h2>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -188,21 +188,21 @@
 </ul>
 
 
-<p>h2. 激活vboxnet0</p>
+<h2>激活vboxnet0</h2>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo ifup vboxnet0
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>h2. 重启动dnsmasq</p>
+<h2>重启动dnsmasq</h2>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo service dnsmasq restart
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>h2. 静态地址绑定</p>
+<h2>静态地址绑定</h2>
 
 <p>在 <code>/etc/dnsmasq.d/dhcp-host</code> 中针对MAC地址08:00:27:81:51:85，分配机器名vbox-xp，分配IP地址192.168.56.2</p>
 
