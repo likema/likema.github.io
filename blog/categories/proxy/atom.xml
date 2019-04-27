@@ -4,7 +4,7 @@
   <title><![CDATA[Category: proxy | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/proxy/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2017-03-07T05:41:07+00:00</updated>
+  <updated>2019-04-27T18:38:22+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -164,7 +164,7 @@ sudo systemctl stop shadowsocks-libev
   <entry>
     <title type="html"><![CDATA[SSH翻墙集群]]></title>
     <link href="http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster/"/>
-    <updated>2015-03-15T13:30:43+00:00</updated>
+    <updated>2015-03-15T21:30:43+08:00</updated>
     <id>http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster</id>
     <content type="html"><![CDATA[<p>SSH动态代理是国内较为常见的翻墙方法。正如<a href="/blog/2014/10/27/ssh-tunnel-tutorial/">SSH隧道简介</a>所说，它存在不少有优点。</p>
 

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: debian | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/debian/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2017-03-07T05:41:07+00:00</updated>
+  <updated>2019-04-27T18:38:22+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -288,7 +288,7 @@ exec ./&lt;app&gt;
   <entry>
     <title type="html"><![CDATA[Rinse简介——Debian/Ubuntu中创建RPM安装环境]]></title>
     <link href="http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial/"/>
-    <updated>2014-07-15T12:34:58+00:00</updated>
+    <updated>2014-07-15T20:34:58+08:00</updated>
     <id>http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial</id>
     <content type="html"><![CDATA[<p><a href="http://collab-maint.alioth.debian.org/rinse/">Rinse</a>是一个Debian环境中创建RPM发行版本（如CentOS，Scientific Linux和openSUSE）的工具。你可以利用它轻松创建各种RPM发行版本的chroot环境。</p>
 

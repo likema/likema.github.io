@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2017-03-07T05:41:07+00:00</updated>
+  <updated>2019-04-27T18:38:22+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -27,13 +27,6 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h2>创建元数据目录</h2>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>mkdir -p /etc/glusterfs<span class="o">{</span>1,2,3<span class="o">}</span> /var/lib/glusterd<span class="o">{</span>1,2,3<span class="o">}</span> /var/log/glusterfs<span class="o">{</span>1,2,3<span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
 <h2>创建节点容器实例</h2>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -47,11 +40,11 @@
 <span class='line-number'>9</span>
 <span class='line-number'>10</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="k">for</span> i in <span class="sb">`</span>seq <span class="m">1</span> 3<span class="sb">`</span><span class="p">;</span> <span class="k">do</span>
-</span><span class='line'>        mkdir -p <span class="nv">$etc$i</span> <span class="nv">$var$i</span> <span class="nv">$log$i</span>
 </span><span class='line'>        docker run -d --privileged<span class="o">=</span><span class="nb">true</span> --name gluster<span class="nv">$i</span> --hostname<span class="o">=</span>gluster<span class="nv">$i</span> <span class="se">\</span>
 </span><span class='line'>                -v /etc/glusterfs<span class="nv">$i</span>:/etc/glusterfs:z <span class="se">\</span>
 </span><span class='line'>                -v /var/lib/glusterd<span class="nv">$i</span>:/var/lib/glusterd:z <span class="se">\</span>
 </span><span class='line'>                -v /var/log/glusterfs<span class="nv">$i</span>:/var/log/glusterfs:z <span class="se">\</span>
+</span><span class='line'>                -v /srv/glusterfs<span class="nv">$i</span>:/srv/glusterfs:z <span class="se">\</span>
 </span><span class='line'>                -v /sys/fs/cgroup:/sys/fs/cgroup:ro <span class="se">\</span>
 </span><span class='line'>                -v /dev:/dev <span class="se">\</span>
 </span><span class='line'>                gluster/gluster-centos
@@ -80,27 +73,27 @@
 <h3>冗余卷 (replica)</h3>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>gluster peer volume create v1 replica <span class="m">3</span> 172.17.0.<span class="o">{</span>2,3,4<span class="o">}</span>:/mnt/v1 force
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gluster peer volume create v1 replica <span class="m">3</span> 172.17.0.<span class="o">{</span>2,3,4<span class="o">}</span>:/srv/glusterfs/v1 force
 </span></code></pre></td></tr></table></div></figure>
 
 
 <h3>条带卷 (stripe)</h3>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>gluster peer volume create v2 strip <span class="m">3</span> 172.17.0.<span class="o">{</span>2,3,4<span class="o">}</span>:/mnt/v2 force
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gluster peer volume create v2 strip <span class="m">3</span> 172.17.0.<span class="o">{</span>2,3,4<span class="o">}</span>:/srv/glusterfs/v2 force
 </span></code></pre></td></tr></table></div></figure>
 
 
 <h3>纠删码卷 (disperse)</h3>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>gluster peer volume create e3 disperse <span class="m">3</span> redundancy <span class="m">1</span> 172.17.0.<span class="o">{</span>2,3,4<span class="o">}</span>:/mnt/v3 force
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gluster peer volume create e3 disperse <span class="m">3</span> redundancy <span class="m">1</span> 172.17.0.<span class="o">{</span>2,3,4<span class="o">}</span>:/srv/glusterfs/v3 force
 </span></code></pre></td></tr></table></div></figure>
 
 
 <ul>
-<li>由于这些容器实例的/mnt与/在同一个分区，故需要指定force参数。</li>
-<li>创建卷时，目录/mnt/v{1,2,3}将被gluster自动创建，前提是父目录 (/mnt)已存在</li>
+<li>由于这些容器实例的/srv/glusterfst与/在同一个分区，故需要指定force参数。</li>
+<li>创建容器时，将host的/srv/glusterfs相关目录绑定至容器/srv/glusterfs是为了避免<a href="https://github.com/docker/docker/issues/1070">no xattr support in Docker #1070</a></li>
 </ul>
 
 
@@ -1502,7 +1495,7 @@
   <entry>
     <title type="html"><![CDATA[SSH翻墙集群]]></title>
     <link href="http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster/"/>
-    <updated>2015-03-15T13:30:43+00:00</updated>
+    <updated>2015-03-15T21:30:43+08:00</updated>
     <id>http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster</id>
     <content type="html"><![CDATA[<p>SSH动态代理是国内较为常见的翻墙方法。正如<a href="http://www.malike.net.cn/blog/2014/10/27/ssh-tunnel-tutorial/">SSH隧道简介</a>所说，它存在不少有优点。</p>
 
@@ -1961,7 +1954,7 @@
   <entry>
     <title type="html"><![CDATA[创建通过SSH访问的chroot]]></title>
     <link href="http://www.malike.net.cn/blog/2014/08/07/create-chroot-for-ssh-access/"/>
-    <updated>2014-08-07T10:09:48+00:00</updated>
+    <updated>2014-08-07T18:09:48+08:00</updated>
     <id>http://www.malike.net.cn/blog/2014/08/07/create-chroot-for-ssh-access</id>
     <content type="html"><![CDATA[<p>我的工作环境是Ubuntu，然而经常需要CentOS来编译或测试。一般存在3种解决办法：</p>
 
@@ -2071,7 +2064,7 @@
   <entry>
     <title type="html"><![CDATA[Rinse简介——Debian/Ubuntu中创建RPM安装环境]]></title>
     <link href="http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial/"/>
-    <updated>2014-07-15T12:34:58+00:00</updated>
+    <updated>2014-07-15T20:34:58+08:00</updated>
     <id>http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial</id>
     <content type="html"><![CDATA[<p><a href="http://collab-maint.alioth.debian.org/rinse/">Rinse</a>是一个Debian环境中创建RPM发行版本（如CentOS，Scientific Linux和openSUSE）的工具。你可以利用它轻松创建各种RPM发行版本的chroot环境。</p>
 
@@ -2169,7 +2162,7 @@
 
 <ul>
 <li>通过密钥对，简化用户使用，让用户彻底摆脱密码的记忆（当然用户加密私钥，还是要自己记密码的）；</li>
-<li>通过~/.ssh/authorized_keys的command选项（通过<a href="http://man.he.net/man5/authorized_keys">man authorized_keys</a>阅读详细内容），设置脚本过滤掉业务上无效的指令；</li>
+<li>通过~/.ssh/authorized_keys的<code>command</code>选项（通过<a href="http://man.he.net/man5/authorized_keys">man authorized_keys</a>阅读详细内容），设置脚本过滤掉业务上无效的指令；</li>
 <li>还是通过command选项，限制不同密钥有不同权限，如密钥A只能读，密钥B只能写。</li>
 </ul>
 
@@ -2215,7 +2208,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>该脚本（存储在文件/usr/local/bin/validate_pull_share）限制用户share仅能下载$DATA_DIR的文件, 它需要跟公钥配置在服务器的/home/share/.ssh/authorized_keys，如：</p>
+<p>该脚本（存储在文件/usr/local/bin/validate_pull_share）限制用户share仅能下载<code>$DATA_DIR</code>的文件, 它需要跟公钥配置在服务器的/home/share/.ssh/authorized_keys，如：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">command</span><span class="o">=</span><span class="s2">&quot;/usr/local/bin/validate_pull_share&quot;</span> ssh-rsa &lt;用户公钥A&gt;
@@ -2223,14 +2216,14 @@
 
 
 <ul>
-<li>command选项用于指定脚本，该脚本可以过滤一些远程命令（禁止执行），它相当于远程命令的前置脚本。</li>
-<li>$SSH_ORIGINAL_COMMAND是sshd传递给command脚本环境变量，表示ssh客户端需要远程执行的命令。</li>
+<li><code>command</code>选项用于指定脚本，该脚本可以过滤一些远程命令（禁止执行），它相当于远程命令的前置脚本。</li>
+<li><code>$SSH_ORIGINAL_COMMAND</code>是sshd传递给<code>command</code>脚本环境变量，表示ssh客户端需要远程执行的命令。</li>
 <li>第6行限制仅能执行rsync服务端指令。</li>
-<li>第7行获取$SSH_ORIGINAL_COMMAND的最后一个参数（这里没有考虑有空格的目录），这个参数在这里是rsync需要访问的目录$TARGET.</li>
+<li>第7行获取<code>$SSH_ORIGINAL_COMMAND</code>的最后一个参数（这里没有考虑有空格的目录），这个参数在这里是rsync需要访问的目录$TARGET.</li>
 <li>第8行为命令合法性判断, 由两个条件组成：
 
 <ul>
-<li>判断&ndash;sender参数是否存在于$SSH_ORIGINAL_COMMAND中，&ndash;sender表示该命令为下载命令；</li>
+<li>判断<code>--sender</code>参数是否存在于<code>$SSH_ORIGINAL_COMMAND</code>中，<code>--sender</code>表示该命令为下载命令；</li>
 <li>判断下载目录$TARGET是否与规定的目录一致。</li>
 </ul>
 </li>
@@ -2276,12 +2269,12 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>实际仅与读限制脚本相差一行（第8行），仅允许没有&ndash;sender参数的命令（即上传命令）。</p>
+<p>实际仅与读限制脚本相差一行（第8行），仅允许没有<code>--sender</code>参数的命令（即上传命令）。</p>
 
 <p>该脚本（存储在文件/usr/local/bin/validate_push_share）同样需要跟另一个公钥配置在服务器的/home/share/.ssh/authorized_keys，如：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">command</span><span class="o">=</span><span class="s2">&quot;/usr/local/bin/validate_pull_share&quot;</span> ssh-rsa &lt;用户公钥B&gt;
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">command</span><span class="o">=</span><span class="s2">&quot;/usr/local/bin/validate_push_share&quot;</span> ssh-rsa &lt;用户公钥B&gt;
 </span></code></pre></td></tr></table></div></figure>
 
 

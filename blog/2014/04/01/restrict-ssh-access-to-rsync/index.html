@@ -125,7 +125,7 @@
 
 <ul>
 <li>通过密钥对，简化用户使用，让用户彻底摆脱密码的记忆（当然用户加密私钥，还是要自己记密码的）；</li>
-<li>通过~/.ssh/authorized_keys的command选项（通过<a href="http://man.he.net/man5/authorized_keys">man authorized_keys</a>阅读详细内容），设置脚本过滤掉业务上无效的指令；</li>
+<li>通过~/.ssh/authorized_keys的<code>command</code>选项（通过<a href="http://man.he.net/man5/authorized_keys">man authorized_keys</a>阅读详细内容），设置脚本过滤掉业务上无效的指令；</li>
 <li>还是通过command选项，限制不同密钥有不同权限，如密钥A只能读，密钥B只能写。</li>
 </ul>
 
@@ -171,7 +171,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>该脚本（存储在文件/usr/local/bin/validate_pull_share）限制用户share仅能下载$DATA_DIR的文件, 它需要跟公钥配置在服务器的/home/share/.ssh/authorized_keys，如：</p>
+<p>该脚本（存储在文件/usr/local/bin/validate_pull_share）限制用户share仅能下载<code>$DATA_DIR</code>的文件, 它需要跟公钥配置在服务器的/home/share/.ssh/authorized_keys，如：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">command</span><span class="o">=</span><span class="s2">&quot;/usr/local/bin/validate_pull_share&quot;</span> ssh-rsa &lt;用户公钥A&gt;
@@ -179,14 +179,14 @@
 
 
 <ul>
-<li>command选项用于指定脚本，该脚本可以过滤一些远程命令（禁止执行），它相当于远程命令的前置脚本。</li>
-<li>$SSH_ORIGINAL_COMMAND是sshd传递给command脚本环境变量，表示ssh客户端需要远程执行的命令。</li>
+<li><code>command</code>选项用于指定脚本，该脚本可以过滤一些远程命令（禁止执行），它相当于远程命令的前置脚本。</li>
+<li><code>$SSH_ORIGINAL_COMMAND</code>是sshd传递给<code>command</code>脚本环境变量，表示ssh客户端需要远程执行的命令。</li>
 <li>第6行限制仅能执行rsync服务端指令。</li>
-<li>第7行获取$SSH_ORIGINAL_COMMAND的最后一个参数（这里没有考虑有空格的目录），这个参数在这里是rsync需要访问的目录$TARGET.</li>
+<li>第7行获取<code>$SSH_ORIGINAL_COMMAND</code>的最后一个参数（这里没有考虑有空格的目录），这个参数在这里是rsync需要访问的目录$TARGET.</li>
 <li>第8行为命令合法性判断, 由两个条件组成：
 
 <ul>
-<li>判断&ndash;sender参数是否存在于$SSH_ORIGINAL_COMMAND中，&ndash;sender表示该命令为下载命令；</li>
+<li>判断<code>--sender</code>参数是否存在于<code>$SSH_ORIGINAL_COMMAND</code>中，<code>--sender</code>表示该命令为下载命令；</li>
 <li>判断下载目录$TARGET是否与规定的目录一致。</li>
 </ul>
 </li>
@@ -232,12 +232,12 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>实际仅与读限制脚本相差一行（第8行），仅允许没有&ndash;sender参数的命令（即上传命令）。</p>
+<p>实际仅与读限制脚本相差一行（第8行），仅允许没有<code>--sender</code>参数的命令（即上传命令）。</p>
 
 <p>该脚本（存储在文件/usr/local/bin/validate_push_share）同样需要跟另一个公钥配置在服务器的/home/share/.ssh/authorized_keys，如：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">command</span><span class="o">=</span><span class="s2">&quot;/usr/local/bin/validate_pull_share&quot;</span> ssh-rsa &lt;用户公钥B&gt;
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">command</span><span class="o">=</span><span class="s2">&quot;/usr/local/bin/validate_push_share&quot;</span> ssh-rsa &lt;用户公钥B&gt;
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -392,7 +392,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2017 - Like Ma -
+  Copyright &copy; 2019 - Like Ma -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

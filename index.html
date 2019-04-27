@@ -10,8 +10,15 @@
 
   
   <meta name="description" content="本文展示如何在一台Linux物理机/虚拟机上，创建GlusterFS集群。目的在于测试和学习GlusterFS，而非将GlusterFs应用生产环境。 下载节点容器镜像 1
-docker pull gluster/gluster-centos 创建元数据目录 1
-mkdir -p /etc/ &hellip;">
+docker pull gluster/gluster-centos 创建节点容器实例 1
+2
+3
+4
+5
+6
+7
+8
+9 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -121,13 +128,6 @@ mkdir -p /etc/ &hellip;">
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h2>创建元数据目录</h2>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>mkdir -p /etc/glusterfs<span class="o">{</span>1,2,3<span class="o">}</span> /var/lib/glusterd<span class="o">{</span>1,2,3<span class="o">}</span> /var/log/glusterfs<span class="o">{</span>1,2,3<span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
 <h2>创建节点容器实例</h2>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -141,11 +141,11 @@ mkdir -p /etc/ &hellip;">
 <span class='line-number'>9</span>
 <span class='line-number'>10</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="k">for</span> i in <span class="sb">`</span>seq <span class="m">1</span> 3<span class="sb">`</span><span class="p">;</span> <span class="k">do</span>
-</span><span class='line'>        mkdir -p <span class="nv">$etc$i</span> <span class="nv">$var$i</span> <span class="nv">$log$i</span>
 </span><span class='line'>        docker run -d --privileged<span class="o">=</span><span class="nb">true</span> --name gluster<span class="nv">$i</span> --hostname<span class="o">=</span>gluster<span class="nv">$i</span> <span class="se">\</span>
 </span><span class='line'>                -v /etc/glusterfs<span class="nv">$i</span>:/etc/glusterfs:z <span class="se">\</span>
 </span><span class='line'>                -v /var/lib/glusterd<span class="nv">$i</span>:/var/lib/glusterd:z <span class="se">\</span>
 </span><span class='line'>                -v /var/log/glusterfs<span class="nv">$i</span>:/var/log/glusterfs:z <span class="se">\</span>
+</span><span class='line'>                -v /srv/glusterfs<span class="nv">$i</span>:/srv/glusterfs:z <span class="se">\</span>
 </span><span class='line'>                -v /sys/fs/cgroup:/sys/fs/cgroup:ro <span class="se">\</span>
 </span><span class='line'>                -v /dev:/dev <span class="se">\</span>
 </span><span class='line'>                gluster/gluster-centos
@@ -174,27 +174,27 @@ mkdir -p /etc/ &hellip;">
 <h3>冗余卷 (replica)</h3>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>gluster peer volume create v1 replica <span class="m">3</span> 172.17.0.<span class="o">{</span>2,3,4<span class="o">}</span>:/mnt/v1 force
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gluster peer volume create v1 replica <span class="m">3</span> 172.17.0.<span class="o">{</span>2,3,4<span class="o">}</span>:/srv/glusterfs/v1 force
 </span></code></pre></td></tr></table></div></figure>
 
 
 <h3>条带卷 (stripe)</h3>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>gluster peer volume create v2 strip <span class="m">3</span> 172.17.0.<span class="o">{</span>2,3,4<span class="o">}</span>:/mnt/v2 force
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gluster peer volume create v2 strip <span class="m">3</span> 172.17.0.<span class="o">{</span>2,3,4<span class="o">}</span>:/srv/glusterfs/v2 force
 </span></code></pre></td></tr></table></div></figure>
 
 
 <h3>纠删码卷 (disperse)</h3>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>gluster peer volume create e3 disperse <span class="m">3</span> redundancy <span class="m">1</span> 172.17.0.<span class="o">{</span>2,3,4<span class="o">}</span>:/mnt/v3 force
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gluster peer volume create e3 disperse <span class="m">3</span> redundancy <span class="m">1</span> 172.17.0.<span class="o">{</span>2,3,4<span class="o">}</span>:/srv/glusterfs/v3 force
 </span></code></pre></td></tr></table></div></figure>
 
 
 <ul>
-<li>由于这些容器实例的/mnt与/在同一个分区，故需要指定force参数。</li>
-<li>创建卷时，目录/mnt/v{1,2,3}将被gluster自动创建，前提是父目录 (/mnt)已存在</li>
+<li>由于这些容器实例的/srv/glusterfst与/在同一个分区，故需要指定force参数。</li>
+<li>创建容器时，将host的/srv/glusterfs相关目录绑定至容器/srv/glusterfs是为了避免<a href="https://github.com/docker/docker/issues/1070">no xattr support in Docker #1070</a></li>
 </ul>
 
 
@@ -1798,7 +1798,7 @@ mkdir -p /etc/ &hellip;">
   
 
 
-<time datetime="2015-03-15T13:30:43+00:00" pubdate data-updated="true"></time>
+<time datetime="2015-03-15T21:30:43+08:00" pubdate data-updated="true"></time>
         
            | <a href="/blog/2015/03/15/ssh-proxy-cluster/#disqus_thread"
              data-disqus-identifier="http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster/">Comments</a>
@@ -2415,7 +2415,7 @@ mkdir -p /etc/ &hellip;">
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2017 - Like Ma -
+  Copyright &copy; 2019 - Like Ma -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

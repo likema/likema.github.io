@@ -4,7 +4,7 @@
   <title><![CDATA[Category: dnsmasq | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/dnsmasq/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2017-03-07T05:41:07+00:00</updated>
+  <updated>2019-04-27T18:38:22+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -14,7 +14,7 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Ubuntu 11.10 VirtualBox的Host-only网卡上外网和DHCP永久地址]]></title>
+    <title type="html"><![CDATA[Ubuntu VirtualBox的Host-only网卡上外网和DHCP永久地址]]></title>
     <link href="http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp/"/>
     <updated>2011-12-20T00:00:00+00:00</updated>
     <id>http://www.malike.net.cn/blog/2011/12/20/vbox-hostonly-dhcp</id>
@@ -22,48 +22,78 @@
 
 <p>然而，我工作场所内部网和家里内部网的网段不相同，DHCP存在一定租赁时间，如果使用Bridged Adapter并DHCP获取IP地址的时候，虚拟机地址经常会改变。为此，我将笔记本电脑的VirtualBox虚拟机都修改为Host-only Adapter模式。</p>
 
-<p>一个问题是Host-only Adapter（网段为192.168.56.0/24）默认不能与互联网通信。google之后发现网上早有人遇到类似问题，他们给出的解决办法是在/etc/rc.local中加入：</p>
+<p>存在2个问题：</p>
 
-<pre><code class="sh">iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
-</code></pre>
+<ul>
+<li>Host-only Adapter（网段为192.168.56.0/24）默认不能与互联网通信。</li>
+<li>VirtualBox内置DHCP的IP租赁时间设置，也无法将MAC地址与IP地址静态绑定，这造成虚拟机IP地址每隔一段时间改变一次，给使用带来诸多不方便。另一方面，我也不想静态设置IP地址，因为如果这样做，我必须每安装一次虚拟机都要重新设置IP地址。</li>
+</ul>
 
-<p>另一个问题是VirtualBox内置DHCP的IP租赁时间设置，也无法将MAC地址与IP地址静态绑定，这造成虚拟机IP地址每隔一段时间改变一次，给使用带来诸多不方便。另一方面，我也不想静态设置IP地址，因为如果这样做，我必须每安装一次虚拟机都要重新设置IP地址。</p>
 
 <p>以前就听说过dnsmasq，不仅集成DNS、DHCP和TFTP功能，而且占用资源很少，设置也相对简单。</p>
 
-<ul>
-<li>安装dnsmasq</li>
-</ul>
+<p>h2. 安装dnsmasq</p>
 
-
-<pre><code class="sh">sudo apt-get install dnsmasq
+<pre><code class="sh">sudo apt-get install -y dnsmasq
 </code></pre>
 
-<ul>
-<li>打开/etc/dnsmasq.conf，针对vboxnet0配置DHCP。</li>
-</ul>
-
+<p>h2. 创建<code>/etc/dnsmasq.d-available/vboxnet0</code>，针对vboxnet0配置DHCP。</p>
 
 <pre><code class="plain">interface=vboxnet0
 
-# 192.168.56.1是默认网关（host机器的vboxnet0地址）
-# 208.67.222.222和208.67.220.220是DNS地址(这里使用了OpenDNS)
 dhcp-option=vboxnet0,option:dns-server,192.168.56.1,208.67.222.222,208.67.220.220
 
-# 192.168.56.2和192.168.56.254为分配地址范围
-# infinite表示IP永远不过期
 dhcp-range=vboxnet0,192.168.56.2,192.168.56.254,infinite
 </code></pre>
 
 <ul>
-<li>重启动dnsmasq</li>
+<li><code>dhcp-option</code>: 192.168.56.1是默认网关 (host机器的vboxnet0地址). 208.67.222.222和208.67.220.220是DNS地址 (这里使用了OpenDNS).</li>
+<li><code>dhcp-range</code>: 192.168.56.2和192.168.56.254为分配地址范围. infinite表示IP永远不过期.</li>
 </ul>
 
+
+<p>h2. 创建<code>/etc/network/interfaces.d/vboxnet0</code></p>
+
+<pre><code class="plain">auto vboxnet0
+allow-hotplug vboxnet0
+iface vboxnet0 inet static
+    address 192.168.56.1
+    netmask 255.255.255.0
+    post-up ln -sf /etc/dnsmasq.d-available/vboxnet0 /etc/dnsmasq.d/vboxnet0
+    post-up service dnsmasq restart
+    post-up rm -f /etc/dnsmasq.d/vboxnet0
+    post-up iptables -t nat -I POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
+    post-down service dnsmasq restart
+    post-down iptables -t nat -D POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
+</code></pre>
+
+<ul>
+<li><code>allow-hotplug</code>: 当启动VirtualBox图形界面时，它将创建vboxnet0. 这将触发NetworkManager自动执行<code>ifup vboxnet0</code></li>
+<li><code>post-up</code>
+
+<ol>
+<li>启用<code>/etc/dnsmasq.d-available/vboxnet0</code></li>
+<li>重启dnsmasq，让它监听192.168.56.1</li>
+<li>删除<code>/etc/dnsmasq.d-available/vboxnet0</code>. vboxnet0通常不会随系统启动而自动创建，若默认配置vboxnet0于dnsmasq中，将导致dnsmasq启动失败。</li>
+<li>路由192.168.56.0/24网段，使VirtualBox虚拟机与外网通讯。</li>
+</ol>
+</li>
+</ul>
+
+
+<p>h2. 激活vboxnet0</p>
+
+<pre><code class="sh">sudo ifup vboxnet0
+</code></pre>
+
+<p>h2. 重启动dnsmasq</p>
 
 <pre><code class="sh">sudo service dnsmasq restart
 </code></pre>
 
-<p>当然，dnsmasq也支持MAC地址与IP地址静态绑定。比如，在/etc/dnsmasq.conf中针对MAC地址08:00:27:81:51:85，分配机器名vbox-xp，分配IP地址192.168.56.2</p>
+<p>h2. 静态地址绑定</p>
+
+<p>在 <code>/etc/dnsmasq.d/dhcp-host</code> 中针对MAC地址08:00:27:81:51:85，分配机器名vbox-xp，分配IP地址192.168.56.2</p>
 
 <pre><code class="plain">dhcp-host=vbox-xp,08:00:27:81:51:85,192.168.56.2
 </code></pre>
