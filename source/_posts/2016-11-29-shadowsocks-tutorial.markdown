@@ -22,7 +22,7 @@ categories: [Linux, Ubuntu, Proxy]
 
 网络中普遍采用Python版本的[shadowsocks](https://pypi.python.org/pypi/shadowsocks)，该版本看似安装简单，却存在如下缺点：
 
-* 没有Linux操作系统原生安装包（如：RPM和DEB）。
+* 没有Linux操作系统原生安装包（如：RPM和DEB）：从Ubuntu 16.04开始，提供shadowsocks安装包。
 * 没有操作系统的服务脚本（如init.d和upstart）。
 * Python程序占用内存较多，运行效率不佳。
 
@@ -35,14 +35,12 @@ categories: [Linux, Ubuntu, Proxy]
 
 ## 安装shadowsocks-libev
 
-虽然shadowsocks-libev可以编译出DEB，但是默认没有提供Ubuntu的包仓库。为了方便安装，我将它构建于我的PPA中。
-
 客户端和服务端的安装方法相同：
 
 ```bash
-sudo add-apt-repository ppa:likemartinma/net
+sudo add-apt-repository ppa:max-c-lv/shadowsocks-libev
 sudo apt-get update
-sudo apt-get install shadowsocks-libev
+sudo apt-get install -y shadowsocks-libev
 ```
 
 ## 配置shadowsocks-libev服务端
@@ -62,7 +60,7 @@ sudo apt-get install shadowsocks-libev
 * `password`为客户端和服务端预设的共享密码，它最好由安全密码生成器生成（如[LastPass](https://www.lastpass.com/)或[KeePass](http://keepass.info/)），且长度不小于6个字符。
 * `timeout`为连接超时时间。
 * `method`为加密算法，`aes-256-cfb`的安全性较好。
- 
+
 配置完成后，需重启：
 
 ```bash
@@ -125,9 +123,24 @@ sudo service shadowsocks-libev stop
 
 ### Ubuntu 16.04
 
-安装包提供了systemd的服务模板/lib/systemd/system/shadowsocks-libev-local@.service:
+安装包提供了systemd的服务模板/lib/systemd/system/shadowsocks-libev-local@.service
+
+默认`ss-local`以root用户运行，可修改上述模板为nobody用户和nogroup组，从而提高安全：
+
+```
+[Service]
+Type=simple
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+User=nobody
+Group=nogroup
+ExecStart=/usr/bin/ss-local -c /etc/shadowsocks-libev/%i.json.
+```
+
+注意，升级shadowsocks-libev，模板将回复原状，须再次修改。
 
 ```bash
+sudo systemctl daemon-reload
 sudo systemctl enable shadowsocks-libev-local@client
 sudo systemctl start shadowsocks-libev-local@client
 ```
@@ -145,8 +158,6 @@ sudo systemctl stop shadowsocks-libev
 
 类似SSH集群，多个shadowsocks也可以构建SOCKS 5集群，具体请参考《[SSH翻墙集群](http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster/)》的“HAProxy的配置方法”。
 
+实用中发现，`ss-local`不会因为shadowsocks服务器是否可达，而停止运行或拒绝HAProxy连接。
 
-
-
-
-
+导致HAProxy无法探测shadowsocks服务器是否离线或不可访问，部分负载将失败或重试（浏览器），从而影响体验。
