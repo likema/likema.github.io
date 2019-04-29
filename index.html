@@ -9,16 +9,7 @@
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="本文展示如何在一台Linux物理机/虚拟机上，创建GlusterFS集群。目的在于测试和学习GlusterFS，而非将GlusterFS应用生产环境。 下载节点容器镜像 1
-docker pull gluster/gluster-centos 创建节点容器实例 1
-2
-3
-4
-5
-6
-7
-8
-9 &hellip;">
+  <meta name="description" content="在《Shadowsocks简介》中，我介绍了如何使用Shadowsocks。但它不具备负载均衡集群能力，而结合HAProxy的集群配置复杂。 shadowsocks-rust是Shadowsocks的Rust语言实现，它不仅具有传统Shadowsocks特性，而且还具有： 负载均衡 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -87,6 +78,178 @@ docker pull gluster/gluster-centos 创建节点容器实例 1
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2019/04/30/shadowsocks-rust-tutorial/">Shadowsocks-Rust简介</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2019-04-30T01:30:00+00:00" pubdate data-updated="true"></time>
+        
+           | <a href="/blog/2019/04/30/shadowsocks-rust-tutorial/#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn/blog/2019/04/30/shadowsocks-rust-tutorial/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在《<a href="https://www.malike.net.cn/blog/2016/11/29/shadowsocks-tutorial/">Shadowsocks简介</a>》中，我介绍了如何使用<a href="https://shadowsocks.org/en/index.html">Shadowsocks</a>。但它不具备负载均衡集群能力，而结合HAProxy的集群配置复杂。</p>
+
+<p><a href="https://github.com/shadowsocks/shadowsocks-rust">shadowsocks-rust</a>是Shadowsocks的Rust语言实现，它不仅具有传统Shadowsocks特性，而且还具有：</p>
+
+<ul>
+<li><strong>负载均衡</strong> 多个Shadowsocks服务器的能力。</li>
+<li>探测Shadowsocks服务器 <strong>延迟</strong> 的能力。</li>
+</ul>
+
+
+<h2>安装</h2>
+
+<p>Shadowsocks-Rust未提供DEB安装包。为了方便安装，可下载其<a href="https://github.com/shadowsocks/shadowsocks-rust/releases">静态链接版本</a></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo tar atf shadowsocks-v1.7.0-nightly.x86_64-unknown-linux-musl.tar.xz -C /usr/local/bin
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>配置</h2>
+
+<p>以root用户创建目录/etc/shadowsocks-rust，编辑/etc/shadowsocks-rust/config.json：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;servers&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="nt">&quot;address&quot;</span><span class="p">:</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="nt">&quot;port&quot;</span><span class="p">:</span> <span class="mi">1080</span><span class="p">,</span>
+</span><span class='line'>            <span class="nt">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;hello-world&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="nt">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;aes-256-cfb&quot;</span>
+</span><span class='line'>            <span class="s2">&quot;timeout&quot;</span><span class="p">:</span> <span class="mi">300</span>
+</span><span class='line'>        <span class="p">},</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="nt">&quot;address&quot;</span><span class="p">:</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="nt">&quot;port&quot;</span><span class="p">:</span> <span class="mi">1081</span><span class="p">,</span>
+</span><span class='line'>            <span class="nt">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;hello-kitty&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="nt">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;aes-256-cfb&quot;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">],</span>
+</span><span class='line'>    <span class="nt">&quot;local_port&quot;</span><span class="p">:</span> <span class="mi">8388</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;local_address&quot;</span><span class="p">:</span> <span class="s2">&quot;127.0.0.1&quot;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>address</code>为服务端地址。</li>
+<li><code>server_port</code>为服务端监听端口。</li>
+<li><code>password</code>为客户端和服务端预设的共享密码，它最好由安全密码生成器生成（如<a href="https://www.lastpass.com/">LastPass</a>或<a href="http://keepass.info/">KeePass</a>），且长度不小于6个字符。</li>
+<li><code>timeout</code>为连接超时时间。</li>
+<li><code>method</code>为加密算法，<code>aes-256-cfb</code>的安全性较好。</li>
+<li>每个<code>servers</code>元素为一个Shadowsocks服务器配置。</li>
+</ul>
+
+
+<p>因Ubuntu 14.04过保，下面仅以Ubuntu 16.04及以后版本为例。</p>
+
+<p>以root用户创建/etc/systemd/system/shadowsocks-rust-local.service:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[Unit]</span>
+</span><span class='line'><span class="na">Description</span><span class="o">=</span><span class="s">Shadowsocks-Rust Custom Client Service.</span>
+</span><span class='line'><span class="na">Documentation</span><span class="o">=</span><span class="s">sslocal -h</span>
+</span><span class='line'><span class="na">After</span><span class="o">=</span><span class="s">network.target</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">[Service]</span>
+</span><span class='line'><span class="na">Type</span><span class="o">=</span><span class="s">simple</span>
+</span><span class='line'><span class="na">CapabilityBoundingSet</span><span class="o">=</span><span class="s">CAP_NET_BIND_SERVICE</span>
+</span><span class='line'><span class="na">AmbientCapabilities</span><span class="o">=</span><span class="s">CAP_NET_BIND_SERVICE</span>
+</span><span class='line'><span class="na">User</span><span class="o">=</span><span class="s">nobody</span>
+</span><span class='line'><span class="na">Group</span><span class="o">=</span><span class="s">nogroup</span>
+</span><span class='line'><span class="na">ExecStart</span><span class="o">=</span><span class="s">/usr/local/bin/sslocal --log-without-time -c /etc/shadowsocks-rust/config.json</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">[Install]</span>
+</span><span class='line'><span class="na">WantedBy</span><span class="o">=</span><span class="s">multi-user.target</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注册并启动服务：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo chown -R root:nogroup /etc/shadowsocks-rust
+</span><span class='line'>sudo chmod -R g-w,o-rwx /etc/shadowsocks-rust
+</span><span class='line'>sudo systemctl daemon-reload
+</span><span class='line'>sudo systemctl <span class="nb">enable </span>shadowsocks-rust
+</span><span class='line'>sudo systemctl start shadowsocks-rust
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注：</p>
+
+<ul>
+<li>为降低<code>sslocal</code>进程权限，以nobody用户和nogroup组运行它。</li>
+<li>为防止密码泄漏，/etc/shadowsocks-rust/config.json仅root用户或nogroup组可读。</li>
+<li>限制<code>sslocal</code>进程仅能监听socket.</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -299,16 +462,14 @@ docker pull gluster/gluster-centos 创建节点容器实例 1
 
 <h2>安装shadowsocks-libev</h2>
 
-<p>虽然shadowsocks-libev可以编译出DEB，但是默认没有提供Ubuntu的包仓库。为了方便安装，我将它构建于我的PPA中。</p>
-
 <p>客户端和服务端的安装方法相同：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo add-apt-repository ppa:likemartinma/net
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo add-apt-repository ppa:max-c-lv/shadowsocks-libev
 </span><span class='line'>sudo apt-get update
-</span><span class='line'>sudo apt-get install shadowsocks-libev
+</span><span class='line'>sudo apt-get install -y shadowsocks-libev
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -429,7 +590,7 @@ docker pull gluster/gluster-centos 创建节点容器实例 1
 
 <p>安装包提供了systemd的服务模板/lib/systemd/system/shadowsocks-libev-local@.service</p>
 
-<p>默认<code>ss-local</code>以root用户运行，可修改上述模板为<code>nobody</code>用户和<code>nogroup</code>组，从而提高安全：</p>
+<p>默认<code>ss-local</code>以root用户运行，可修改上述模板为nobody用户和nogroup组，从而提高安全：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -2266,93 +2427,6 @@ docker pull gluster/gluster-centos 创建节点容器实例 1
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/10/27/ssh-tunnel-tutorial/">SSH隧道简介</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-27T00:00:00+00:00" pubdate data-updated="true"></time>
-        
-           | <a href="/blog/2014/10/27/ssh-tunnel-tutorial/#disqus_thread"
-             data-disqus-identifier="http://www.malike.net.cn/blog/2014/10/27/ssh-tunnel-tutorial/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>SSH的功能非常强大，日常除了用于命令行远程登录服务器。它还具有神奇的隧道（tunnel）功能（也被称为SSH代理），可用于加密访问本地或远程主机的服务。</p>
-
-<p>通常，SSH代理具有3种方式：</p>
-
-<h2>SSH（正向）代理</h2>
-
-<p>通过参数-L [bind_address:]port:remote_host:remote_port，将指定本地（客户端）端口转发至远程端口上。</p>
-
-<p><img src="/images/ssh-tunnel-proxy.png" alt="SSH Proxy" /></p>
-
-<p>如上图， hosta无法直接访问hostb，但它能直接SSH登录gateway；如此通过gateway，将hosta的端口X转发至hostb的端口Y上。相当于端口X和端口Y之间建立了加密隧道。</p>
-
-<p>一般来说，端口Y为hostb上某服务的监听端口。当建立隧道后，hosta将监听端口X。应用程序访问hosta的端口X，等同于访问hostb的端口Y。对于应用程序，hostb端口Y对应的服务就如同运行在hosta上。</p>
-
-<p>日常工作中，客户的网络常由于信息安全而被网关（或防火墙）隔离。当我们的软件在客户网络中某服务器发生问题时，我们常需奔赴客户现场进行调试。若客户存在某机器安装了SSH服务器，且能被外部访问。就可以利用SSH正向代理的方法，快速简便的登录被隔离的服务器并进行应用调试。</p>
-
-<h2>SSH反向代理</h2>
-
-<p>通过参数-R [bind_address:]port:remote_host:remote_port，将指定远程端口转发至本地（客户端）端口上。</p>
-
-<p><img src="/images/ssh-tunnel-reverse-proxy.png" alt="SSH Reverse Proxy" /></p>
-
-<p>如上图，hosta在防火墙内，无法被hostb直接访问。但它能直接SSH登录hostb；如此通过hostb，将hostb的端口X转发至hosta的端口Y上。该方法与SSH正向代理类似，所不同的是该隧道的访问方向是从服务端（hostb）至客户端(hosta），故被称为反向代理。</p>
-
-<p>其应用场景也与SSH正向代理类似，所不同的是若客户不存在可供外部访问的SSH服务器时，我们可以在外网建设一个SSH服务器给客户的被隔离服务器来建立隧道。如此，我们可以访问自己的SSH服务器对应端口来调试客户服务器的应用。</p>
-
-<p>更进一步，客户内网甚至不能访问外网，此时可利用客户内网一台笔记本（或台式机，它可以访问目标服务器）USB接上3G/4G手机来达到访问外部SSH服务器的目的。</p>
-
-<p><img src="/images/ssh-tunnel-reverse-proxy-mobile.png" alt="SSH Reverse Proxy Mobile" /></p>
-
-<h2>SSH动态代理</h2>
-
-<p>通过参数-D [bind_address:]port，利用远程服务器为访问出口，在本地建立SOCKS 4/5代理服务器。</p>
-
-<p>可以形象描绘为将本地应用的端口（SOCKS客户端端口），动态转发至远程。</p>
-
-<p><img src="/images/ssh-tunnel-dynamic-proxy.png" alt="SSH Dynamic Proxy" /></p>
-
-<p>该功能广为人知的应用场景为翻墙。如上图，在国外租用VPS（hostb），客户端（hosta）通过SSH动态代理端口X（SOCKS 4/5的端口）便可以访问被GFW封锁的网络。</p>
-
-<p>这种翻墙最大的优势在于</p>
-
-<ul>
-<li>低成本：国外廉价低配置VPS基本满足个人翻墙需求。</li>
-<li>服务端0配置：服务端只需要安装SSH服务端。</li>
-<li>客户端配置简单：客户端需要安装SSH客户端，以及一条命令。</li>
-<li>加密隧道：保证网络访问的数据安全。</li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="2">&larr; Older</a>
@@ -2368,6 +2442,10 @@ docker pull gluster/gluster-centos 创建节点容器实例 1
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/04/30/shadowsocks-rust-tutorial/">Shadowsocks-Rust简介</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2017/03/02/glusterfs-docker-tutorial/">在Docker容器中创建GlusterFS</a>
       </li>
     
@@ -2381,10 +2459,6 @@ docker pull gluster/gluster-centos 创建节点容器实例 1
     
       <li class="post">
         <a href="/blog/2016/07/03/python-3-dot-5-async-actor/">基于Python 3.5异步的Actor模型</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/06/09/nvm-tutorial/">nvm简介——Debian/Ubuntu中管理多版本Node.js</a>
       </li>
     
   </ul>
@@ -2433,7 +2507,7 @@ docker pull gluster/gluster-centos 创建节点容器实例 1
 
 <section>
   <h1>Categories</h1>
-    <ul id="category-list"><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (1)</a></li><li><a href='/blog/categories/debian'>debian (6)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (12)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (4)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (8)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
+    <ul id="category-list"><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (1)</a></li><li><a href='/blog/categories/debian'>debian (6)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (13)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (9)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
 </section>
 
   

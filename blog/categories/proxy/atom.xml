@@ -4,7 +4,7 @@
   <title><![CDATA[Category: proxy | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/proxy/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2019-04-27T19:51:04+00:00</updated>
+  <updated>2019-04-29T17:48:51+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,104 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Shadowsocks-Rust简介]]></title>
+    <link href="http://www.malike.net.cn/blog/2019/04/30/shadowsocks-rust-tutorial/"/>
+    <updated>2019-04-30T01:30:00+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2019/04/30/shadowsocks-rust-tutorial</id>
+    <content type="html"><![CDATA[<p>在《<a href="https://www.malike.net.cn/blog/2016/11/29/shadowsocks-tutorial/">Shadowsocks简介</a>》中，我介绍了如何使用<a href="https://shadowsocks.org/en/index.html">Shadowsocks</a>。但它不具备负载均衡集群能力，而结合HAProxy的集群配置复杂。</p>
+
+<p><a href="https://github.com/shadowsocks/shadowsocks-rust">shadowsocks-rust</a>是Shadowsocks的Rust语言实现，它不仅具有传统Shadowsocks特性，而且还具有：</p>
+
+<ul>
+<li><strong>负载均衡</strong> 多个Shadowsocks服务器的能力。</li>
+<li>探测Shadowsocks服务器 <strong>延迟</strong> 的能力。</li>
+</ul>
+
+
+<h2>安装</h2>
+
+<p>Shadowsocks-Rust未提供DEB安装包。为了方便安装，可下载其<a href="https://github.com/shadowsocks/shadowsocks-rust/releases">静态链接版本</a></p>
+
+<pre><code class="bash">sudo tar atf shadowsocks-v1.7.0-nightly.x86_64-unknown-linux-musl.tar.xz -C /usr/local/bin
+</code></pre>
+
+<h2>配置</h2>
+
+<p>以root用户创建目录/etc/shadowsocks-rust，编辑/etc/shadowsocks-rust/config.json：</p>
+
+<pre><code class="json">{
+    "servers": [
+        {
+            "address": "127.0.0.1",
+            "port": 1080,
+            "password": "hello-world",
+            "method": "aes-256-cfb"
+            "timeout": 300
+        },
+        {
+            "address": "127.0.0.1",
+            "port": 1081,
+            "password": "hello-kitty",
+            "method": "aes-256-cfb"
+        }
+    ],
+    "local_port": 8388,
+    "local_address": "127.0.0.1"
+}
+</code></pre>
+
+<ul>
+<li><code>address</code>为服务端地址。</li>
+<li><code>server_port</code>为服务端监听端口。</li>
+<li><code>password</code>为客户端和服务端预设的共享密码，它最好由安全密码生成器生成（如<a href="https://www.lastpass.com/">LastPass</a>或<a href="http://keepass.info/">KeePass</a>），且长度不小于6个字符。</li>
+<li><code>timeout</code>为连接超时时间。</li>
+<li><code>method</code>为加密算法，<code>aes-256-cfb</code>的安全性较好。</li>
+<li>每个<code>servers</code>元素为一个Shadowsocks服务器配置。</li>
+</ul>
+
+
+<p>因Ubuntu 14.04过保，下面仅以Ubuntu 16.04及以后版本为例。</p>
+
+<p>以root用户创建/etc/systemd/system/shadowsocks-rust-local.service:</p>
+
+<pre><code class="ini">[Unit]
+Description=Shadowsocks-Rust Custom Client Service.
+Documentation=sslocal -h
+After=network.target
+
+[Service]
+Type=simple
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+User=nobody
+Group=nogroup
+ExecStart=/usr/local/bin/sslocal --log-without-time -c /etc/shadowsocks-rust/config.json
+
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+
+<p>注册并启动服务：</p>
+
+<pre><code class="bash">sudo chown -R root:nogroup /etc/shadowsocks-rust
+sudo chmod -R g-w,o-rwx /etc/shadowsocks-rust
+sudo systemctl daemon-reload
+sudo systemctl enable shadowsocks-rust
+sudo systemctl start shadowsocks-rust
+</code></pre>
+
+<p>注：</p>
+
+<ul>
+<li>为降低<code>sslocal</code>进程权限，以nobody用户和nogroup组运行它。</li>
+<li>为防止密码泄漏，/etc/shadowsocks-rust/config.json仅root用户或nogroup组可读。</li>
+<li>限制<code>sslocal</code>进程仅能监听socket.</li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Shadowsocks简介]]></title>
@@ -56,13 +154,11 @@
 
 <h2>安装shadowsocks-libev</h2>
 
-<p>虽然shadowsocks-libev可以编译出DEB，但是默认没有提供Ubuntu的包仓库。为了方便安装，我将它构建于我的PPA中。</p>
-
 <p>客户端和服务端的安装方法相同：</p>
 
-<pre><code class="bash">sudo add-apt-repository ppa:likemartinma/net
+<pre><code class="bash">sudo add-apt-repository ppa:max-c-lv/shadowsocks-libev
 sudo apt-get update
-sudo apt-get install shadowsocks-libev
+sudo apt-get install -y shadowsocks-libev
 </code></pre>
 
 <h2>配置shadowsocks-libev服务端</h2>
@@ -143,7 +239,7 @@ sudo chmod 0640 /etc/shadowsocks-libev/client.json
 
 <p>安装包提供了systemd的服务模板/lib/systemd/system/shadowsocks-libev-local@.service</p>
 
-<p>默认<code>ss-local</code>以root用户运行，可修改上述模板为<code>nobody</code>用户和<code>nogroup</code>组，从而提高安全：</p>
+<p>默认<code>ss-local</code>以root用户运行，可修改上述模板为nobody用户和nogroup组，从而提高安全：</p>
 
 <pre><code>[Service]
 Type=simple

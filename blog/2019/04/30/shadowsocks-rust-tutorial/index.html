@@ -5,16 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>nvm简介——Debian/Ubuntu中管理多版本Node.js - Like的世界</title>
+  <title>Shadowsocks-Rust简介 - Like的世界</title>
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="nvm是管理Node.js版本的工具，它支持在多个Node.js版本间切换。 一、安装nvm 1
-2
-3
-git clone https://github.com/creationix/nvm.git ~/.nvm
-cd ~/.nvm
-git checkout `git describe -- &hellip;">
+  <meta name="description" content="在《Shadowsocks简介》中，我介绍了如何使用Shadowsocks。但它不具备负载均衡集群能力，而结合HAProxy的集群配置复杂。 shadowsocks-rust是Shadowsocks的Rust语言实现，它不仅具有传统Shadowsocks特性，而且还具有： 负载均衡 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -23,7 +18,7 @@ git checkout `git describe -- &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://www.malike.net.cn/blog/2016/06/09/nvm-tutorial">
+  <link rel="canonical" href="http://www.malike.net.cn/blog/2019/04/30/shadowsocks-rust-tutorial">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Like的世界" type="application/atom+xml">
@@ -86,7 +81,7 @@ git checkout `git describe -- &hellip;">
   
   <header>
     
-      <h1 class="entry-title">nvm简介——Debian/Ubuntu中管理多版本Node.js</h1>
+      <h1 class="entry-title">Shadowsocks-Rust简介</h1>
     
     
       <p class="meta">
@@ -102,7 +97,7 @@ git checkout `git describe -- &hellip;">
   
 
 
-<time datetime="2016-06-09T00:00:00+00:00" pubdate data-updated="true"></time>
+<time datetime="2019-04-30T01:30:00+00:00" pubdate data-updated="true"></time>
         
            | <a href="#disqus_thread"
              data-disqus-identifier="http://www.malike.net.cn">Comments</a>
@@ -112,128 +107,139 @@ git checkout `git describe -- &hellip;">
   </header>
 
 
-<div class="entry-content"><p><a href="https://github.com/creationix/nvm">nvm</a>是管理Node.js版本的工具，它支持在多个Node.js版本间切换。</p>
+<div class="entry-content"><p>在《<a href="https://www.malike.net.cn/blog/2016/11/29/shadowsocks-tutorial/">Shadowsocks简介</a>》中，我介绍了如何使用<a href="https://shadowsocks.org/en/index.html">Shadowsocks</a>。但它不具备负载均衡集群能力，而结合HAProxy的集群配置复杂。</p>
 
-<h2>一、安装nvm</h2>
+<p><a href="https://github.com/shadowsocks/shadowsocks-rust">shadowsocks-rust</a>是Shadowsocks的Rust语言实现，它不仅具有传统Shadowsocks特性，而且还具有：</p>
+
+<ul>
+<li><strong>负载均衡</strong> 多个Shadowsocks服务器的能力。</li>
+<li>探测Shadowsocks服务器 <strong>延迟</strong> 的能力。</li>
+</ul>
+
+
+<h2>安装</h2>
+
+<p>Shadowsocks-Rust未提供DEB安装包。为了方便安装，可下载其<a href="https://github.com/shadowsocks/shadowsocks-rust/releases">静态链接版本</a></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo tar atf shadowsocks-v1.7.0-nightly.x86_64-unknown-linux-musl.tar.xz -C /usr/local/bin
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>配置</h2>
+
+<p>以root用户创建目录/etc/shadowsocks-rust，编辑/etc/shadowsocks-rust/config.json：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone https://github.com/creationix/nvm.git ~/.nvm
-</span><span class='line'><span class="nb">cd</span> ~/.nvm
-</span><span class='line'>git checkout <span class="sb">`</span>git describe --abbrev<span class="o">=</span><span class="m">0</span> --tags<span class="sb">`</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;servers&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="nt">&quot;address&quot;</span><span class="p">:</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="nt">&quot;port&quot;</span><span class="p">:</span> <span class="mi">1080</span><span class="p">,</span>
+</span><span class='line'>            <span class="nt">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;hello-world&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="nt">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;aes-256-cfb&quot;</span>
+</span><span class='line'>            <span class="s2">&quot;timeout&quot;</span><span class="p">:</span> <span class="mi">300</span>
+</span><span class='line'>        <span class="p">},</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="nt">&quot;address&quot;</span><span class="p">:</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="nt">&quot;port&quot;</span><span class="p">:</span> <span class="mi">1081</span><span class="p">,</span>
+</span><span class='line'>            <span class="nt">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;hello-kitty&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="nt">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;aes-256-cfb&quot;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">],</span>
+</span><span class='line'>    <span class="nt">&quot;local_port&quot;</span><span class="p">:</span> <span class="mi">8388</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;local_address&quot;</span><span class="p">:</span> <span class="s2">&quot;127.0.0.1&quot;</span>
+</span><span class='line'><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>激活nvm</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>. ~/.nvm/nvm.sh
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>为了每次登录后自动激活nvm，需要将<code>NMV_DIR</code>、<code>nvm.sh</code>和补齐加入bash的~/.bashrc（或zsh的~/.zshrc）</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">NVM_DIR</span><span class="o">=</span>~/.nvm
-</span><span class='line'><span class="o">[</span> -s <span class="s2">&quot;$NVM_DIR/nvm.sh&quot;</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> . <span class="s2">&quot;$NVM_DIR/nvm.sh&quot;</span>
-</span><span class='line'><span class="o">[</span> -r <span class="nv">$NVM_DIR</span>/bash_completion <span class="o">]</span> <span class="o">&amp;&amp;</span> . <span class="nv">$NVM_DIR</span>/bash_completion
-</span></code></pre></td></tr></table></div></figure>
+<ul>
+<li><code>address</code>为服务端地址。</li>
+<li><code>server_port</code>为服务端监听端口。</li>
+<li><code>password</code>为客户端和服务端预设的共享密码，它最好由安全密码生成器生成（如<a href="https://www.lastpass.com/">LastPass</a>或<a href="http://keepass.info/">KeePass</a>），且长度不小于6个字符。</li>
+<li><code>timeout</code>为连接超时时间。</li>
+<li><code>method</code>为加密算法，<code>aes-256-cfb</code>的安全性较好。</li>
+<li>每个<code>servers</code>元素为一个Shadowsocks服务器配置。</li>
+</ul>
 
 
-<h2>二、nvm常用命令</h2>
+<p>因Ubuntu 14.04过保，下面仅以Ubuntu 16.04及以后版本为例。</p>
 
-<h3>列表可安装的Node.js版本</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm ls-remote
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>除了Node.js官方版本，还支持io.js</p>
-
-<h3>安装指定版本的Node.js</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm install 6.2.1
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>它会自动下载指定版本的Node.js二进制包（不需要编译源码），安装在~/.nvm/versions/node</p>
-
-<h3>卸载指定版本的Node.js</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm uninstall 6.2.1
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>设置shell的Node.js版本</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm use 6.2.1
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>它将Node.js指定版本的bin路径加入PATH.</p>
-
-<p>还原环境变量PATH</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm deactivate
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>迁移npm至新版本的Node.js</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm install node --reinstall-packages-from<span class="o">=</span>node
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>或</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm install v6.2.1 --reinstall-packages-from<span class="o">=</span>5.0
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>.nvmrc</h3>
-
-<p>它存储在工程根目录中，用于记录该工程依赖的Node.js版本</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo </span>6.2.1 &gt; .nvmrc
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>进入工程目录（当前目录），运行</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm use
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>将根据.nvmrc指定shell的Nodejs版本</p>
-
-<h2>三、升级nvm</h2>
+<p>以root用户创建/etc/systemd/system/shadowsocks-rust-local.service:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> <span class="nv">$NVM_DIR</span>
-</span><span class='line'>git fetch origin
-</span><span class='line'>git checkout <span class="sb">`</span>git describe --abbrev<span class="o">=</span><span class="m">0</span> --tags<span class="sb">`</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[Unit]</span>
+</span><span class='line'><span class="na">Description</span><span class="o">=</span><span class="s">Shadowsocks-Rust Custom Client Service.</span>
+</span><span class='line'><span class="na">Documentation</span><span class="o">=</span><span class="s">sslocal -h</span>
+</span><span class='line'><span class="na">After</span><span class="o">=</span><span class="s">network.target</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">[Service]</span>
+</span><span class='line'><span class="na">Type</span><span class="o">=</span><span class="s">simple</span>
+</span><span class='line'><span class="na">CapabilityBoundingSet</span><span class="o">=</span><span class="s">CAP_NET_BIND_SERVICE</span>
+</span><span class='line'><span class="na">AmbientCapabilities</span><span class="o">=</span><span class="s">CAP_NET_BIND_SERVICE</span>
+</span><span class='line'><span class="na">User</span><span class="o">=</span><span class="s">nobody</span>
+</span><span class='line'><span class="na">Group</span><span class="o">=</span><span class="s">nogroup</span>
+</span><span class='line'><span class="na">ExecStart</span><span class="o">=</span><span class="s">/usr/local/bin/sslocal --log-without-time -c /etc/shadowsocks-rust/config.json</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">[Install]</span>
+</span><span class='line'><span class="na">WantedBy</span><span class="o">=</span><span class="s">multi-user.target</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>升级完成后，需要重新激活nvm</p>
+<p>注册并启动服务：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>. <span class="nv">$NVM_DIR</span>/nvm.sh
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo chown -R root:nogroup /etc/shadowsocks-rust
+</span><span class='line'>sudo chmod -R g-w,o-rwx /etc/shadowsocks-rust
+</span><span class='line'>sudo systemctl daemon-reload
+</span><span class='line'>sudo systemctl <span class="nb">enable </span>shadowsocks-rust
+</span><span class='line'>sudo systemctl start shadowsocks-rust
 </span></code></pre></td></tr></table></div></figure>
+
+
+<p>注：</p>
+
+<ul>
+<li>为降低<code>sslocal</code>进程权限，以nobody用户和nogroup组运行它。</li>
+<li>为防止密码泄漏，/etc/shadowsocks-rust/config.json仅root用户或nogroup组可读。</li>
+<li>限制<code>sslocal</code>进程仅能监听socket.</li>
+</ul>
 
 </div>
 
@@ -257,12 +263,12 @@ git checkout `git describe -- &hellip;">
   
 
 
-<time datetime="2016-06-09T00:00:00+00:00" pubdate data-updated="true"></time>
+<time datetime="2019-04-30T01:30:00+00:00" pubdate data-updated="true"></time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/debian/'>debian</a>, <a class='category' href='/blog/categories/nodejs/'>nodejs</a>, <a class='category' href='/blog/categories/ubuntu/'>ubuntu</a>
+    <a class='category' href='/blog/categories/linux/'>linux</a>, <a class='category' href='/blog/categories/proxy/'>proxy</a>, <a class='category' href='/blog/categories/ubuntu/'>ubuntu</a>
   
 </span>
 
@@ -271,7 +277,7 @@ git checkout `git describe -- &hellip;">
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.malike.net.cn/blog/2016/06/09/nvm-tutorial/" data-via="" data-counturl="http://www.malike.net.cn/blog/2016/06/09/nvm-tutorial/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.malike.net.cn/blog/2019/04/30/shadowsocks-rust-tutorial/" data-via="" data-counturl="http://www.malike.net.cn/blog/2019/04/30/shadowsocks-rust-tutorial/" >Tweet</a>
   
   
   <div class="g-plusone" data-size="medium"></div>
@@ -284,10 +290,8 @@ git checkout `git describe -- &hellip;">
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2016/05/21/pyenv-tutorial/" title="Previous Post: pyenv简介——Debian/Ubuntu中管理多版本Python">&laquo; pyenv简介——Debian/Ubuntu中管理多版本Python</a>
+        <a class="basic-alignment left" href="/blog/2017/03/02/glusterfs-docker-tutorial/" title="Previous Post: 在Docker容器中创建GlusterFS">&laquo; 在Docker容器中创建GlusterFS</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2016/07/03/python-3-dot-5-async-actor/" title="Next Post: 基于Python 3.5异步的Actor模型">基于Python 3.5异步的Actor模型 &raquo;</a>
       
     </p>
   </footer>
@@ -395,8 +399,8 @@ git checkout `git describe -- &hellip;">
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://www.malike.net.cn/blog/2016/06/09/nvm-tutorial/';
-        var disqus_url = 'http://www.malike.net.cn/blog/2016/06/09/nvm-tutorial/';
+        var disqus_identifier = 'http://www.malike.net.cn/blog/2019/04/30/shadowsocks-rust-tutorial/';
+        var disqus_url = 'http://www.malike.net.cn/blog/2019/04/30/shadowsocks-rust-tutorial/';
         var disqus_script = 'embed.js';
       
     (function () {
