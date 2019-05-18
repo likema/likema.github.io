@@ -10,7 +10,11 @@
 
   
   <meta name="description" content="pyenv是管理Python版本的工具，它支持在多个Python版本间切换。 一、安装pyenv 1
-git clone https://github.com/yyuu/pyenv.git ~/.pyenv 将PYENV_ROOT和pyenv init加入bash的~/.bashrc（或zsh的 &hellip;">
+2
+3
+git clone https://github.com/yyuu/pyenv.git ~/.pyenv
+cd ~/.pyenv
+git checkout `git describe -- &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -113,7 +117,11 @@ git clone https://github.com/yyuu/pyenv.git ~/.pyenv 将PYENV_ROOT和pyenv init�
 <h2>一、安装pyenv</h2>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone https://github.com/yyuu/pyenv.git ~/.pyenv
+</span><span class='line'><span class="nb">cd</span> ~/.pyenv
+</span><span class='line'>git checkout <span class="sb">`</span>git describe --abbrev<span class="o">=</span><span class="m">0</span> --tags<span class="sb">`</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -153,7 +161,7 @@ git clone https://github.com/yyuu/pyenv.git ~/.pyenv 将PYENV_ROOT和pyenv init�
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv install 3.5.1
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv install 3.6.8
 </span><span class='line'>pyenv rehash
 </span></code></pre></td></tr></table></div></figure>
 
@@ -255,9 +263,20 @@ git clone https://github.com/yyuu/pyenv.git ~/.pyenv 将PYENV_ROOT和pyenv init�
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h2>四、配置Upstart脚本</h2>
+<h2>四、升级</h2>
 
-<p>若python程序须要通过Upstart启动，则其Upstart脚本可以类似：</p>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> <span class="nv">$PYENV_ROOT</span>
+</span><span class='line'>git fetch
+</span><span class='line'>git checkout <span class="sb">`</span>git describe --abbrev<span class="o">=</span><span class="m">0</span> --tags<span class="sb">`</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>五、配置Upstart脚本</h2>
+
+<p>若Python程序须通过Upstart启动，则其Upstart脚本可以类似：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -338,6 +357,46 @@ git clone https://github.com/yyuu/pyenv.git ~/.pyenv 将PYENV_ROOT和pyenv init�
 </span><span class='line'>
 </span><span class='line'><span class="nb">exec</span> ./&lt;app&gt;
 </span><span class='line'><span class="c"># vim: ts=4 sw=4 sts=4 ft=upstart</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>username</code>为服务运行的用户名，通常为<code>PYENV_ROOT</code>所属用户。</li>
+<li><code>group</code>为服务运行的组名，通常为<code>PYENV_ROOT</code>所属组。</li>
+<li><code>PYENV_VERSION</code>为Python版本号或virtualenv的名字。</li>
+<li><code>app dir</code>为Python程序的目录。</li>
+<li><code>app</code>为Python程序或启动脚本。</li>
+</ul>
+
+
+<h2>六、配置Systemd脚本</h2>
+
+<p>若Python程序须通过Systemd启动，则其Systemd脚本可以类似：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="err">...</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">[Service]</span>
+</span><span class='line'><span class="err">...</span>
+</span><span class='line'><span class="na">User</span><span class="o">=</span><span class="s">&lt;username&gt;</span>
+</span><span class='line'><span class="na">Group</span><span class="o">=</span><span class="s">&lt;group&gt;</span>
+</span><span class='line'><span class="na">Environment</span><span class="o">=</span><span class="s">&quot;PATH=/home/&lt;username&gt;/.pyenv/shims:/home/&lt;username&gt;/.pyenv/bin:/sbin:/usr/sbin:/bin:/usr/bin&quot;</span>
+</span><span class='line'><span class="na">Environment</span><span class="o">=</span><span class="s">&quot;PYENV_ROOT=/home/&lt;username&gt;/.pyenv&quot;</span>
+</span><span class='line'><span class="na">Environment</span><span class="o">=</span><span class="s">&quot;PYENV_VERSION=&lt;python version or virtualenv name&gt;&quot;</span>
+</span><span class='line'><span class="na">WorkingDirectory</span><span class="o">=</span><span class="s">&lt;app dir&gt;</span>
+</span><span class='line'><span class="na">ExecStart</span><span class="o">=</span><span class="s">&lt;app dir&gt;/&lt;app&gt;</span>
+</span><span class='line'><span class="err">...</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
