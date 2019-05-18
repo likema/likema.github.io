@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ubuntu | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/ubuntu/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2019-05-18T07:30:03+00:00</updated>
+  <updated>2019-05-18T07:37:32+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -420,12 +420,12 @@ pyenv rehash
 
 <p>它会自动下载并编译指定版本的Python源码，这需要系统安装：</p>
 
-<pre><code class="bash">sudo apt-get install -y build-essential zlib1g-dev libssl-dev
+<pre><code class="bash">sudo apt-get install -y build-essential zlib1g-dev libssl-dev libffi-dev
 </code></pre>
 
 <p>还可选择安装：</p>
 
-<pre><code class="bash">sudo apt-get install libsqlite3-dev libbz2-dev libreadline-dev
+<pre><code class="bash">sudo apt-get install libsqlite3-dev libbz2-dev liblzma-dev libreadline-dev
 </code></pre>
 
 <p>安装完成后：</p>

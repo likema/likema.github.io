@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2019-05-18T07:30:03+00:00</updated>
+  <updated>2019-05-18T07:37:32+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -1207,14 +1207,14 @@
 <p>它会自动下载并编译指定版本的Python源码，这需要系统安装：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install -y build-essential zlib1g-dev libssl-dev
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install -y build-essential zlib1g-dev libssl-dev libffi-dev
 </span></code></pre></td></tr></table></div></figure>
 
 
 <p>还可选择安装：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install libsqlite3-dev libbz2-dev libreadline-dev
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install libsqlite3-dev libbz2-dev liblzma-dev libreadline-dev
 </span></code></pre></td></tr></table></div></figure>
 
 
