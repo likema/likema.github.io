@@ -10,7 +10,9 @@ categories: [Python, Debian, Ubuntu]
 ## 一、安装pyenv
 
 ```bash
-git clone https://github.com/yyuu/pyenv.git ~/.pyenv
+git clone https://github.com/pyenv/pyenv.git ~/.pyenv
+cd ~/.pyenv
+git checkout `git describe --abbrev=0 --tags`
 ```
 
 将`PYENV_ROOT`和`pyenv init`加入bash的~/.bashrc（或zsh的~/.zshrc）
@@ -40,7 +42,7 @@ pyenv install -l
 ### 安装指定版本的Python
 
 ```bash
-pyenv install 3.5.1
+pyenv install 3.6.8
 pyenv rehash
 ```
 
@@ -48,13 +50,13 @@ pyenv rehash
 它会自动下载并编译指定版本的Python源码，这需要系统安装：
 
 ```bash
-sudo apt-get install -y build-essential zlib1g-dev libssl-dev
+sudo apt-get install -y build-essential zlib1g-dev libssl-dev libffi-dev
 ```
 
 还可选择安装：
 
 ```bash
-sudo apt-get install libsqlite3-dev libbz2-dev libreadline-dev
+sudo apt-get install libsqlite3-dev libbz2-dev liblzma-dev libreadline-dev
 ```
 
 安装完成后：
@@ -123,9 +125,17 @@ pyenv activate aiohttp-virtual-env
 pyenv deactivate
 ```
 
-## 四、配置Upstart脚本
+## 四、升级
 
-若python程序须要通过Upstart启动，则其Upstart脚本可以类似：
+```bash
+cd $PYENV_ROOT
+git fetch origin
+git checkout `git describe --abbrev=0 --tags`
+```
+
+## 五、配置Upstart脚本
+
+若Python程序须通过Upstart启动，则其Upstart脚本可以类似：
 
 ```
 # service name
@@ -178,5 +188,27 @@ exec ./<app>
 * `app dir`为Python程序的目录。
 * `app`为Python程序或启动脚本。
 
+## 六、配置Systemd脚本
 
+若Python程序须通过Systemd启动，则其Systemd脚本可以类似：
 
+```ini
+...
+
+[Service]
+...
+User=<username>
+Group=<group>
+Environment="PATH=/home/<username>/.pyenv/shims:/home/<username>/.pyenv/bin:/sbin:/usr/sbin:/bin:/usr/bin"
+Environment="PYENV_ROOT=/home/<username>/.pyenv"
+Environment="PYENV_VERSION=<python version or virtualenv name>"
+WorkingDirectory=<app dir>
+ExecStart=<app dir>/<app>
+...
+```
+
+* `username`为服务运行的用户名，通常为`PYENV_ROOT`所属用户。
+* `group`为服务运行的组名，通常为`PYENV_ROOT`所属组。
+* `PYENV_VERSION`为Python版本号或virtualenv的名字。
+* `app dir`为Python程序的目录。
+* `app`为Python程序或启动脚本。
