@@ -4,7 +4,7 @@
   <title><![CDATA[Category: python | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/python/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2019-05-18T07:37:32+00:00</updated>
+  <updated>2019-07-09T10:03:08+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -438,7 +438,7 @@ pyenv deactivate
 <h2>四、升级</h2>
 
 <pre><code class="bash">cd $PYENV_ROOT
-git fetch
+git fetch origin
 git checkout `git describe --abbrev=0 --tags`
 </code></pre>
 
