@@ -126,12 +126,38 @@ pyenv activate aiohttp-virtual-env
 pyenv deactivate
 ```
 
+### 迁移virtualenv
+
+将指定virtualenv，迁移至另一virtualenv，须安装pyenv插件pyenv-pip-migrate：
+
+```bash
+git clone https://github.com/pyenv/pyenv-pip-migrate.git ~/.pyenv/plugins/pyenv-pip-migrate
+```
+
+然后：
+
+```bash
+pyenv migrate aiohttp-virtual-env hello-virtual-env
+```
+
 ## 四、升级
 
 ```bash
 cd $PYENV_ROOT
 git fetch origin
 git checkout `git describe --abbrev=0 --tags`
+```
+
+更简单的办法为安装pyenv插件pyenv-update：
+
+```bash
+git clone https://github.com/pyenv/pyenv-update.git ~/.pyenv/plugins/pyenv-update
+```
+
+它不仅能更新pyenv，还能更新pyenv所有已安装的插件：
+
+```bash
+pyenv update
 ```
 
 ## 五、配置Upstart脚本
