@@ -4,7 +4,7 @@
   <title><![CDATA[Category: nodejs | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/nodejs/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2019-08-17T11:12:12+00:00</updated>
+  <updated>2019-08-17T11:30:57+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -20,7 +20,7 @@
     <id>http://www.malike.net.cn/blog/2016/06/09/nvm-tutorial</id>
     <content type="html"><![CDATA[<p><a href="https://github.com/creationix/nvm">nvm</a>是管理Node.js版本的工具，它支持在多个Node.js版本间切换。</p>
 
-<h2>一、安装nvm</h2>
+<h2>一、安装</h2>
 
 <pre><code class="bash">git clone https://github.com/creationix/nvm.git ~/.nvm
 cd ~/.nvm
@@ -44,7 +44,7 @@ git checkout `git describe --abbrev=0 --tags`
 <pre><code class="bash">export NVM_NODEJS_ORG_MIRROR=https://npm.taobao.org/mirrors/node
 </code></pre>
 
-<h2>二、nvm常用命令</h2>
+<h2>二、常用命令</h2>
 
 <h3>列表可安装的Node.js版本</h3>
 
@@ -120,9 +120,9 @@ git checkout `git describe --abbrev=0 --tags`
 
 <h2>四、制作Docker镜像</h2>
 
-<p>若不希望使用NodeJS的官方Docker镜像，可利用 <code>nvm</code> 创建镜像：</p>
+<p>若不希望使用NodeJS的官方Docker镜像，可利用nvm创建镜像：</p>
 
-<pre><code>FROM ubuntu:bionic
+<pre><code class="Dockerfile">FROM ubuntu:bionic
 MAINTAINER ...
 
 ENV DEBIAN_FRONTEND noninteractive

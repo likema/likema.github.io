@@ -9,7 +9,7 @@
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="nvm是管理Node.js版本的工具，它支持在多个Node.js版本间切换。 一、安装nvm 1
+  <meta name="description" content="nvm是管理Node.js版本的工具，它支持在多个Node.js版本间切换。 一、安装 1
 2
 3
 git clone https://github.com/creationix/nvm.git ~/.nvm
@@ -114,7 +114,7 @@ git checkout `git describe -- &hellip;">
 
 <div class="entry-content"><p><a href="https://github.com/creationix/nvm">nvm</a>是管理Node.js版本的工具，它支持在多个Node.js版本间切换。</p>
 
-<h2>一、安装nvm</h2>
+<h2>一、安装</h2>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -150,7 +150,7 @@ git checkout `git describe -- &hellip;">
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h2>二、nvm常用命令</h2>
+<h2>二、常用命令</h2>
 
 <h3>列表可安装的Node.js版本</h3>
 
@@ -252,7 +252,7 @@ git checkout `git describe -- &hellip;">
 
 <h2>四、制作Docker镜像</h2>
 
-<p>若不希望使用NodeJS的官方Docker镜像，可利用 <code>nvm</code> 创建镜像：</p>
+<p>若不希望使用NodeJS的官方Docker镜像，可利用nvm创建镜像：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -270,21 +270,21 @@ git checkout `git describe -- &hellip;">
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
 <span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>FROM ubuntu:bionic
-</span><span class='line'>MAINTAINER ...
+</pre></td><td class='code'><pre><code class='Dockerfile'><span class='line'><span class="k">FROM</span> ubuntu:bionic
+</span><span class='line'><span class="k">MAINTAINER</span> ...
 </span><span class='line'>
-</span><span class='line'>ENV DEBIAN_FRONTEND noninteractive
-</span><span class='line'>ENV <span class="nv">NVM_NODEJS_ORG_MIRROR</span><span class="o">=</span>https://npm.taobao.org/mirrors/node
-</span><span class='line'>ENV NODE_VERSION 10.16.2
-</span><span class='line'>ENV PATH /root/.nvm/versions/node/v<span class="nv">$NODE_VERSION</span>/bin:<span class="nv">$PATH</span>
+</span><span class='line'><span class="k">ENV</span> DEBIAN_FRONTEND noninteractive
+</span><span class='line'><span class="k">ENV</span> <span class="nv">NVM_NODEJS_ORG_MIRROR</span><span class="o">=</span>https://npm.taobao.org/mirrors/node
+</span><span class='line'><span class="k">ENV</span> NODE_VERSION 10.16.2
+</span><span class='line'><span class="k">ENV</span> PATH /root/.nvm/versions/node/v<span class="nv">$NODE_VERSION</span>/bin:<span class="nv">$PATH</span>
 </span><span class='line'>
-</span><span class='line'>RUN <span class="nb">set</span> -eux<span class="p">;</span> <span class="se">\</span>
-</span><span class='line'>    apt-get update<span class="p">;</span> <span class="se">\</span>
-</span><span class='line'>    apt-get install --no-install-recommends -y wget ca-certificates<span class="p">;</span> <span class="se">\</span>
-</span><span class='line'>    wget -O- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh <span class="p">|</span> bash<span class="p">;</span> <span class="se">\</span>
-</span><span class='line'>  apt-get remove --purge -y wget ca-certificates<span class="p">;</span> <span class="se">\</span>
-</span><span class='line'>    apt-get autoremove --purge -y<span class="p">;</span> <span class="se">\</span>
-</span><span class='line'>    apt-get clean<span class="p">;</span> <span class="se">\</span>
+</span><span class='line'><span class="k">RUN</span> <span class="nb">set</span> -eux<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-get update<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-get install --no-install-recommends -y wget ca-certificates<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    wget -O- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh <span class="p">|</span> bash<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-get remove --purge -y wget ca-certificates<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-get autoremove --purge -y<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-get clean<span class="p">;</span> <span class="err">\</span>
 </span><span class='line'>    rm -rf /var/lib/apt/lists/* /root/.nvm/.cache
 </span></code></pre></td></tr></table></div></figure>
 

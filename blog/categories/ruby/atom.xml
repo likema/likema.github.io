@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ruby | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/ruby/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2019-08-17T11:12:12+00:00</updated>
+  <updated>2019-08-17T11:30:57+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -144,7 +144,7 @@ ExecStart=&lt;app dir&gt;/&lt;app&gt;
 
 <h2>五、制作Docker镜像</h2>
 
-<p>若不希望使用Ruby的官方Docker镜像，可利用 <code>rbenv</code> 创建镜像：</p>
+<p>若不希望使用Ruby的官方Docker镜像，可利用rbenv创建镜像：</p>
 
 <pre><code class="Dockerfile">FROM ubuntu:bionic
 MAINTAINER ...

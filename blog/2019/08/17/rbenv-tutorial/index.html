@@ -293,7 +293,7 @@ git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build 在�
 
 <h2>五、制作Docker镜像</h2>
 
-<p>若不希望使用Ruby的官方Docker镜像，可利用 <code>rbenv</code> 创建镜像：</p>
+<p>若不希望使用Ruby的官方Docker镜像，可利用rbenv创建镜像：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -330,23 +330,23 @@ git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build 在�
 </span><span class='line'><span class="k">ENV</span> RUBY_CFLAGS -O3
 </span><span class='line'>
 </span><span class='line'><span class="k">RUN</span> <span class="nb">set</span> -eux<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>  apt-get update<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>  apt-get install -y wget ca-certificates nodejs python<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>  <span class="nv">savedAptMark</span><span class="o">=</span><span class="s2">&quot;$(apt-mark showmanual)&quot;</span><span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>  apt-get install -y git make gcc libssl-dev libreadline-dev zlib1g-dev<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>  <span class="nb">echo</span> <span class="s2">&quot;gem: --no-rdoc --no-ri&quot;</span> &gt; ~/.gemrc<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>  git clone git://github.com/rbenv/rbenv.git ~/.rbenv<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>  git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-get update<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-get install -y wget ca-certificates nodejs python<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    <span class="nv">savedAptMark</span><span class="o">=</span><span class="s2">&quot;$(apt-mark showmanual)&quot;</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-get install -y git make gcc libssl-dev libreadline-dev zlib1g-dev<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    <span class="nb">echo</span> <span class="s2">&quot;gem: --no-rdoc --no-ri&quot;</span> &gt; ~/.gemrc<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    git clone git://github.com/rbenv/rbenv.git ~/.rbenv<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build<span class="p">;</span> <span class="err">\</span>
 </span><span class='line'>    git clone https://github.com/andorchen/rbenv-taobao-mirror.git ~/.rbenv/plugins/rbenv-taobao-mirror<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>  <span class="nv">CONFIGURE_OPTS</span><span class="o">=</span><span class="s2">&quot;--disable-install-doc&quot;</span> <span class="nv">MAKE_OPTS</span><span class="o">=</span><span class="s2">&quot;-j`grep -c &#39;^processor&#39; /proc/cpuinfo`&quot;</span> rbenv install <span class="nv">$RBENV_VERSION</span><span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>  gem sources --add https://gems.ruby-china.com/ --remove https://rubygems.com/<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>  gem install bundler<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    <span class="nv">CONFIGURE_OPTS</span><span class="o">=</span><span class="s2">&quot;--disable-install-doc&quot;</span> <span class="nv">MAKE_OPTS</span><span class="o">=</span><span class="s2">&quot;-j`grep -c &#39;^processor&#39; /proc/cpuinfo`&quot;</span> rbenv install <span class="nv">$RBENV_VERSION</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    gem sources --add https://gems.ruby-china.com/ --remove https://rubygems.com/<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    gem install bundler<span class="p">;</span> <span class="err">\</span>
 </span><span class='line'>    bundle config mirror.https://rubygems.com https://gems.ruby-china.com<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>  apt-mark auto <span class="s1">&#39;.*&#39;</span> &gt; /dev/null<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-mark auto <span class="s1">&#39;.*&#39;</span> &gt; /dev/null<span class="p">;</span> <span class="err">\</span>
 </span><span class='line'>    <span class="o">[</span> -z <span class="s2">&quot;$savedAptMark&quot;</span> <span class="o">]</span> <span class="o">||</span> apt-mark manual <span class="nv">$savedAptMark</span><span class="p">;</span> <span class="err">\</span>
 </span><span class='line'>    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant<span class="o">=</span><span class="nb">false</span><span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>  apt-get clean<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>  rm -rf /var/lib/apt/lists /tmp/*
+</span><span class='line'>    apt-get clean<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    rm -rf /var/lib/apt/lists /tmp/*
 </span></code></pre></td></tr></table></div></figure>
 
 
