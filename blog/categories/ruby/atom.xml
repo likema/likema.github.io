@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ruby | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/ruby/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2019-08-17T16:42:43+00:00</updated>
+  <updated>2019-08-17T17:09:23+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -171,7 +171,7 @@ RUN set -eux; \
     [ -z "$savedAptMark" ] || apt-mark manual $savedAptMark; \
     apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
     apt-get clean; \
-    rm -rf /var/lib/apt/lists /tmp/*
+    rm -rf /var/lib/apt/lists /var/tmp/* /tmp/* $RBENV_ROOT/versions/*/lib/ruby/gems/*/cache/*.gem
 </code></pre>
 
 <ul>

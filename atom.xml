@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2019-08-17T16:42:43+00:00</updated>
+  <updated>2019-08-17T17:09:23+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -254,7 +254,7 @@
 </span><span class='line'>    <span class="o">[</span> -z <span class="s2">&quot;$savedAptMark&quot;</span> <span class="o">]</span> <span class="o">||</span> apt-mark manual <span class="nv">$savedAptMark</span><span class="p">;</span> <span class="err">\</span>
 </span><span class='line'>    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant<span class="o">=</span><span class="nb">false</span><span class="p">;</span> <span class="err">\</span>
 </span><span class='line'>    apt-get clean<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>    rm -rf /var/lib/apt/lists /tmp/*
+</span><span class='line'>    rm -rf /var/lib/apt/lists /var/tmp/* /tmp/* <span class="nv">$RBENV_ROOT</span>/versions/*/lib/ruby/gems/*/cache/*.gem
 </span></code></pre></td></tr></table></div></figure>
 
 

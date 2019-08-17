@@ -349,7 +349,7 @@ git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build åœ¨å
 </span><span class='line'>    <span class="o">[</span> -z <span class="s2">&quot;$savedAptMark&quot;</span> <span class="o">]</span> <span class="o">||</span> apt-mark manual <span class="nv">$savedAptMark</span><span class="p">;</span> <span class="err">\</span>
 </span><span class='line'>    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant<span class="o">=</span><span class="nb">false</span><span class="p">;</span> <span class="err">\</span>
 </span><span class='line'>    apt-get clean<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>    rm -rf /var/lib/apt/lists /tmp/*
+</span><span class='line'>    rm -rf /var/lib/apt/lists /var/tmp/* /tmp/* <span class="nv">$RBENV_ROOT</span>/versions/*/lib/ruby/gems/*/cache/*.gem
 </span></code></pre></td></tr></table></div></figure>
 
 
