@@ -4,7 +4,7 @@
   <title><![CDATA[Category: python | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/python/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2019-08-17T16:13:48+00:00</updated>
+  <updated>2019-08-17T16:42:43+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -436,11 +436,33 @@ echo 'eval "$(pyenv virtualenv-init -)"' &gt;&gt; ~/.bashrc
 pyenv deactivate
 </code></pre>
 
+<h3>迁移virtualenv</h3>
+
+<p>将指定virtualenv，迁移至另一virtualenv，须安装pyenv插件pyenv-pip-migrate：</p>
+
+<pre><code class="bash">git clone https://github.com/pyenv/pyenv-pip-migrate.git ~/.pyenv/plugins/pyenv-pip-migrate
+</code></pre>
+
+<p>然后：</p>
+
+<pre><code class="bash">pyenv migrate aiohttp-virtual-env hello-virtual-env
+</code></pre>
+
 <h2>四、升级</h2>
 
 <pre><code class="bash">cd $PYENV_ROOT
 git fetch origin
 git checkout `git describe --abbrev=0 --tags`
+</code></pre>
+
+<p>更简单的办法为安装pyenv插件pyenv-update：</p>
+
+<pre><code class="bash">git clone https://github.com/pyenv/pyenv-update.git ~/.pyenv/plugins/pyenv-update
+</code></pre>
+
+<p>它不仅能更新pyenv，还能更新pyenv所有已安装的插件：</p>
+
+<pre><code class="bash">pyenv update
 </code></pre>
 
 <h2>五、配置Upstart脚本</h2>

@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2019-08-17T16:13:48+00:00</updated>
+  <updated>2019-08-17T16:42:43+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -1615,6 +1615,22 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
+<h3>迁移virtualenv</h3>
+
+<p>将指定virtualenv，迁移至另一virtualenv，须安装pyenv插件pyenv-pip-migrate：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone https://github.com/pyenv/pyenv-pip-migrate.git ~/.pyenv/plugins/pyenv-pip-migrate
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv migrate aiohttp-virtual-env hello-virtual-env
+</span></code></pre></td></tr></table></div></figure>
+
+
 <h2>四、升级</h2>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -1623,6 +1639,20 @@
 </pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> <span class="nv">$PYENV_ROOT</span>
 </span><span class='line'>git fetch origin
 </span><span class='line'>git checkout <span class="sb">`</span>git describe --abbrev<span class="o">=</span><span class="m">0</span> --tags<span class="sb">`</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>更简单的办法为安装pyenv插件pyenv-update：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone https://github.com/pyenv/pyenv-update.git ~/.pyenv/plugins/pyenv-update
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>它不仅能更新pyenv，还能更新pyenv所有已安装的插件：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv update
 </span></code></pre></td></tr></table></div></figure>
 
 
