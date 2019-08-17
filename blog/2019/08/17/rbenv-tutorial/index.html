@@ -325,19 +325,19 @@ git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build åœ¨å
 </span><span class='line'><span class="k">MAINTAINER</span> ...
 </span><span class='line'>
 </span><span class='line'><span class="k">ENV</span> DEBIAN_FRONTEND noninteractive
-</span><span class='line'><span class="k">ENV</span> PATH /root/.rbenv/bin:<span class="nv">$PATH</span>
+</span><span class='line'><span class="k">ENV</span> RBENV_ROOT /root/.rbenv
 </span><span class='line'><span class="k">ENV</span> RBENV_VERSION 2.6.3
+</span><span class='line'><span class="k">ENV</span> PATH <span class="nv">$RBENV_ROOT</span>/shims:<span class="nv">$RBENV_ROOT</span>/bin:<span class="nv">$PATH</span>
 </span><span class='line'><span class="k">ENV</span> RUBY_CFLAGS -O3
 </span><span class='line'>
 </span><span class='line'><span class="k">RUN</span> <span class="nb">set</span> -eux<span class="p">;</span> <span class="err">\</span>
 </span><span class='line'>    apt-get update<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>    apt-get install -y wget ca-certificates nodejs python<span class="p">;</span> <span class="err">\</span>
 </span><span class='line'>    <span class="nv">savedAptMark</span><span class="o">=</span><span class="s2">&quot;$(apt-mark showmanual)&quot;</span><span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>    apt-get install -y git make gcc libssl-dev libreadline-dev zlib1g-dev<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-get install -y git wget make gcc libssl-dev libreadline-dev zlib1g-dev<span class="p">;</span> <span class="err">\</span>
 </span><span class='line'>    <span class="nb">echo</span> <span class="s2">&quot;gem: --no-rdoc --no-ri&quot;</span> &gt; ~/.gemrc<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>    git clone git://github.com/rbenv/rbenv.git ~/.rbenv<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>    git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>    git clone https://github.com/andorchen/rbenv-taobao-mirror.git ~/.rbenv/plugins/rbenv-taobao-mirror<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    git clone --depth <span class="m">1</span> https://github.com/rbenv/rbenv.git <span class="nv">$RBENV_ROOT</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    git clone --depth <span class="m">1</span> https://github.com/rbenv/ruby-build.git <span class="nv">$RBENV_ROOT</span>/plugins/ruby-build<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    git clone --depth <span class="m">1</span> https://github.com/andorchen/rbenv-taobao-mirror.git <span class="nv">$RBENV_ROOT</span>/plugins/rbenv-taobao-mirror<span class="p">;</span> <span class="err">\</span>
 </span><span class='line'>    <span class="nv">CONFIGURE_OPTS</span><span class="o">=</span><span class="s2">&quot;--disable-install-doc&quot;</span> <span class="nv">MAKE_OPTS</span><span class="o">=</span><span class="s2">&quot;-j`grep -c &#39;^processor&#39; /proc/cpuinfo`&quot;</span> rbenv install <span class="nv">$RBENV_VERSION</span><span class="p">;</span> <span class="err">\</span>
 </span><span class='line'>    gem sources --add https://gems.ruby-china.com/ --remove https://rubygems.com/<span class="p">;</span> <span class="err">\</span>
 </span><span class='line'>    gem install bundler<span class="p">;</span> <span class="err">\</span>

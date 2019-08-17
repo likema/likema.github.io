@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ruby | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/ruby/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2019-08-17T11:30:57+00:00</updated>
+  <updated>2019-08-17T16:13:48+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -150,19 +150,19 @@ ExecStart=&lt;app dir&gt;/&lt;app&gt;
 MAINTAINER ...
 
 ENV DEBIAN_FRONTEND noninteractive
-ENV PATH /root/.rbenv/bin:$PATH
+ENV RBENV_ROOT /root/.rbenv
 ENV RBENV_VERSION 2.6.3
+ENV PATH $RBENV_ROOT/shims:$RBENV_ROOT/bin:$PATH
 ENV RUBY_CFLAGS -O3
 
 RUN set -eux; \
     apt-get update; \
-    apt-get install -y wget ca-certificates nodejs python; \
     savedAptMark="$(apt-mark showmanual)"; \
-    apt-get install -y git make gcc libssl-dev libreadline-dev zlib1g-dev; \
+    apt-get install -y git wget make gcc libssl-dev libreadline-dev zlib1g-dev; \
     echo "gem: --no-rdoc --no-ri" &gt; ~/.gemrc; \
-    git clone git://github.com/rbenv/rbenv.git ~/.rbenv; \
-    git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build; \
-    git clone https://github.com/andorchen/rbenv-taobao-mirror.git ~/.rbenv/plugins/rbenv-taobao-mirror; \
+    git clone --depth 1 https://github.com/rbenv/rbenv.git $RBENV_ROOT; \
+    git clone --depth 1 https://github.com/rbenv/ruby-build.git $RBENV_ROOT/plugins/ruby-build; \
+    git clone --depth 1 https://github.com/andorchen/rbenv-taobao-mirror.git $RBENV_ROOT/plugins/rbenv-taobao-mirror; \
     CONFIGURE_OPTS="--disable-install-doc" MAKE_OPTS="-j`grep -c '^processor' /proc/cpuinfo`" rbenv install $RBENV_VERSION; \
     gem sources --add https://gems.ruby-china.com/ --remove https://rubygems.com/; \
     gem install bundler; \

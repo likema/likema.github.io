@@ -4,7 +4,7 @@
   <title><![CDATA[Category: debian | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/debian/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2019-08-17T11:30:57+00:00</updated>
+  <updated>2019-08-17T16:13:48+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -150,19 +150,19 @@ ExecStart=&lt;app dir&gt;/&lt;app&gt;
 MAINTAINER ...
 
 ENV DEBIAN_FRONTEND noninteractive
-ENV PATH /root/.rbenv/bin:$PATH
+ENV RBENV_ROOT /root/.rbenv
 ENV RBENV_VERSION 2.6.3
+ENV PATH $RBENV_ROOT/shims:$RBENV_ROOT/bin:$PATH
 ENV RUBY_CFLAGS -O3
 
 RUN set -eux; \
     apt-get update; \
-    apt-get install -y wget ca-certificates nodejs python; \
     savedAptMark="$(apt-mark showmanual)"; \
-    apt-get install -y git make gcc libssl-dev libreadline-dev zlib1g-dev; \
+    apt-get install -y git wget make gcc libssl-dev libreadline-dev zlib1g-dev; \
     echo "gem: --no-rdoc --no-ri" &gt; ~/.gemrc; \
-    git clone git://github.com/rbenv/rbenv.git ~/.rbenv; \
-    git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build; \
-    git clone https://github.com/andorchen/rbenv-taobao-mirror.git ~/.rbenv/plugins/rbenv-taobao-mirror; \
+    git clone --depth 1 https://github.com/rbenv/rbenv.git $RBENV_ROOT; \
+    git clone --depth 1 https://github.com/rbenv/ruby-build.git $RBENV_ROOT/plugins/ruby-build; \
+    git clone --depth 1 https://github.com/andorchen/rbenv-taobao-mirror.git $RBENV_ROOT/plugins/rbenv-taobao-mirror; \
     CONFIGURE_OPTS="--disable-install-doc" MAKE_OPTS="-j`grep -c '^processor' /proc/cpuinfo`" rbenv install $RBENV_VERSION; \
     gem sources --add https://gems.ruby-china.com/ --remove https://rubygems.com/; \
     gem install bundler; \
@@ -322,7 +322,7 @@ RUN set -eux; \
     <id>http://www.malike.net.cn/blog/2016/05/21/pyenv-tutorial</id>
     <content type="html"><![CDATA[<p><a href="https://github.com/yyuu/pyenv">pyenv</a>是管理Python版本的工具，它支持在多个Python版本间切换。</p>
 
-<h2>一、安装pyenv</h2>
+<h2>一、安装</h2>
 
 <pre><code class="bash">git clone https://github.com/pyenv/pyenv.git ~/.pyenv
 cd ~/.pyenv
@@ -334,9 +334,10 @@ git checkout `git describe --abbrev=0 --tags`
 <pre><code class="bash">echo 'export PATH=~/.pyenv/bin:$PATH' &gt;&gt; ~/.bashrc
 echo 'export PYENV_ROOT=~/.pyenv' &gt;&gt; ~/.bashrc
 echo 'eval "$(pyenv init -)"' &gt;&gt; ~/.bashrc
+echo 'export PYTHON_BUILD_MIRROR_URL="http://mirrors.sohu.com/python/"' &gt;&gt; ~/.bashrc
 </code></pre>
 
-<h2>二、pyenv常用命令</h2>
+<h2>二、常用命令</h2>
 
 <h3>列表可安装的Python版本</h3>
 
@@ -357,11 +358,7 @@ echo 'eval "$(pyenv init -)"' &gt;&gt; ~/.bashrc
 
 <h3>安装指定版本的Python</h3>
 
-<pre><code class="bash">pyenv install 3.6.8
-pyenv rehash
-</code></pre>
-
-<p>它会自动下载并编译指定版本的Python源码，这需要系统安装：</p>
+<p>安装过程，实际为下载并编译指定版本的Python源码，故需系统安装：</p>
 
 <pre><code class="bash">sudo apt-get install -y build-essential zlib1g-dev libssl-dev libffi-dev
 </code></pre>
@@ -371,27 +368,31 @@ pyenv rehash
 <pre><code class="bash">sudo apt-get install libsqlite3-dev libbz2-dev liblzma-dev libreadline-dev
 </code></pre>
 
-<p>安装完成后：</p>
+<p>然后：</p>
+
+<pre><code class="bash">pyenv install 3.6.8
+pyenv rehash
+</code></pre>
 
 <ul>
-<li>源码（如~/Python-3.5.1.tar.gz）缓存在.pyenv/cache目录中，在安装完后可手动删除。</li>
+<li>源码（如Python-3.6.8.tar.gz）缓存在 <code>.pyenv/cache</code> 目录中，在安装完后可手动删除。</li>
 <li>Python版本安装在~/.pyenv/versions目录中。</li>
 </ul>
 
 
 <h3>卸载指定版本的Python</h3>
 
-<pre><code class="bash">pyenv uninstall 3.5.1
+<pre><code class="bash">pyenv uninstall 3.6.8
 </code></pre>
 
 <h3>设置shell的Python版本</h3>
 
-<pre><code class="bash">pyenv shell 3.5.1
+<pre><code class="bash">pyenv shell 3.6.8
 </code></pre>
 
 <p>等同于</p>
 
-<pre><code class="bash">export PYENV_VERSION=3.5.1
+<pre><code class="bash">export PYENV_VERSION=3.6.8
 </code></pre>
 
 <p>清除<code>PYENV_VERSION</code></p>
@@ -409,12 +410,12 @@ echo 'eval "$(pyenv virtualenv-init -)"' &gt;&gt; ~/.bashrc
 
 <h3>创建virtualenv</h3>
 
-<pre><code class="bash">pyenv virtualenv 3.5.1 aiohttp-virtual-env
+<pre><code class="bash">pyenv virtualenv 3.6.8 aiohttp-virtual-env
 </code></pre>
 
 <ul>
-<li>创建aiohttp-virtual-env之前，须先安装Python 3.5.1（通过系统或pyenv安装）。</li>
-<li>aiohttp-virtual-env存储在~/.pyenv/versions/3.5.1/envs目录中，且在~/.pyenv/versions目录中建立同名符号链接。</li>
+<li>创建aiohttp-virtual-env之前，须先安装Python 3.6.8（通过系统或pyenv安装）。</li>
+<li>aiohttp-virtual-env存储在~/.pyenv/versions/3.6.8/envs目录中，且在~/.pyenv/versions目录中建立同名符号链接。</li>
 </ul>
 
 
@@ -499,7 +500,7 @@ exec ./&lt;app&gt;
 
 <h2>六、配置Systemd脚本</h2>
 
-<p>若Python程序须通过Systemd启动，则其Systemd脚本可以类似：</p>
+<p>若Python程序须通过Systemd启动，则其Systemd脚本类似：</p>
 
 <pre><code class="ini">...
 
@@ -523,6 +524,34 @@ ExecStart=&lt;app dir&gt;/&lt;app&gt;
 <li><code>app</code>为Python程序或启动脚本。</li>
 </ul>
 
+
+<h2>七、制作Docker镜像</h2>
+
+<p>若不希望使用Python的官方Docker镜像，可利用pyenv创建镜像：</p>
+
+<pre><code class="Dockerfile">FROM ubuntu:bionic
+MAINTAINER ...
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV PYTHON_BUILD_MIRROR_URL http://mirrors.sohu.com/python/
+ENV PYENV_ROOT /root/.pyenv
+ENV PYENV_VERSION 3.6.8
+ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
+
+RUN set -eux; \
+    apt-get update; \
+    savedAptMark="$(apt-mark showmanual)"; \
+    apt-get install -y git wget build-essential zlib1g-dev libssl-dev libffi-dev libsqlite3-dev libbz2-dev liblzma-dev libreadline-dev; \
+    git clone --depth 1 https://github.com/pyenv/pyenv.git $PYENV_ROOT; \
+    cd $PYENV_ROOT; \
+    git checkout `git describe --abbrev=0 --tags`; \
+    pyenv install 3.6.8; \
+    apt-mark auto '.*' &gt; /dev/null; \
+    [ -z "$savedAptMark" ] || apt-mark manual $savedAptMark; \
+    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists $PYENV_ROOT/cache/* /tmp/*
+</code></pre>
 ]]></content>
   </entry>
   

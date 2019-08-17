@@ -9,12 +9,12 @@
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="pyenv是管理Python版本的工具，它支持在多个Python版本间切换。 一、安装pyenv 1
+  <meta name="description" content="pyenv是管理Python版本的工具，它支持在多个Python版本间切换。 一、安装 1
 2
 3
 git clone https://github.com/pyenv/pyenv.git ~/.pyenv
 cd ~/.pyenv
-git checkout `git describe &hellip;">
+git checkout `git describe -- &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -114,7 +114,7 @@ git checkout `git describe &hellip;">
 
 <div class="entry-content"><p><a href="https://github.com/yyuu/pyenv">pyenv</a>是管理Python版本的工具，它支持在多个Python版本间切换。</p>
 
-<h2>一、安装pyenv</h2>
+<h2>一、安装</h2>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -130,13 +130,15 @@ git checkout `git describe &hellip;">
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
+<span class='line-number'>4</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="s1">&#39;export PATH=~/.pyenv/bin:$PATH&#39;</span> &gt;&gt; ~/.bashrc
 </span><span class='line'><span class="nb">echo</span> <span class="s1">&#39;export PYENV_ROOT=~/.pyenv&#39;</span> &gt;&gt; ~/.bashrc
 </span><span class='line'><span class="nb">echo</span> <span class="s1">&#39;eval &quot;$(pyenv init -)&quot;&#39;</span> &gt;&gt; ~/.bashrc
+</span><span class='line'><span class="nb">echo</span> <span class="s1">&#39;export PYTHON_BUILD_MIRROR_URL=&quot;http://mirrors.sohu.com/python/&quot;&#39;</span> &gt;&gt; ~/.bashrc
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h2>二、pyenv常用命令</h2>
+<h2>二、常用命令</h2>
 
 <h3>列表可安装的Python版本</h3>
 
@@ -159,14 +161,7 @@ git checkout `git describe &hellip;">
 
 <h3>安装指定版本的Python</h3>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv install 3.6.8
-</span><span class='line'>pyenv rehash
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>它会自动下载并编译指定版本的Python源码，这需要系统安装：</p>
+<p>安装过程，实际为下载并编译指定版本的Python源码，故需系统安装：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install -y build-essential zlib1g-dev libssl-dev libffi-dev
@@ -180,10 +175,17 @@ git checkout `git describe &hellip;">
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>安装完成后：</p>
+<p>然后：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv install 3.6.8
+</span><span class='line'>pyenv rehash
+</span></code></pre></td></tr></table></div></figure>
+
 
 <ul>
-<li>源码（如~/Python-3.5.1.tar.gz）缓存在.pyenv/cache目录中，在安装完后可手动删除。</li>
+<li>源码（如Python-3.6.8.tar.gz）缓存在 <code>.pyenv/cache</code> 目录中，在安装完后可手动删除。</li>
 <li>Python版本安装在~/.pyenv/versions目录中。</li>
 </ul>
 
@@ -191,21 +193,21 @@ git checkout `git describe &hellip;">
 <h3>卸载指定版本的Python</h3>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv uninstall 3.5.1
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv uninstall 3.6.8
 </span></code></pre></td></tr></table></div></figure>
 
 
 <h3>设置shell的Python版本</h3>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv shell 3.5.1
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv shell 3.6.8
 </span></code></pre></td></tr></table></div></figure>
 
 
 <p>等同于</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">PYENV_VERSION</span><span class="o">=</span>3.5.1
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">PYENV_VERSION</span><span class="o">=</span>3.6.8
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -230,13 +232,13 @@ git checkout `git describe &hellip;">
 <h3>创建virtualenv</h3>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv virtualenv 3.5.1 aiohttp-virtual-env
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv virtualenv 3.6.8 aiohttp-virtual-env
 </span></code></pre></td></tr></table></div></figure>
 
 
 <ul>
-<li>创建aiohttp-virtual-env之前，须先安装Python 3.5.1（通过系统或pyenv安装）。</li>
-<li>aiohttp-virtual-env存储在~/.pyenv/versions/3.5.1/envs目录中，且在~/.pyenv/versions目录中建立同名符号链接。</li>
+<li>创建aiohttp-virtual-env之前，须先安装Python 3.6.8（通过系统或pyenv安装）。</li>
+<li>aiohttp-virtual-env存储在~/.pyenv/versions/3.6.8/envs目录中，且在~/.pyenv/versions目录中建立同名符号链接。</li>
 </ul>
 
 
@@ -371,7 +373,7 @@ git checkout `git describe &hellip;">
 
 <h2>六、配置Systemd脚本</h2>
 
-<p>若Python程序须通过Systemd启动，则其Systemd脚本可以类似：</p>
+<p>若Python程序须通过Systemd启动，则其Systemd脚本类似：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -407,6 +409,57 @@ git checkout `git describe &hellip;">
 <li><code>app dir</code>为Python程序的目录。</li>
 <li><code>app</code>为Python程序或启动脚本。</li>
 </ul>
+
+
+<h2>七、制作Docker镜像</h2>
+
+<p>若不希望使用Python的官方Docker镜像，可利用pyenv创建镜像：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='Dockerfile'><span class='line'><span class="k">FROM</span> ubuntu:bionic
+</span><span class='line'><span class="k">MAINTAINER</span> ...
+</span><span class='line'>
+</span><span class='line'><span class="k">ENV</span> DEBIAN_FRONTEND noninteractive
+</span><span class='line'><span class="k">ENV</span> PYTHON_BUILD_MIRROR_URL http://mirrors.sohu.com/python/
+</span><span class='line'><span class="k">ENV</span> PYENV_ROOT /root/.pyenv
+</span><span class='line'><span class="k">ENV</span> PYENV_VERSION 3.6.8
+</span><span class='line'><span class="k">ENV</span> PATH <span class="nv">$PYENV_ROOT</span>/shims:<span class="nv">$PYENV_ROOT</span>/bin:<span class="nv">$PATH</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">RUN</span> <span class="nb">set</span> -eux<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-get update<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    <span class="nv">savedAptMark</span><span class="o">=</span><span class="s2">&quot;$(apt-mark showmanual)&quot;</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-get install -y git wget build-essential zlib1g-dev libssl-dev libffi-dev libsqlite3-dev libbz2-dev liblzma-dev libreadline-dev<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    git clone --depth <span class="m">1</span> https://github.com/pyenv/pyenv.git <span class="nv">$PYENV_ROOT</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    <span class="nb">cd</span> <span class="nv">$PYENV_ROOT</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    git checkout <span class="sb">`</span>git describe --abbrev<span class="o">=</span><span class="m">0</span> --tags<span class="sb">`</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    pyenv install 3.6.8<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-mark auto <span class="s1">&#39;.*&#39;</span> &gt; /dev/null<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    <span class="o">[</span> -z <span class="s2">&quot;$savedAptMark&quot;</span> <span class="o">]</span> <span class="o">||</span> apt-mark manual <span class="nv">$savedAptMark</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant<span class="o">=</span><span class="nb">false</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-get clean<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    rm -rf /var/lib/apt/lists <span class="nv">$PYENV_ROOT</span>/cache/* /tmp/*
+</span></code></pre></td></tr></table></div></figure>
 
 </div>
 
