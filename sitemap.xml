@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
+<loc>http://www.malike.net.cn/blog/2019/08/17/rbenv-tutorial/</loc>
+<lastmod>2019-08-17T16:40:54+00:00</lastmod>
+</url>
+<url>
 <loc>http://www.malike.net.cn/blog/2019/04/30/shadowsocks-rust-tutorial/</loc>
 <lastmod>2019-04-30T01:30:00+00:00</lastmod>
 </url>
@@ -170,6 +174,9 @@
 </url>
 <url>
 <loc>http://www.malike.net.cn/blog/categories/docker/</loc>
+</url>
+<url>
+<loc>http://www.malike.net.cn/blog/categories/ruby/</loc>
 </url>
 <url>
 <loc>http://www.malike.net.cn/posts/2/</loc>

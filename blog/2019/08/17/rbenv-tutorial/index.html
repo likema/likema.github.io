@@ -5,16 +5,14 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>pyenv简介——Debian/Ubuntu中管理多版本Python - Like的世界</title>
+  <title>rbenv简介——Debian/Ubuntu中管理多版本Ruby - Like的世界</title>
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="pyenv是管理Python版本的工具，它支持在多个Python版本间切换。 一、安装pyenv 1
+  <meta name="description" content="一、安装 1
 2
-3
-git clone https://github.com/pyenv/pyenv.git ~/.pyenv
-cd ~/.pyenv
-git checkout `git describe &hellip;">
+git clone git://github.com/rbenv/rbenv.git ~/.rbenv
+git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build 在国内，为了加速下述安装 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -23,7 +21,7 @@ git checkout `git describe &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://www.malike.net.cn/blog/2016/05/21/pyenv-tutorial">
+  <link rel="canonical" href="http://www.malike.net.cn/blog/2019/08/17/rbenv-tutorial">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Like的世界" type="application/atom+xml">
@@ -86,7 +84,7 @@ git checkout `git describe &hellip;">
   
   <header>
     
-      <h1 class="entry-title">pyenv简介——Debian/Ubuntu中管理多版本Python</h1>
+      <h1 class="entry-title">rbenv简介——Debian/Ubuntu中管理多版本Ruby</h1>
     
     
       <p class="meta">
@@ -102,7 +100,7 @@ git checkout `git describe &hellip;">
   
 
 
-<time datetime="2016-05-21T00:00:00+00:00" pubdate data-updated="true"></time>
+<time datetime="2019-08-17T16:40:54+00:00" pubdate data-updated="true"></time>
         
            | <a href="#disqus_thread"
              data-disqus-identifier="http://www.malike.net.cn">Comments</a>
@@ -112,171 +110,190 @@ git checkout `git describe &hellip;">
   </header>
 
 
-<div class="entry-content"><p><a href="https://github.com/yyuu/pyenv">pyenv</a>是管理Python版本的工具，它支持在多个Python版本间切换。</p>
+<div class="entry-content"><h2>一、安装</h2>
 
-<h2>一、安装pyenv</h2>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone git://github.com/rbenv/rbenv.git ~/.rbenv
+</span><span class='line'>git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在国内，为了加速下述安装：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone https://github.com/andorchen/rbenv-taobao-mirror.git ~/.rbenv/plugins/rbenv-taobao-mirror
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>激活rbenv</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">eval</span> <span class="s2">&quot;$(~/.rbenv/bin/rbenv init)&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了每次登录后自动激活rbenv，需将<code>NMV_DIR</code>、<code>nvm.sh</code>和补齐加入bash的~/.bashrc（或zsh的~/.zshrc）</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span>~/.rbenv/shims:~/.rbenv/bin:<span class="nv">$PATH</span>
+</span><span class='line'><span class="nb">eval</span> <span class="s2">&quot;$(rbenv init -)&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>验证是否安装正确：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>curl -fsSL https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-doctor <span class="p">|</span> bash
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>或</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>wget -qO- https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-doctor <span class="p">|</span> bash
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>输出类似：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone https://github.com/pyenv/pyenv.git ~/.pyenv
-</span><span class='line'><span class="nb">cd</span> ~/.pyenv
-</span><span class='line'>git checkout <span class="sb">`</span>git describe --abbrev<span class="o">=</span><span class="m">0</span> --tags<span class="sb">`</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Checking <span class="k">for</span> <span class="sb">`</span>rbenv<span class="s1">&#39; in PATH: /root/.rbenv/bin/rbenv</span>
+</span><span class='line'><span class="s1">Checking for rbenv shims in PATH: OK</span>
+</span><span class='line'><span class="s1">Checking `rbenv install&#39;</span> support: /root/.rbenv/plugins/ruby-build/bin/rbenv-install <span class="o">(</span>ruby-build 20190615-9-gf3f4193<span class="o">)</span>
+</span><span class='line'>Counting installed Ruby versions: none
+</span><span class='line'>  There aren<span class="s1">&#39;t any Ruby versions installed under `/root/.rbenv/versions&#39;</span>.
+</span><span class='line'>  You can install Ruby versions like so: rbenv install 2.2.4
+</span><span class='line'>Checking RubyGems settings: OK
+</span><span class='line'>Auditing installed plugins: OK
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>将<code>PYENV_ROOT</code>和<code>pyenv init</code>加入bash的~/.bashrc（或zsh的~/.zshrc）</p>
+<h2>二、常用命令</h2>
+
+<h3>列表可安装的Ruby版本</h3>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="s1">&#39;export PATH=~/.pyenv/bin:$PATH&#39;</span> &gt;&gt; ~/.bashrc
-</span><span class='line'><span class="nb">echo</span> <span class="s1">&#39;export PYENV_ROOT=~/.pyenv&#39;</span> &gt;&gt; ~/.bashrc
-</span><span class='line'><span class="nb">echo</span> <span class="s1">&#39;eval &quot;$(pyenv init -)&quot;&#39;</span> &gt;&gt; ~/.bashrc
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rbenv install -l
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h2>二、pyenv常用命令</h2>
+<p>除了Ruby官方版本，还支持RBX和JRuby等。</p>
 
-<h3>列表可安装的Python版本</h3>
+<h3>安装指定版本的Ruby</h3>
+
+<p>安装过程，实际为下载并编译指定版本的Ruby源码，故需系统安装：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">pyenv</span> <span class="n">install</span> <span class="o">-</span><span class="n">l</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install -y make gcc libssl-dev libreadline-dev zlib1g-dev
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>除了Python官方版本，还支持</p>
-
-<ul>
-<li>anaconda</li>
-<li>ironpython</li>
-<li>jython</li>
-<li>miniconda</li>
-<li>pypy</li>
-<li>stackless</li>
-</ul>
-
-
-<h3>安装指定版本的Python</h3>
+<p>然后：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv install 3.6.8
-</span><span class='line'>pyenv rehash
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rbenv install 2.6.3
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>它会自动下载并编译指定版本的Python源码，这需要系统安装：</p>
+<p>Ruby版本安装在 <code>~/.rbenv/versions</code> 目录中。</p>
+
+<h3>卸载指定版本的Ruby</h3>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install -y build-essential zlib1g-dev libssl-dev libffi-dev
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rbenv uninstall 2.6.3
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>还可选择安装：</p>
+<h3>设置shell的Ruby版本</h3>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install libsqlite3-dev libbz2-dev liblzma-dev libreadline-dev
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>安装完成后：</p>
-
-<ul>
-<li>源码（如~/Python-3.5.1.tar.gz）缓存在.pyenv/cache目录中，在安装完后可手动删除。</li>
-<li>Python版本安装在~/.pyenv/versions目录中。</li>
-</ul>
-
-
-<h3>卸载指定版本的Python</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv uninstall 3.5.1
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>设置shell的Python版本</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv shell 3.5.1
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rbenv shell 2.6.3
 </span></code></pre></td></tr></table></div></figure>
 
 
 <p>等同于</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">PYENV_VERSION</span><span class="o">=</span>3.5.1
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">RBENV_VERSION</span><span class="o">=</span>2.6.3
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>清除<code>PYENV_VERSION</code></p>
+<p>清除<code>RBENV_VERSION</code></p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv shell --unset
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rbenv shell --unset
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h2>三、安装pyenv-virtualenv</h2>
-
-<p>pyenv-virtual是pyenv的插件，它支持管理多个virtualenv</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone https://github.com/yyuu/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv
-</span><span class='line'><span class="nb">echo</span> <span class="s1">&#39;eval &quot;$(pyenv virtualenv-init -)&quot;&#39;</span> &gt;&gt; ~/.bashrc
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>创建virtualenv</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv virtualenv 3.5.1 aiohttp-virtual-env
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>创建aiohttp-virtual-env之前，须先安装Python 3.5.1（通过系统或pyenv安装）。</li>
-<li>aiohttp-virtual-env存储在~/.pyenv/versions/3.5.1/envs目录中，且在~/.pyenv/versions目录中建立同名符号链接。</li>
-</ul>
-
-
-<h3>删除virtualenv</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv uninstall aiohttp-virtual-env
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>列表virtualenv</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv virtualenvs
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>激活/禁用virtualenv</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>pyenv activate aiohttp-virtual-env
-</span><span class='line'>pyenv deactivate
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>四、升级</h2>
+<h2>三、升级</h2>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> <span class="nv">$PYENV_ROOT</span>
-</span><span class='line'>git fetch origin
-</span><span class='line'>git checkout <span class="sb">`</span>git describe --abbrev<span class="o">=</span><span class="m">0</span> --tags<span class="sb">`</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> ~/.rbenv
+</span><span class='line'>git pull
+</span><span class='line'><span class="nb">cd</span> ~/.rbenv/plugins/ruby-build
+</span><span class='line'>git pull
+</span><span class='line'><span class="nb">cd</span> ~/.rbenv/plugins/rbenv-taobao-mirror
+</span><span class='line'>git pull
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h2>五、配置Upstart脚本</h2>
+<h2>四、配置Systemd脚本</h2>
 
-<p>若Python程序须通过Upstart启动，则其Upstart脚本可以类似：</p>
+<p>若Ruby程序须通过Systemd启动，则其Systemd脚本类似：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="err">...</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">[Service]</span>
+</span><span class='line'><span class="err">...</span>
+</span><span class='line'><span class="na">User</span><span class="o">=</span><span class="s">&lt;username&gt;</span>
+</span><span class='line'><span class="na">Group</span><span class="o">=</span><span class="s">&lt;group&gt;</span>
+</span><span class='line'><span class="na">Environment</span><span class="o">=</span><span class="s">&quot;PATH=/home/&lt;username&gt;/.rbenv/shims:/home/&lt;username&gt;/.rbenv/bin:/sbin:/usr/sbin:/bin:/usr/bin&quot;</span>
+</span><span class='line'><span class="na">Environment</span><span class="o">=</span><span class="s">&quot;RBENV_ROOT=/home/&lt;username&gt;/.rbenv&quot;</span>
+</span><span class='line'><span class="na">Environment</span><span class="o">=</span><span class="s">&quot;RBENV_VERSION=&lt;ruby version&gt;&quot;</span>
+</span><span class='line'><span class="na">WorkingDirectory</span><span class="o">=</span><span class="s">&lt;app dir&gt;</span>
+</span><span class='line'><span class="na">ExecStart</span><span class="o">=</span><span class="s">&lt;app dir&gt;/&lt;app&gt;</span>
+</span><span class='line'><span class="err">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>username</code> 为服务运行的用户名，通常为 <code>RBENV_ROOT</code> 所属用户。</li>
+<li><code>group</code> 为服务运行的组名，通常为 <code>RBENV_ROOT</code> 所属组。</li>
+<li><code>RBENV_VERSION</code> 为Ruby版本号。</li>
+<li><code>app dir</code> 为Ruby程序的目录。</li>
+<li><code>app</code> 为Ruby程序或启动脚本。</li>
+</ul>
+
+
+<h2>五、制作Docker镜像</h2>
+
+<p>若不希望使用Ruby的官方Docker镜像，可利用 <code>rbenv</code> 创建镜像：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -298,115 +315,51 @@ git checkout `git describe &hellip;">
 <span class='line-number'>18</span>
 <span class='line-number'>19</span>
 <span class='line-number'>20</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># service name</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='Dockerfile'><span class='line'><span class="k">FROM</span> ubuntu:bionic
+</span><span class='line'><span class="k">MAINTAINER</span> ...
 </span><span class='line'>
-</span><span class='line'>description <span class="s2">&quot;service description ...&quot;</span>
+</span><span class='line'><span class="k">ENV</span> DEBIAN_FRONTEND noninteractive
+</span><span class='line'><span class="k">ENV</span> PATH /root/.rbenv/bin:<span class="nv">$PATH</span>
+</span><span class='line'><span class="k">ENV</span> RBENV_VERSION 2.6.3
+</span><span class='line'><span class="k">ENV</span> RUBY_CFLAGS -O3
 </span><span class='line'>
-</span><span class='line'>respawn
-</span><span class='line'>
-</span><span class='line'>setuid &lt;username&gt;
-</span><span class='line'>setgid &lt;group&gt;
-</span><span class='line'>
-</span><span class='line'>env <span class="nv">PYENV_ROOT</span><span class="o">=</span>/home/&lt;username&gt;/.pyenv
-</span><span class='line'>env <span class="nv">PATH</span><span class="o">=</span>/home/&lt;username&gt;/.pyenv/bin:/sbin:/usr/sbin:/bin:/usr/bin
-</span><span class='line'>env <span class="nv">PYENV_VERSION</span><span class="o">=</span>&lt;python version or virtualenv name&gt;
-</span><span class='line'>
-</span><span class='line'>chdir &lt;app dir&gt;
-</span><span class='line'>
-</span><span class='line'>script
-</span><span class='line'>        <span class="nb">eval</span> <span class="s2">&quot;$(pyenv init -)&quot;</span>
-</span><span class='line'>        <span class="nb">exec</span> ./&lt;app&gt;
-</span><span class='line'>end script
-</span><span class='line'><span class="c"># vim: ts=4 sw=4 sts=4 ft=upstart</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>或</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># service name</span>
-</span><span class='line'>
-</span><span class='line'>description <span class="s2">&quot;service description ...&quot;</span>
-</span><span class='line'>
-</span><span class='line'>respawn
-</span><span class='line'>
-</span><span class='line'>setuid &lt;username&gt;
-</span><span class='line'>setgid &lt;group&gt;
-</span><span class='line'>
-</span><span class='line'>env <span class="nv">PYENV_ROOT</span><span class="o">=</span>/home/&lt;username&gt;/.pyenv
-</span><span class='line'>env <span class="nv">PATH</span><span class="o">=</span>/home/&lt;username&gt;/.pyenv/shims:/home/&lt;username&gt;/.pyenv/bin:/sbin:/usr/sbin:/bin:/usr/bin
-</span><span class='line'>env <span class="nv">PYENV_VERSION</span><span class="o">=</span>&lt;python version or virtualenv name&gt;
-</span><span class='line'>
-</span><span class='line'>chdir &lt;app dir&gt;
-</span><span class='line'>
-</span><span class='line'><span class="nb">exec</span> ./&lt;app&gt;
-</span><span class='line'><span class="c"># vim: ts=4 sw=4 sts=4 ft=upstart</span>
+</span><span class='line'><span class="k">RUN</span> <span class="nb">set</span> -eux<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  apt-get update<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  apt-get install -y wget ca-certificates nodejs python<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  <span class="nv">savedAptMark</span><span class="o">=</span><span class="s2">&quot;$(apt-mark showmanual)&quot;</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  apt-get install -y git make gcc libssl-dev libreadline-dev zlib1g-dev<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  <span class="nb">echo</span> <span class="s2">&quot;gem: --no-rdoc --no-ri&quot;</span> &gt; ~/.gemrc<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  git clone git://github.com/rbenv/rbenv.git ~/.rbenv<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    git clone https://github.com/andorchen/rbenv-taobao-mirror.git ~/.rbenv/plugins/rbenv-taobao-mirror<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  <span class="nv">CONFIGURE_OPTS</span><span class="o">=</span><span class="s2">&quot;--disable-install-doc&quot;</span> <span class="nv">MAKE_OPTS</span><span class="o">=</span><span class="s2">&quot;-j`grep -c &#39;^processor&#39; /proc/cpuinfo`&quot;</span> rbenv install <span class="nv">$RBENV_VERSION</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  gem sources --add https://gems.ruby-china.com/ --remove https://rubygems.com/<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  gem install bundler<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    bundle config mirror.https://rubygems.com https://gems.ruby-china.com<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  apt-mark auto <span class="s1">&#39;.*&#39;</span> &gt; /dev/null<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    <span class="o">[</span> -z <span class="s2">&quot;$savedAptMark&quot;</span> <span class="o">]</span> <span class="o">||</span> apt-mark manual <span class="nv">$savedAptMark</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant<span class="o">=</span><span class="nb">false</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  apt-get clean<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  rm -rf /var/lib/apt/lists /tmp/*
 </span></code></pre></td></tr></table></div></figure>
 
 
 <ul>
-<li><code>username</code>为服务运行的用户名，通常为<code>PYENV_ROOT</code>所属用户。</li>
-<li><code>group</code>为服务运行的组名，通常为<code>PYENV_ROOT</code>所属组。</li>
-<li><code>PYENV_VERSION</code>为Python版本号或virtualenv的名字。</li>
-<li><code>app dir</code>为Python程序的目录。</li>
-<li><code>app</code>为Python程序或启动脚本。</li>
+<li>在国内，为了加速安装gem，上述gem和bundle设置国内镜像</li>
+<li><code>RUBY_CFLAGS</code> 为 <code>-O3</code> 可编译优化的Ruby程序。在某些情况，可提高应用20-30%的运行效率。</li>
+<li>可针对指定C扩展（如ffi），设置编译优化标志：</li>
 </ul>
 
-
-<h2>六、配置Systemd脚本</h2>
-
-<p>若Python程序须通过Systemd启动，则其Systemd脚本可以类似：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="err">...</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">[Service]</span>
-</span><span class='line'><span class="err">...</span>
-</span><span class='line'><span class="na">User</span><span class="o">=</span><span class="s">&lt;username&gt;</span>
-</span><span class='line'><span class="na">Group</span><span class="o">=</span><span class="s">&lt;group&gt;</span>
-</span><span class='line'><span class="na">Environment</span><span class="o">=</span><span class="s">&quot;PATH=/home/&lt;username&gt;/.pyenv/shims:/home/&lt;username&gt;/.pyenv/bin:/sbin:/usr/sbin:/bin:/usr/bin&quot;</span>
-</span><span class='line'><span class="na">Environment</span><span class="o">=</span><span class="s">&quot;PYENV_ROOT=/home/&lt;username&gt;/.pyenv&quot;</span>
-</span><span class='line'><span class="na">Environment</span><span class="o">=</span><span class="s">&quot;PYENV_VERSION=&lt;python version or virtualenv name&gt;&quot;</span>
-</span><span class='line'><span class="na">WorkingDirectory</span><span class="o">=</span><span class="s">&lt;app dir&gt;</span>
-</span><span class='line'><span class="na">ExecStart</span><span class="o">=</span><span class="s">&lt;app dir&gt;/&lt;app&gt;</span>
-</span><span class='line'><span class="err">...</span>
+</pre></td><td class='code'><pre><code class='Dockerfile'><span class='line'>bundle config build.ffi --with-cflags<span class="o">=</span><span class="s2">&quot;$RUBY_CFLAGS&quot;</span>
 </span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li><code>username</code>为服务运行的用户名，通常为<code>PYENV_ROOT</code>所属用户。</li>
-<li><code>group</code>为服务运行的组名，通常为<code>PYENV_ROOT</code>所属组。</li>
-<li><code>PYENV_VERSION</code>为Python版本号或virtualenv的名字。</li>
-<li><code>app dir</code>为Python程序的目录。</li>
-<li><code>app</code>为Python程序或启动脚本。</li>
-</ul>
 
 </div>
 
@@ -430,12 +383,12 @@ git checkout `git describe &hellip;">
   
 
 
-<time datetime="2016-05-21T00:00:00+00:00" pubdate data-updated="true"></time>
+<time datetime="2019-08-17T16:40:54+00:00" pubdate data-updated="true"></time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/debian/'>debian</a>, <a class='category' href='/blog/categories/python/'>python</a>, <a class='category' href='/blog/categories/ubuntu/'>ubuntu</a>
+    <a class='category' href='/blog/categories/debian/'>debian</a>, <a class='category' href='/blog/categories/ruby/'>ruby</a>, <a class='category' href='/blog/categories/ubuntu/'>ubuntu</a>
   
 </span>
 
@@ -444,7 +397,7 @@ git checkout `git describe &hellip;">
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.malike.net.cn/blog/2016/05/21/pyenv-tutorial/" data-via="" data-counturl="http://www.malike.net.cn/blog/2016/05/21/pyenv-tutorial/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.malike.net.cn/blog/2019/08/17/rbenv-tutorial/" data-via="" data-counturl="http://www.malike.net.cn/blog/2019/08/17/rbenv-tutorial/" >Tweet</a>
   
   
   
@@ -455,10 +408,8 @@ git checkout `git describe &hellip;">
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2016/04/20/python-gevent-actor/" title="Previous Post: 扩展Python Gevent的Actor模型">&laquo; 扩展Python Gevent的Actor模型</a>
+        <a class="basic-alignment left" href="/blog/2019/04/30/shadowsocks-rust-tutorial/" title="Previous Post: Shadowsocks-Rust简介">&laquo; Shadowsocks-Rust简介</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2016/06/09/nvm-tutorial/" title="Next Post: nvm简介——Debian/Ubuntu中管理多版本Node.js">nvm简介——Debian/Ubuntu中管理多版本Node.js &raquo;</a>
       
     </p>
   </footer>
@@ -557,8 +508,8 @@ git checkout `git describe &hellip;">
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://www.malike.net.cn/blog/2016/05/21/pyenv-tutorial/';
-        var disqus_url = 'http://www.malike.net.cn/blog/2016/05/21/pyenv-tutorial/';
+        var disqus_identifier = 'http://www.malike.net.cn/blog/2019/08/17/rbenv-tutorial/';
+        var disqus_url = 'http://www.malike.net.cn/blog/2019/08/17/rbenv-tutorial/';
         var disqus_script = 'embed.js';
       
     (function () {

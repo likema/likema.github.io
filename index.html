@@ -9,7 +9,10 @@
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="在《Shadowsocks简介》中，我介绍了如何使用Shadowsocks。但它不具备负载均衡集群能力，而结合HAProxy的集群配置复杂。 shadowsocks-rust是Shadowsocks的Rust语言实现，它不仅具有传统Shadowsocks特性，而且还具有： 负载均衡 &hellip;">
+  <meta name="description" content="一、安装 1
+2
+git clone git://github.com/rbenv/rbenv.git ~/.rbenv
+git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build 在国内，为了加速下述安装 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +81,295 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2019/08/17/rbenv-tutorial/">rbenv简介——Debian/Ubuntu中管理多版本Ruby</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2019-08-17T16:40:54+00:00" pubdate data-updated="true"></time>
+        
+           | <a href="/blog/2019/08/17/rbenv-tutorial/#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn/blog/2019/08/17/rbenv-tutorial/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>一、安装</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone git://github.com/rbenv/rbenv.git ~/.rbenv
+</span><span class='line'>git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在国内，为了加速下述安装：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone https://github.com/andorchen/rbenv-taobao-mirror.git ~/.rbenv/plugins/rbenv-taobao-mirror
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>激活rbenv</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">eval</span> <span class="s2">&quot;$(~/.rbenv/bin/rbenv init)&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了每次登录后自动激活rbenv，需将<code>NMV_DIR</code>、<code>nvm.sh</code>和补齐加入bash的~/.bashrc（或zsh的~/.zshrc）</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span>~/.rbenv/shims:~/.rbenv/bin:<span class="nv">$PATH</span>
+</span><span class='line'><span class="nb">eval</span> <span class="s2">&quot;$(rbenv init -)&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>验证是否安装正确：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>curl -fsSL https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-doctor <span class="p">|</span> bash
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>或</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>wget -qO- https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-doctor <span class="p">|</span> bash
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>输出类似：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Checking <span class="k">for</span> <span class="sb">`</span>rbenv<span class="s1">&#39; in PATH: /root/.rbenv/bin/rbenv</span>
+</span><span class='line'><span class="s1">Checking for rbenv shims in PATH: OK</span>
+</span><span class='line'><span class="s1">Checking `rbenv install&#39;</span> support: /root/.rbenv/plugins/ruby-build/bin/rbenv-install <span class="o">(</span>ruby-build 20190615-9-gf3f4193<span class="o">)</span>
+</span><span class='line'>Counting installed Ruby versions: none
+</span><span class='line'>  There aren<span class="s1">&#39;t any Ruby versions installed under `/root/.rbenv/versions&#39;</span>.
+</span><span class='line'>  You can install Ruby versions like so: rbenv install 2.2.4
+</span><span class='line'>Checking RubyGems settings: OK
+</span><span class='line'>Auditing installed plugins: OK
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>二、常用命令</h2>
+
+<h3>列表可安装的Ruby版本</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rbenv install -l
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>除了Ruby官方版本，还支持RBX和JRuby等。</p>
+
+<h3>安装指定版本的Ruby</h3>
+
+<p>安装过程，实际为下载并编译指定版本的Ruby源码，故需系统安装：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install -y make gcc libssl-dev libreadline-dev zlib1g-dev
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rbenv install 2.6.3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ruby版本安装在 <code>~/.rbenv/versions</code> 目录中。</p>
+
+<h3>卸载指定版本的Ruby</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rbenv uninstall 2.6.3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>设置shell的Ruby版本</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rbenv shell 2.6.3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>等同于</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">RBENV_VERSION</span><span class="o">=</span>2.6.3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>清除<code>RBENV_VERSION</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rbenv shell --unset
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>三、升级</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> ~/.rbenv
+</span><span class='line'>git pull
+</span><span class='line'><span class="nb">cd</span> ~/.rbenv/plugins/ruby-build
+</span><span class='line'>git pull
+</span><span class='line'><span class="nb">cd</span> ~/.rbenv/plugins/rbenv-taobao-mirror
+</span><span class='line'>git pull
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>四、配置Systemd脚本</h2>
+
+<p>若Ruby程序须通过Systemd启动，则其Systemd脚本类似：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="err">...</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">[Service]</span>
+</span><span class='line'><span class="err">...</span>
+</span><span class='line'><span class="na">User</span><span class="o">=</span><span class="s">&lt;username&gt;</span>
+</span><span class='line'><span class="na">Group</span><span class="o">=</span><span class="s">&lt;group&gt;</span>
+</span><span class='line'><span class="na">Environment</span><span class="o">=</span><span class="s">&quot;PATH=/home/&lt;username&gt;/.rbenv/shims:/home/&lt;username&gt;/.rbenv/bin:/sbin:/usr/sbin:/bin:/usr/bin&quot;</span>
+</span><span class='line'><span class="na">Environment</span><span class="o">=</span><span class="s">&quot;RBENV_ROOT=/home/&lt;username&gt;/.rbenv&quot;</span>
+</span><span class='line'><span class="na">Environment</span><span class="o">=</span><span class="s">&quot;RBENV_VERSION=&lt;ruby version&gt;&quot;</span>
+</span><span class='line'><span class="na">WorkingDirectory</span><span class="o">=</span><span class="s">&lt;app dir&gt;</span>
+</span><span class='line'><span class="na">ExecStart</span><span class="o">=</span><span class="s">&lt;app dir&gt;/&lt;app&gt;</span>
+</span><span class='line'><span class="err">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>username</code> 为服务运行的用户名，通常为 <code>RBENV_ROOT</code> 所属用户。</li>
+<li><code>group</code> 为服务运行的组名，通常为 <code>RBENV_ROOT</code> 所属组。</li>
+<li><code>RBENV_VERSION</code> 为Ruby版本号。</li>
+<li><code>app dir</code> 为Ruby程序的目录。</li>
+<li><code>app</code> 为Ruby程序或启动脚本。</li>
+</ul>
+
+
+<h2>五、制作Docker镜像</h2>
+
+<p>若不希望使用Ruby的官方Docker镜像，可利用 <code>rbenv</code> 创建镜像：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='Dockerfile'><span class='line'><span class="k">FROM</span> ubuntu:bionic
+</span><span class='line'><span class="k">MAINTAINER</span> ...
+</span><span class='line'>
+</span><span class='line'><span class="k">ENV</span> DEBIAN_FRONTEND noninteractive
+</span><span class='line'><span class="k">ENV</span> PATH /root/.rbenv/bin:<span class="nv">$PATH</span>
+</span><span class='line'><span class="k">ENV</span> RBENV_VERSION 2.6.3
+</span><span class='line'><span class="k">ENV</span> RUBY_CFLAGS -O3
+</span><span class='line'>
+</span><span class='line'><span class="k">RUN</span> <span class="nb">set</span> -eux<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  apt-get update<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  apt-get install -y wget ca-certificates nodejs python<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  <span class="nv">savedAptMark</span><span class="o">=</span><span class="s2">&quot;$(apt-mark showmanual)&quot;</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  apt-get install -y git make gcc libssl-dev libreadline-dev zlib1g-dev<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  <span class="nb">echo</span> <span class="s2">&quot;gem: --no-rdoc --no-ri&quot;</span> &gt; ~/.gemrc<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  git clone git://github.com/rbenv/rbenv.git ~/.rbenv<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    git clone https://github.com/andorchen/rbenv-taobao-mirror.git ~/.rbenv/plugins/rbenv-taobao-mirror<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  <span class="nv">CONFIGURE_OPTS</span><span class="o">=</span><span class="s2">&quot;--disable-install-doc&quot;</span> <span class="nv">MAKE_OPTS</span><span class="o">=</span><span class="s2">&quot;-j`grep -c &#39;^processor&#39; /proc/cpuinfo`&quot;</span> rbenv install <span class="nv">$RBENV_VERSION</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  gem sources --add https://gems.ruby-china.com/ --remove https://rubygems.com/<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  gem install bundler<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    bundle config mirror.https://rubygems.com https://gems.ruby-china.com<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  apt-mark auto <span class="s1">&#39;.*&#39;</span> &gt; /dev/null<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    <span class="o">[</span> -z <span class="s2">&quot;$savedAptMark&quot;</span> <span class="o">]</span> <span class="o">||</span> apt-mark manual <span class="nv">$savedAptMark</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant<span class="o">=</span><span class="nb">false</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  apt-get clean<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  rm -rf /var/lib/apt/lists /tmp/*
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>在国内，为了加速安装gem，上述gem和bundle设置国内镜像</li>
+<li><code>RUBY_CFLAGS</code> 为 <code>-O3</code> 可编译优化的Ruby程序。在某些情况，可提高应用20-30%的运行效率。</li>
+<li>可针对指定C扩展（如ffi），设置编译优化标志：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='Dockerfile'><span class='line'>bundle config build.ffi --with-cflags<span class="o">=</span><span class="s2">&quot;$RUBY_CFLAGS&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -2386,155 +2678,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/12/23/autossh-tutorial/">AutoSSH简介</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-12-23T00:00:00+00:00" pubdate data-updated="true"></time>
-        
-           | <a href="/blog/2014/12/23/autossh-tutorial/#disqus_thread"
-             data-disqus-identifier="http://www.malike.net.cn/blog/2014/12/23/autossh-tutorial/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><a href="http://www.harding.motd.ca/autossh/">autossh</a> (Automatically restart SSH sessions and tunnels)，它在运行的时候启动一个SSH进程，并监控该进程的健康状况；当SSH进程崩溃或停止通信时，它将重启动SSH进程。</p>
-
-<h2>命令选项</h2>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>autossh <span class="o">[</span>-V<span class="o">]</span> <span class="o">[</span>-M port<span class="o">[</span>:echo_port<span class="o">]]</span> <span class="o">[</span>-f<span class="o">]</span> <span class="o">[</span>SSH_OPTIONS<span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li><p><strong>-M port[:echo_port]</strong> 指定监控端口（和echo端口，默认为前者加1）。</p>
-
-<ul>
-<li>若希望使远程标准inetd的echo服务（默认端口为7），则指定echo_port，仅需服务监听地址为localhost。</li>
-<li>若port设置为0，则将禁用监控功能。仅在ssh退出后重启它。</li>
-</ul>
-</li>
-<li><p><strong>-f</strong> 使autossh在后台运行。</p></li>
-</ul>
-
-
-<p>另外，autossh还提供了一组环境变量来控制其行为, 这里仅介绍几个有代表性的，其可以man autossh</p>
-
-<ul>
-<li><strong>AUTOSSH_FIRST_POLL</strong> 指定首次论询测试时间。</li>
-<li><strong>AUTOSSH_POLL</strong> 指定连接论询时间，默认600。若该值小于两次网络超时（默认15秒），则网络超将被调整为该值的1/2</li>
-<li><strong>AUTOSSH_GATETIME</strong> 指定等待SSH连接成功建立的时间，默认30秒，超时表示首次运行失败，将退出autossh。若设为0，则禁用该功能，通常用于启动时运行autossh。</li>
-<li><strong>AUTOSSH_MAXLIFETIME</strong> 指autossh最长运行时间，达到该时间，autossh将退出，并杀死SSH进程。</li>
-<li><strong>AUTOSSH_MAXSTART</strong> 指定SSH最大启动次数。默认-1，表示无限制。</li>
-</ul>
-
-
-<h2>Ubuntu配置方法</h2>
-
-<p>基于Ubuntu 12.04或14.04，以SSH动态代理（即SSH翻墙）为例。init script和Upstart都可以将autossh变成服务，然Upstart的<em>respawn</em>容错能力更强，它能在服务进程掉线，重新启动该服务。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># autossh</span>
-</span><span class='line'>
-</span><span class='line'>description <span class="s2">&quot;autossh daemon&quot;</span>
-</span><span class='line'>
-</span><span class='line'>start on <span class="o">(</span>net-device-up <span class="nv">IFACE</span><span class="o">=</span>eth0 or net-device-up <span class="nv">IFACE</span><span class="o">=</span>wlan0<span class="o">)</span>
-</span><span class='line'>stop on <span class="o">(</span>net-device-down <span class="nv">IFACE</span><span class="o">=</span>eth0 and net-device-down <span class="nv">IFACE</span><span class="o">=</span>wlan0<span class="o">)</span>
-</span><span class='line'>
-</span><span class='line'>respawn
-</span><span class='line'>
-</span><span class='line'>setuid like
-</span><span class='line'>setgid like
-</span><span class='line'>
-</span><span class='line'><span class="nb">exec</span> /usr/bin/autossh -M64000 -q -N -D localhost:12348 sshproxy
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li><em>setuid</em>和<em>setgid</em>为了让autossh运行在指定的用户和用户组上。</li>
-<li><em>start on</em>表示当eth0或wlan0激活时，启动autossh，<em>stop on</em>反之。其目的为避免系统启动或网络掉线时，频繁尝试启动autossh。</li>
-</ul>
-
-
-<h2>更好的办法</h2>
-
-<p>最近OpenSSH都支持选项<strong>ServerAliveInterval</strong>和<strong>ServerAliveCountMax</strong>，实际为建立在SSH协议上的心跳测试。当测试失败后，SSH客户端进程将退出。通过Upstart的respawn功能重启SSH客户端进程，也能达到autossh目的。</p>
-
-<p>仍以SSH动态代理为例：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># sshproxy</span>
-</span><span class='line'>
-</span><span class='line'>description <span class="s2">&quot;ssh proxy&quot;</span>
-</span><span class='line'>
-</span><span class='line'>start on <span class="o">(</span>net-device-up <span class="nv">IFACE</span><span class="o">=</span>eth0 or net-device-up <span class="nv">IFACE</span><span class="o">=</span>wlan0<span class="o">)</span>
-</span><span class='line'>stop on <span class="o">(</span>net-device-down <span class="nv">IFACE</span><span class="o">=</span>eth0 and net-device-down <span class="nv">IFACE</span><span class="o">=</span>wlan0<span class="o">)</span>
-</span><span class='line'>
-</span><span class='line'>respawn
-</span><span class='line'>
-</span><span class='line'>setuid like
-</span><span class='line'>setgid like
-</span><span class='line'>
-</span><span class='line'><span class="nb">exec</span> /usr/bin/ssh <span class="se">\</span>
-</span><span class='line'>    -oServerAliveInterval<span class="o">=</span><span class="m">300</span> <span class="se">\</span>
-</span><span class='line'>    -oServerAliveCountMax<span class="o">=</span><span class="m">2</span> <span class="se">\</span>
-</span><span class='line'>    -q -N -D localhost:12348 sshproxy
-</span></code></pre></td></tr></table></div></figure>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="2">&larr; Older</a>
@@ -2550,6 +2693,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/08/17/rbenv-tutorial/">rbenv简介——Debian/Ubuntu中管理多版本Ruby</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/04/30/shadowsocks-rust-tutorial/">Shadowsocks-Rust简介</a>
       </li>
     
@@ -2563,10 +2710,6 @@
     
       <li class="post">
         <a href="/blog/2016/07/11/python-multiprocessing-actor/">基于Python multiprocessing的Actor模型</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/07/03/python-3-dot-5-async-actor/">基于Python 3.5异步的Actor模型</a>
       </li>
     
   </ul>
@@ -2606,7 +2749,7 @@
 
 <section>
   <h1>Categories</h1>
-    <ul id="category-list"><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (1)</a></li><li><a href='/blog/categories/debian'>debian (6)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (13)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (9)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
+    <ul id="category-list"><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (1)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (13)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (10)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
 </section>
 
   

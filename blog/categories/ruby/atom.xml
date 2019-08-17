@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: ruby | Like的世界]]></title>
+  <link href="http://www.malike.net.cn/blog/categories/ruby/atom.xml" rel="self"/>
+  <link href="http://www.malike.net.cn/"/>
+  <updated>2019-08-17T11:12:12+00:00</updated>
+  <id>http://www.malike.net.cn/</id>
+  <author>
+    <name><![CDATA[Like Ma]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[rbenv简介——Debian/Ubuntu中管理多版本Ruby]]></title>
+    <link href="http://www.malike.net.cn/blog/2019/08/17/rbenv-tutorial/"/>
+    <updated>2019-08-17T16:40:54+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2019/08/17/rbenv-tutorial</id>
+    <content type="html"><![CDATA[<h2>一、安装</h2>
+
+<pre><code class="bash">git clone git://github.com/rbenv/rbenv.git ~/.rbenv
+git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
+</code></pre>
+
+<p>在国内，为了加速下述安装：</p>
+
+<pre><code class="bash">git clone https://github.com/andorchen/rbenv-taobao-mirror.git ~/.rbenv/plugins/rbenv-taobao-mirror
+</code></pre>
+
+<p>激活rbenv</p>
+
+<pre><code class="bash">eval "$(~/.rbenv/bin/rbenv init)"
+</code></pre>
+
+<p>为了每次登录后自动激活rbenv，需将<code>NMV_DIR</code>、<code>nvm.sh</code>和补齐加入bash的~/.bashrc（或zsh的~/.zshrc）</p>
+
+<pre><code class="bash">export PATH=~/.rbenv/shims:~/.rbenv/bin:$PATH
+eval "$(rbenv init -)"
+</code></pre>
+
+<p>验证是否安装正确：</p>
+
+<pre><code class="bash">curl -fsSL https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-doctor | bash
+</code></pre>
+
+<p>或</p>
+
+<pre><code class="bash">wget -qO- https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-doctor | bash
+</code></pre>
+
+<p>输出类似：</p>
+
+<pre><code>Checking for `rbenv' in PATH: /root/.rbenv/bin/rbenv
+Checking for rbenv shims in PATH: OK
+Checking `rbenv install' support: /root/.rbenv/plugins/ruby-build/bin/rbenv-install (ruby-build 20190615-9-gf3f4193)
+Counting installed Ruby versions: none
+  There aren't any Ruby versions installed under `/root/.rbenv/versions'.
+  You can install Ruby versions like so: rbenv install 2.2.4
+Checking RubyGems settings: OK
+Auditing installed plugins: OK
+</code></pre>
+
+<h2>二、常用命令</h2>
+
+<h3>列表可安装的Ruby版本</h3>
+
+<pre><code class="bash">rbenv install -l
+</code></pre>
+
+<p>除了Ruby官方版本，还支持RBX和JRuby等。</p>
+
+<h3>安装指定版本的Ruby</h3>
+
+<p>安装过程，实际为下载并编译指定版本的Ruby源码，故需系统安装：</p>
+
+<pre><code>sudo apt-get install -y make gcc libssl-dev libreadline-dev zlib1g-dev
+</code></pre>
+
+<p>然后：</p>
+
+<pre><code class="bash">rbenv install 2.6.3
+</code></pre>
+
+<p>Ruby版本安装在 <code>~/.rbenv/versions</code> 目录中。</p>
+
+<h3>卸载指定版本的Ruby</h3>
+
+<pre><code class="bash">rbenv uninstall 2.6.3
+</code></pre>
+
+<h3>设置shell的Ruby版本</h3>
+
+<pre><code class="bash">rbenv shell 2.6.3
+</code></pre>
+
+<p>等同于</p>
+
+<pre><code class="bash">export RBENV_VERSION=2.6.3
+</code></pre>
+
+<p>清除<code>RBENV_VERSION</code></p>
+
+<pre><code class="bash">rbenv shell --unset
+</code></pre>
+
+<h2>三、升级</h2>
+
+<pre><code class="bash">cd ~/.rbenv
+git pull
+cd ~/.rbenv/plugins/ruby-build
+git pull
+cd ~/.rbenv/plugins/rbenv-taobao-mirror
+git pull
+</code></pre>
+
+<h2>四、配置Systemd脚本</h2>
+
+<p>若Ruby程序须通过Systemd启动，则其Systemd脚本类似：</p>
+
+<pre><code class="ini">...
+
+[Service]
+...
+User=&lt;username&gt;
+Group=&lt;group&gt;
+Environment="PATH=/home/&lt;username&gt;/.rbenv/shims:/home/&lt;username&gt;/.rbenv/bin:/sbin:/usr/sbin:/bin:/usr/bin"
+Environment="RBENV_ROOT=/home/&lt;username&gt;/.rbenv"
+Environment="RBENV_VERSION=&lt;ruby version&gt;"
+WorkingDirectory=&lt;app dir&gt;
+ExecStart=&lt;app dir&gt;/&lt;app&gt;
+...
+</code></pre>
+
+<ul>
+<li><code>username</code> 为服务运行的用户名，通常为 <code>RBENV_ROOT</code> 所属用户。</li>
+<li><code>group</code> 为服务运行的组名，通常为 <code>RBENV_ROOT</code> 所属组。</li>
+<li><code>RBENV_VERSION</code> 为Ruby版本号。</li>
+<li><code>app dir</code> 为Ruby程序的目录。</li>
+<li><code>app</code> 为Ruby程序或启动脚本。</li>
+</ul>
+
+
+<h2>五、制作Docker镜像</h2>
+
+<p>若不希望使用Ruby的官方Docker镜像，可利用 <code>rbenv</code> 创建镜像：</p>
+
+<pre><code class="Dockerfile">FROM ubuntu:bionic
+MAINTAINER ...
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV PATH /root/.rbenv/bin:$PATH
+ENV RBENV_VERSION 2.6.3
+ENV RUBY_CFLAGS -O3
+
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y wget ca-certificates nodejs python; \
+    savedAptMark="$(apt-mark showmanual)"; \
+    apt-get install -y git make gcc libssl-dev libreadline-dev zlib1g-dev; \
+    echo "gem: --no-rdoc --no-ri" &gt; ~/.gemrc; \
+    git clone git://github.com/rbenv/rbenv.git ~/.rbenv; \
+    git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build; \
+    git clone https://github.com/andorchen/rbenv-taobao-mirror.git ~/.rbenv/plugins/rbenv-taobao-mirror; \
+    CONFIGURE_OPTS="--disable-install-doc" MAKE_OPTS="-j`grep -c '^processor' /proc/cpuinfo`" rbenv install $RBENV_VERSION; \
+    gem sources --add https://gems.ruby-china.com/ --remove https://rubygems.com/; \
+    gem install bundler; \
+    bundle config mirror.https://rubygems.com https://gems.ruby-china.com; \
+    apt-mark auto '.*' &gt; /dev/null; \
+    [ -z "$savedAptMark" ] || apt-mark manual $savedAptMark; \
+    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists /tmp/*
+</code></pre>
+
+<ul>
+<li>在国内，为了加速安装gem，上述gem和bundle设置国内镜像</li>
+<li><code>RUBY_CFLAGS</code> 为 <code>-O3</code> 可编译优化的Ruby程序。在某些情况，可提高应用20-30%的运行效率。</li>
+<li>可针对指定C扩展（如ffi），设置编译优化标志：</li>
+</ul>
+
+
+<pre><code>bundle config build.ffi --with-cflags="$RUBY_CFLAGS"
+</code></pre>
+]]></content>
+  </entry>
+  
+</feed>

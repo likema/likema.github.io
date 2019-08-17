@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2019-08-17T08:50:29+00:00</updated>
+  <updated>2019-08-17T11:12:12+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,265 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[rbenv简介——Debian/Ubuntu中管理多版本Ruby]]></title>
+    <link href="http://www.malike.net.cn/blog/2019/08/17/rbenv-tutorial/"/>
+    <updated>2019-08-17T16:40:54+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2019/08/17/rbenv-tutorial</id>
+    <content type="html"><![CDATA[<h2>一、安装</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone git://github.com/rbenv/rbenv.git ~/.rbenv
+</span><span class='line'>git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在国内，为了加速下述安装：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone https://github.com/andorchen/rbenv-taobao-mirror.git ~/.rbenv/plugins/rbenv-taobao-mirror
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>激活rbenv</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">eval</span> <span class="s2">&quot;$(~/.rbenv/bin/rbenv init)&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了每次登录后自动激活rbenv，需将<code>NMV_DIR</code>、<code>nvm.sh</code>和补齐加入bash的~/.bashrc（或zsh的~/.zshrc）</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span>~/.rbenv/shims:~/.rbenv/bin:<span class="nv">$PATH</span>
+</span><span class='line'><span class="nb">eval</span> <span class="s2">&quot;$(rbenv init -)&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>验证是否安装正确：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>curl -fsSL https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-doctor <span class="p">|</span> bash
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>或</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>wget -qO- https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-doctor <span class="p">|</span> bash
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>输出类似：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Checking <span class="k">for</span> <span class="sb">`</span>rbenv<span class="s1">&#39; in PATH: /root/.rbenv/bin/rbenv</span>
+</span><span class='line'><span class="s1">Checking for rbenv shims in PATH: OK</span>
+</span><span class='line'><span class="s1">Checking `rbenv install&#39;</span> support: /root/.rbenv/plugins/ruby-build/bin/rbenv-install <span class="o">(</span>ruby-build 20190615-9-gf3f4193<span class="o">)</span>
+</span><span class='line'>Counting installed Ruby versions: none
+</span><span class='line'>  There aren<span class="s1">&#39;t any Ruby versions installed under `/root/.rbenv/versions&#39;</span>.
+</span><span class='line'>  You can install Ruby versions like so: rbenv install 2.2.4
+</span><span class='line'>Checking RubyGems settings: OK
+</span><span class='line'>Auditing installed plugins: OK
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>二、常用命令</h2>
+
+<h3>列表可安装的Ruby版本</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rbenv install -l
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>除了Ruby官方版本，还支持RBX和JRuby等。</p>
+
+<h3>安装指定版本的Ruby</h3>
+
+<p>安装过程，实际为下载并编译指定版本的Ruby源码，故需系统安装：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install -y make gcc libssl-dev libreadline-dev zlib1g-dev
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rbenv install 2.6.3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ruby版本安装在 <code>~/.rbenv/versions</code> 目录中。</p>
+
+<h3>卸载指定版本的Ruby</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rbenv uninstall 2.6.3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>设置shell的Ruby版本</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rbenv shell 2.6.3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>等同于</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">RBENV_VERSION</span><span class="o">=</span>2.6.3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>清除<code>RBENV_VERSION</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rbenv shell --unset
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>三、升级</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> ~/.rbenv
+</span><span class='line'>git pull
+</span><span class='line'><span class="nb">cd</span> ~/.rbenv/plugins/ruby-build
+</span><span class='line'>git pull
+</span><span class='line'><span class="nb">cd</span> ~/.rbenv/plugins/rbenv-taobao-mirror
+</span><span class='line'>git pull
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>四、配置Systemd脚本</h2>
+
+<p>若Ruby程序须通过Systemd启动，则其Systemd脚本类似：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="err">...</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">[Service]</span>
+</span><span class='line'><span class="err">...</span>
+</span><span class='line'><span class="na">User</span><span class="o">=</span><span class="s">&lt;username&gt;</span>
+</span><span class='line'><span class="na">Group</span><span class="o">=</span><span class="s">&lt;group&gt;</span>
+</span><span class='line'><span class="na">Environment</span><span class="o">=</span><span class="s">&quot;PATH=/home/&lt;username&gt;/.rbenv/shims:/home/&lt;username&gt;/.rbenv/bin:/sbin:/usr/sbin:/bin:/usr/bin&quot;</span>
+</span><span class='line'><span class="na">Environment</span><span class="o">=</span><span class="s">&quot;RBENV_ROOT=/home/&lt;username&gt;/.rbenv&quot;</span>
+</span><span class='line'><span class="na">Environment</span><span class="o">=</span><span class="s">&quot;RBENV_VERSION=&lt;ruby version&gt;&quot;</span>
+</span><span class='line'><span class="na">WorkingDirectory</span><span class="o">=</span><span class="s">&lt;app dir&gt;</span>
+</span><span class='line'><span class="na">ExecStart</span><span class="o">=</span><span class="s">&lt;app dir&gt;/&lt;app&gt;</span>
+</span><span class='line'><span class="err">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>username</code> 为服务运行的用户名，通常为 <code>RBENV_ROOT</code> 所属用户。</li>
+<li><code>group</code> 为服务运行的组名，通常为 <code>RBENV_ROOT</code> 所属组。</li>
+<li><code>RBENV_VERSION</code> 为Ruby版本号。</li>
+<li><code>app dir</code> 为Ruby程序的目录。</li>
+<li><code>app</code> 为Ruby程序或启动脚本。</li>
+</ul>
+
+
+<h2>五、制作Docker镜像</h2>
+
+<p>若不希望使用Ruby的官方Docker镜像，可利用 <code>rbenv</code> 创建镜像：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='Dockerfile'><span class='line'><span class="k">FROM</span> ubuntu:bionic
+</span><span class='line'><span class="k">MAINTAINER</span> ...
+</span><span class='line'>
+</span><span class='line'><span class="k">ENV</span> DEBIAN_FRONTEND noninteractive
+</span><span class='line'><span class="k">ENV</span> PATH /root/.rbenv/bin:<span class="nv">$PATH</span>
+</span><span class='line'><span class="k">ENV</span> RBENV_VERSION 2.6.3
+</span><span class='line'><span class="k">ENV</span> RUBY_CFLAGS -O3
+</span><span class='line'>
+</span><span class='line'><span class="k">RUN</span> <span class="nb">set</span> -eux<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  apt-get update<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  apt-get install -y wget ca-certificates nodejs python<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  <span class="nv">savedAptMark</span><span class="o">=</span><span class="s2">&quot;$(apt-mark showmanual)&quot;</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  apt-get install -y git make gcc libssl-dev libreadline-dev zlib1g-dev<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  <span class="nb">echo</span> <span class="s2">&quot;gem: --no-rdoc --no-ri&quot;</span> &gt; ~/.gemrc<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  git clone git://github.com/rbenv/rbenv.git ~/.rbenv<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    git clone https://github.com/andorchen/rbenv-taobao-mirror.git ~/.rbenv/plugins/rbenv-taobao-mirror<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  <span class="nv">CONFIGURE_OPTS</span><span class="o">=</span><span class="s2">&quot;--disable-install-doc&quot;</span> <span class="nv">MAKE_OPTS</span><span class="o">=</span><span class="s2">&quot;-j`grep -c &#39;^processor&#39; /proc/cpuinfo`&quot;</span> rbenv install <span class="nv">$RBENV_VERSION</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  gem sources --add https://gems.ruby-china.com/ --remove https://rubygems.com/<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  gem install bundler<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    bundle config mirror.https://rubygems.com https://gems.ruby-china.com<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  apt-mark auto <span class="s1">&#39;.*&#39;</span> &gt; /dev/null<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    <span class="o">[</span> -z <span class="s2">&quot;$savedAptMark&quot;</span> <span class="o">]</span> <span class="o">||</span> apt-mark manual <span class="nv">$savedAptMark</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant<span class="o">=</span><span class="nb">false</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  apt-get clean<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>  rm -rf /var/lib/apt/lists /tmp/*
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>在国内，为了加速安装gem，上述gem和bundle设置国内镜像</li>
+<li><code>RUBY_CFLAGS</code> 为 <code>-O3</code> 可编译优化的Ruby程序。在某些情况，可提高应用20-30%的运行效率。</li>
+<li>可针对指定C扩展（如ffi），设置编译优化标志：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='Dockerfile'><span class='line'>bundle config build.ffi --with-cflags<span class="o">=</span><span class="s2">&quot;$RUBY_CFLAGS&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Shadowsocks-Rust简介]]></title>
@@ -3475,141 +3734,6 @@
 <li>常量名应为大写加下划线（如MAX_OVERFLOW）</li>
 </ul>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[git-buildpackage示例（二）]]></title>
-    <link href="http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2/"/>
-    <updated>2012-10-23T00:00:00+00:00</updated>
-    <id>http://www.malike.net.cn/blog/2012/10/23/git-buildpackage-2</id>
-    <content type="html"><![CDATA[<p>在<a href="http://www.malike.net.cn/blog/2012/02/19/git-buildpackage-1/">《git-buildpackage示例（一）》</a>中，我介绍了如何利用git-buildpackage为Ubuntu已有包做一个补丁包的办法。</p>
-
-<p>当时，我的补丁是基于tolua 5.1.3版本。一段时间后，tolua的作者释放了5.1.4版本。问题出现了，如何将我的补丁合并到5.1.4版本中呢？</p>
-
-<p>下面我将继续使用git-buildpackage来解决合并上游新版本的问题：</p>
-
-<ul>
-<li>下载tolua 5.1.4源码包（假设放在git工作目录上层）：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>wget http://www.tecgraf.puc-rio.br/~celes/tolua/tolua-5.1.4.tar.gz
-</span><span class='line'><span class="nb">cd </span>tolua
-</span><span class='line'>git-import-orig -u 5.1.4 ../tolua-5.1.4.tar.gz
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>手动解决遇到的冲突（如src/bin/Makefile）并提交更新：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>git commit
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>这时，运行</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>git log --format<span class="o">=</span>%d:%s
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>输出：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'> (HEAD, master):Merge commit 'upstream/5.1.4'
-</span><span class='line'> (upstream/5.1.4, upstream):Imported Upstream version 5.1.4
-</span><span class='line'> (debian/5.1.3-2):Fix relocation R_X86_64_32 against '.rodata' can not be used when making a shared object
-</span><span class='line'> (debian/5.1.3-1):Imported Debian patch 5.1.3-1
-</span><span class='line'> (upstream/5.1.3):Imported Upstream version 5.1.3</span></code></pre></td></tr></table></div></figure>
-
-
-<p>upstream/5.1.4分支被创建，且将其合并到master分支中。如此，master分支合并完毕，接下来将合并debian的patches。</p>
-
-<ul>
-<li>重整patch-queue：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>gbp-pq rebase
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>手动解决遇到的冲突：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>git rm -f src/bin/toluabind.c
-</span><span class='line'>git rebase --continue
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>导出patch-queue（至master分支）</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>git clean -df
-</span><span class='line'>gbp-pq <span class="nb">export</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>指定版本号5.1.4-1自动生成snapshot的debian/changelog：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>git-dch -a -S -N 5.1.4-1
-</span><span class='line'>git add debian/changelog
-</span><span class='line'>git add debian/patches/0001-mkdir-for-tolua-lib-archive-and-remove-temp-files.patch
-</span><span class='line'>git commit -m <span class="s2">&quot;Update patches from debian/5.1.3-1&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>测试构建新的deb包。为了避免污染当前环境，这里指定git首先导出源码至../tolua-build目录：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>git-buildpackage --git-export-dir<span class="o">=</span>../tolua-build --git-ignore-new
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>生成release的版本信息，并构建release的deb包：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>git-dch -a -R
-</span><span class='line'>git ci --amend
-</span><span class='line'>git tag debian/5.1.4-1
-</span><span class='line'>git-buildpackage --git-export-dir<span class="o">=</span>../tolua-build --git-ignore-new
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>到此为止，我已经演示了git-buildpackage合并上游版本的过程。不难发现，git-buildpackage充分利用了git的特点，在很大程度上简化了补丁开发和维护的过程。</p>
 ]]></content>
   </entry>
   

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: debian | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/debian/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2019-08-17T08:50:29+00:00</updated>
+  <updated>2019-08-17T11:12:12+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,179 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[rbenv简介——Debian/Ubuntu中管理多版本Ruby]]></title>
+    <link href="http://www.malike.net.cn/blog/2019/08/17/rbenv-tutorial/"/>
+    <updated>2019-08-17T16:40:54+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2019/08/17/rbenv-tutorial</id>
+    <content type="html"><![CDATA[<h2>一、安装</h2>
+
+<pre><code class="bash">git clone git://github.com/rbenv/rbenv.git ~/.rbenv
+git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
+</code></pre>
+
+<p>在国内，为了加速下述安装：</p>
+
+<pre><code class="bash">git clone https://github.com/andorchen/rbenv-taobao-mirror.git ~/.rbenv/plugins/rbenv-taobao-mirror
+</code></pre>
+
+<p>激活rbenv</p>
+
+<pre><code class="bash">eval "$(~/.rbenv/bin/rbenv init)"
+</code></pre>
+
+<p>为了每次登录后自动激活rbenv，需将<code>NMV_DIR</code>、<code>nvm.sh</code>和补齐加入bash的~/.bashrc（或zsh的~/.zshrc）</p>
+
+<pre><code class="bash">export PATH=~/.rbenv/shims:~/.rbenv/bin:$PATH
+eval "$(rbenv init -)"
+</code></pre>
+
+<p>验证是否安装正确：</p>
+
+<pre><code class="bash">curl -fsSL https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-doctor | bash
+</code></pre>
+
+<p>或</p>
+
+<pre><code class="bash">wget -qO- https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-doctor | bash
+</code></pre>
+
+<p>输出类似：</p>
+
+<pre><code>Checking for `rbenv' in PATH: /root/.rbenv/bin/rbenv
+Checking for rbenv shims in PATH: OK
+Checking `rbenv install' support: /root/.rbenv/plugins/ruby-build/bin/rbenv-install (ruby-build 20190615-9-gf3f4193)
+Counting installed Ruby versions: none
+  There aren't any Ruby versions installed under `/root/.rbenv/versions'.
+  You can install Ruby versions like so: rbenv install 2.2.4
+Checking RubyGems settings: OK
+Auditing installed plugins: OK
+</code></pre>
+
+<h2>二、常用命令</h2>
+
+<h3>列表可安装的Ruby版本</h3>
+
+<pre><code class="bash">rbenv install -l
+</code></pre>
+
+<p>除了Ruby官方版本，还支持RBX和JRuby等。</p>
+
+<h3>安装指定版本的Ruby</h3>
+
+<p>安装过程，实际为下载并编译指定版本的Ruby源码，故需系统安装：</p>
+
+<pre><code>sudo apt-get install -y make gcc libssl-dev libreadline-dev zlib1g-dev
+</code></pre>
+
+<p>然后：</p>
+
+<pre><code class="bash">rbenv install 2.6.3
+</code></pre>
+
+<p>Ruby版本安装在 <code>~/.rbenv/versions</code> 目录中。</p>
+
+<h3>卸载指定版本的Ruby</h3>
+
+<pre><code class="bash">rbenv uninstall 2.6.3
+</code></pre>
+
+<h3>设置shell的Ruby版本</h3>
+
+<pre><code class="bash">rbenv shell 2.6.3
+</code></pre>
+
+<p>等同于</p>
+
+<pre><code class="bash">export RBENV_VERSION=2.6.3
+</code></pre>
+
+<p>清除<code>RBENV_VERSION</code></p>
+
+<pre><code class="bash">rbenv shell --unset
+</code></pre>
+
+<h2>三、升级</h2>
+
+<pre><code class="bash">cd ~/.rbenv
+git pull
+cd ~/.rbenv/plugins/ruby-build
+git pull
+cd ~/.rbenv/plugins/rbenv-taobao-mirror
+git pull
+</code></pre>
+
+<h2>四、配置Systemd脚本</h2>
+
+<p>若Ruby程序须通过Systemd启动，则其Systemd脚本类似：</p>
+
+<pre><code class="ini">...
+
+[Service]
+...
+User=&lt;username&gt;
+Group=&lt;group&gt;
+Environment="PATH=/home/&lt;username&gt;/.rbenv/shims:/home/&lt;username&gt;/.rbenv/bin:/sbin:/usr/sbin:/bin:/usr/bin"
+Environment="RBENV_ROOT=/home/&lt;username&gt;/.rbenv"
+Environment="RBENV_VERSION=&lt;ruby version&gt;"
+WorkingDirectory=&lt;app dir&gt;
+ExecStart=&lt;app dir&gt;/&lt;app&gt;
+...
+</code></pre>
+
+<ul>
+<li><code>username</code> 为服务运行的用户名，通常为 <code>RBENV_ROOT</code> 所属用户。</li>
+<li><code>group</code> 为服务运行的组名，通常为 <code>RBENV_ROOT</code> 所属组。</li>
+<li><code>RBENV_VERSION</code> 为Ruby版本号。</li>
+<li><code>app dir</code> 为Ruby程序的目录。</li>
+<li><code>app</code> 为Ruby程序或启动脚本。</li>
+</ul>
+
+
+<h2>五、制作Docker镜像</h2>
+
+<p>若不希望使用Ruby的官方Docker镜像，可利用 <code>rbenv</code> 创建镜像：</p>
+
+<pre><code class="Dockerfile">FROM ubuntu:bionic
+MAINTAINER ...
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV PATH /root/.rbenv/bin:$PATH
+ENV RBENV_VERSION 2.6.3
+ENV RUBY_CFLAGS -O3
+
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y wget ca-certificates nodejs python; \
+    savedAptMark="$(apt-mark showmanual)"; \
+    apt-get install -y git make gcc libssl-dev libreadline-dev zlib1g-dev; \
+    echo "gem: --no-rdoc --no-ri" &gt; ~/.gemrc; \
+    git clone git://github.com/rbenv/rbenv.git ~/.rbenv; \
+    git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build; \
+    git clone https://github.com/andorchen/rbenv-taobao-mirror.git ~/.rbenv/plugins/rbenv-taobao-mirror; \
+    CONFIGURE_OPTS="--disable-install-doc" MAKE_OPTS="-j`grep -c '^processor' /proc/cpuinfo`" rbenv install $RBENV_VERSION; \
+    gem sources --add https://gems.ruby-china.com/ --remove https://rubygems.com/; \
+    gem install bundler; \
+    bundle config mirror.https://rubygems.com https://gems.ruby-china.com; \
+    apt-mark auto '.*' &gt; /dev/null; \
+    [ -z "$savedAptMark" ] || apt-mark manual $savedAptMark; \
+    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists /tmp/*
+</code></pre>
+
+<ul>
+<li>在国内，为了加速安装gem，上述gem和bundle设置国内镜像</li>
+<li><code>RUBY_CFLAGS</code> 为 <code>-O3</code> 可编译优化的Ruby程序。在某些情况，可提高应用20-30%的运行效率。</li>
+<li>可针对指定C扩展（如ffi），设置编译优化标志：</li>
+</ul>
+
+
+<pre><code>bundle config build.ffi --with-cflags="$RUBY_CFLAGS"
+</code></pre>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[nvm简介——Debian/Ubuntu中管理多版本Node.js]]></title>
@@ -522,177 +695,6 @@ git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
 </code></pre>
 
 <p>到此为止，我已经演示了git-buildpackage合并上游版本的过程。不难发现，git-buildpackage充分利用了git的特点，在很大程度上简化了补丁开发和维护的过程。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[git-buildpackage示例（一）]]></title>
-    <link href="http://www.malike.net.cn/blog/2012/02/19/git-buildpackage-1/"/>
-    <updated>2012-02-19T00:00:00+00:00</updated>
-    <id>http://www.malike.net.cn/blog/2012/02/19/git-buildpackage-1</id>
-    <content type="html"><![CDATA[<p>在《为tolua的deb包作一个补丁》中，我介绍了如何利用quilt为Ubuntu已有包做一个补丁包的办法。可以看出quilt具有一定的版本管理能力，然而与流行版本管理系统相比，功能较弱也不灵活。</p>
-
-<p>从<a href="http://www.debian.org/doc/manuals/maint-guide/">Debian New Maintainers' Guide</a>中，了解到deb包的制作和维护管理已经与现有流行版本管理系统结合在了一块，其中一款工具为git-buildpackage，它将包制作和维护，特别是第三方补丁包维护，与git紧密的结合了起来。</p>
-
-<p>下面仍然以tolua的补丁制作为例，一步一步展示git-buildpackage的基本操作。</p>
-
-<ul>
-<li>安装必要的工具：</li>
-</ul>
-
-
-<pre><code class="sh">sudo apt-get install git-buildpackage build-essential debhelper quilt
-</code></pre>
-
-<ul>
-<li>下载libtolua-dev的源码（建立upstream目录单独存放Ubuntu的deb源码包是为了保证清洁和正确）：</li>
-</ul>
-
-
-<pre><code class="sh">mkdir upstream
-apt-get source libtolua-dev
-</code></pre>
-
-<ul>
-<li>导入upsteam的dsc文件（将生成与目录upstream同级的目录tolua）：</li>
-</ul>
-
-
-<pre><code class="sh">cd ..
-git-import-dsc upstream/tolua_5.1.3-1.dsc
-cd tolua
-</code></pre>
-
-<p>这时，运行</p>
-
-<pre><code class="sh">git log --format=%d:%s
-</code></pre>
-
-<p>输出：</p>
-
-<pre><code class="plain"> (HEAD, debian/5.1.3-1, master):Imported Debian patch 5.1.3-1
- (upstream/5.1.3, upstream):Imported Upstream version 5.1.3
-</code></pre>
-
-<p>从下至上，首条提交导入了tolua 5.1.3的源码，次条提交导入了deb包维护者的deb包文件(debian/*)；并且建立了upstream和master两个分支，标签upstream/5.1.3位于upstream分支上，标签debian/5.1.3-1位于master分支头部。</p>
-
-<p>此外，upstream分支用于维护源码作者的发布版本更新情况，master分支用于维护deb包描述文件及其补丁文件。git-buildpackage工具集的正确运行将依赖于标签upstream/5.1.3和debian/5.1.3-1，不能随意删改。</p>
-
-<ul>
-<li>导入quilt patches到patch queue中——创建patch-queue/master分支，并将debian/patches/*逐一变成该分支的提交，并自动切换到该分支上：</li>
-</ul>
-
-
-<pre><code class="sh">gbp-pq import
-</code></pre>
-
-<ul>
-<li>执行make后发现构建目标libtolua.a的生成目录lib不存在，这是git只针对文件做版本，所以upstream导入git时，该目录被忽略了。为此，我将src/lib/Makefile中</li>
-</ul>
-
-
-<pre><code class="makefile">$T: $(OBJS)
-    $(AR) $@ $(OBJS)
-    $(RANLIB) $@
-</code></pre>
-
-<p>修改为：</p>
-
-<pre><code class="makefile">$T: $(OBJS)
-    mkdir -p $(@D)
-    $(AR) $@ $(OBJS)
-    $(RANLIB) $@
-</code></pre>
-
-<p>这样，它将在每次构建该目标时，创建该目标所在目录。更进一步不难发现，src/bin/tolua_lua.o和src/bin/toluabind.c为受版本控制的中间文件，将影响构建的正确运行。为此，删除这两个文件并提交日志。</p>
-
-<pre><code class="sh">git rm -f src/bin/tolua_lua.o src/bin/toluabind.c
-git commit -a -m "mkdir for tolua lib archive and remove temp files"
-</code></pre>
-
-<p>此时，可以正确make该工程了。</p>
-
-<ul>
-<li>修复x86_64链接问题，将config文件中，如下内容</li>
-</ul>
-
-
-<pre><code class="makefile">CFLAGS= -g $(WARN) $(INC)
-CPPFLAGS= -g $(WARN) $(INC)
-</code></pre>
-
-<p>替换为</p>
-
-<pre><code class="makefile">CFLAGS= -fPIC -O2 -pipe -g $(WARN) $(INC)
-CPPFLAGS= -fPIC -O2 -pipe  -g $(WARN) $(INC)
-</code></pre>
-
-<p>并提交日志：</p>
-
-<pre><code class="sh">git commit -a -m "Fix relocation R_X86_64_32 against '.rodata' erro for shared object."
-</code></pre>
-
-<ul>
-<li>导出patch-queue——将其分支提交逐一转化为debian/patches目录下的补丁文件（为保证正确运行，清理掉中间文件）：</li>
-</ul>
-
-
-<pre><code class="sh">git clean -df
-gbp-pq export
-</code></pre>
-
-<ul>
-<li>指定版本号5.1.3-2自动生成snapshot的debian/changelog：</li>
-</ul>
-
-
-<pre><code class="sh">git-dch -S -a -N 5.1.3-2
-</code></pre>
-
-<p>debian/changelog的新增内容如下：</p>
-
-<pre><code class="plain">tolua (5.1.3-2~1.gbp896bed) UNRELEASED; urgency=low
-
-  ** SNAPSHOT build @896bede5a4eb6f3967cdfe94ea2ef419235e7183 **
-
-  * UNRELEASED
-
- -- Like Ma   Sun, 19 Feb 2012 01:07:06 +0800
-</code></pre>
-
-<p>提交相关修改：</p>
-
-<pre><code class="sh">git add debian/changelog \
-        debian/patches/series \
-        debian/patches/0001-mkdir-for-tolua-lib-archive-and-remove-temp-files.patch \
-        debian/patches/0002-Fix-relocation-R_X86_64_32-against-.rodata-can-not-b.patch
-git commit -m "Fix relocation R_X86_64_32 against '.rodata' error for shared object"
-</code></pre>
-
-<p>测试构建新的deb包。为了避免污染当前环境，这里指定git首先导出源码至../tolua-build目录：</p>
-
-<pre><code class="sh">git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
-</code></pre>
-
-<p>可以看出，上述debian/changelog新增信息，除版本号5.1.3-2外（新包的版本信息），并无实在意义，仅用于测试deb包的构建。</p>
-
-<ul>
-<li>生成release的版本信息，并构建release的deb包：</li>
-</ul>
-
-
-<pre><code class="sh">git checkout src/bin/tolua_lua.o src/bin/toluabind.c
-git-dch -R -a
-git commit -a --amend
-git-buildpackage --git-export-dir=../tolua-build --git-ignore-new
-git tag debian/5.1.3-2
-</code></pre>
-
-<p>注意，前面仅仅在patch-queue分支上删除的两个中间文件，并未在master分支上删除它们，所以重新checkout它们以保证后续构建的正确运行。</p>
-
-<p>这里的关键命令git-dch -R -a自动生成了release的版本信息，当然我们也可以根据需要再修改它们。最后一条命令，给master分支的HEAD加上标签debian/5.1.3-2，git-buildpackage将依赖于它才能继续正确工作。</p>
-
-<p>到此为止，我已经演示了git-buildpackage的补丁制作过程，可以观察../tolua-build目录中生成的文件，它们就是我们可以用于发布的deb包源码文件，形式上与ubuntu/debian中apt-get source得到的一样。</p>
 ]]></content>
   </entry>
   
