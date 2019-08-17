@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ubuntu | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/ubuntu/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2019-07-09T10:23:11+00:00</updated>
+  <updated>2019-08-17T08:50:29+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -294,11 +294,16 @@ git checkout `git describe --abbrev=0 --tags`
 <pre><code class="bash">. ~/.nvm/nvm.sh
 </code></pre>
 
-<p>为了每次登录后自动激活nvm，需要将<code>NMV_DIR</code>、<code>nvm.sh</code>和补齐加入bash的~/.bashrc（或zsh的~/.zshrc）</p>
+<p>为了每次登录后自动激活nvm，需将<code>NMV_DIR</code>、<code>nvm.sh</code>和补齐加入bash的~/.bashrc（或zsh的~/.zshrc）</p>
 
 <pre><code class="bash">export NVM_DIR=~/.nvm
 [ -s "$NVM_DIR/nvm.sh" ] &amp;&amp; . "$NVM_DIR/nvm.sh"
 [ -r $NVM_DIR/bash_completion ] &amp;&amp; . $NVM_DIR/bash_completion
+</code></pre>
+
+<p>在国内，为了加速下述安装，可在bash的~/.bashrc（或zsh的~/.zshrc）加入：</p>
+
+<pre><code class="bash">export NVM_NODEJS_ORG_MIRROR=https://npm.taobao.org/mirrors/node
 </code></pre>
 
 <h2>二、nvm常用命令</h2>
@@ -312,19 +317,24 @@ git checkout `git describe --abbrev=0 --tags`
 
 <h3>安装指定版本的Node.js</h3>
 
-<pre><code class="bash">nvm install 6.2.1
+<pre><code class="bash">nvm install 10.16.2
 </code></pre>
 
 <p>它会自动下载指定版本的Node.js二进制包（不需要编译源码），安装在~/.nvm/versions/node</p>
 
+<p>通常，最好安装最近的长周期版本：</p>
+
+<pre><code class="bash">nvm install --lts
+</code></pre>
+
 <h3>卸载指定版本的Node.js</h3>
 
-<pre><code class="bash">nvm uninstall 6.2.1
+<pre><code class="bash">nvm uninstall 10.16.2
 </code></pre>
 
 <h3>设置shell的Node.js版本</h3>
 
-<pre><code class="bash">nvm use 6.2.1
+<pre><code class="bash">nvm use 10.16.2
 </code></pre>
 
 <p>它将Node.js指定版本的bin路径加入PATH.</p>
@@ -341,14 +351,14 @@ git checkout `git describe --abbrev=0 --tags`
 
 <p>或</p>
 
-<pre><code>nvm install v6.2.1 --reinstall-packages-from=5.0
+<pre><code>nvm install v10.16.2 --reinstall-packages-from=10.16.0
 </code></pre>
 
 <h3>.nvmrc</h3>
 
 <p>它存储在工程根目录中，用于记录该工程依赖的Node.js版本</p>
 
-<pre><code class="bash">echo 6.2.1 &gt; .nvmrc
+<pre><code class="bash">echo 10.16.2 &gt; .nvmrc
 </code></pre>
 
 <p>进入工程目录（当前目录），运行</p>
@@ -368,6 +378,28 @@ git checkout `git describe --abbrev=0 --tags`
 <p>升级完成后，需要重新激活nvm</p>
 
 <pre><code class="bash">. $NVM_DIR/nvm.sh
+</code></pre>
+
+<h2>四、制作Docker镜像</h2>
+
+<p>若不希望使用NodeJS的官方Docker镜像，可利用 <code>nvm</code> 创建镜像：</p>
+
+<pre><code>FROM ubuntu:bionic
+MAINTAINER ...
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV NVM_NODEJS_ORG_MIRROR=https://npm.taobao.org/mirrors/node
+ENV NODE_VERSION 10.16.2
+ENV PATH /root/.nvm/versions/node/v$NODE_VERSION/bin:$PATH
+
+RUN set -eux; \
+    apt-get update; \
+    apt-get install --no-install-recommends -y wget ca-certificates; \
+    wget -O- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash; \
+    apt-get remove --purge -y wget ca-certificates; \
+    apt-get autoremove --purge -y; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/* /root/.nvm/.cache
 </code></pre>
 ]]></content>
   </entry>

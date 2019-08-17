@@ -1281,7 +1281,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>为了每次登录后自动激活nvm，需要将<code>NMV_DIR</code>、<code>nvm.sh</code>和补齐加入bash的~/.bashrc（或zsh的~/.zshrc）</p>
+<p>为了每次登录后自动激活nvm，需将<code>NMV_DIR</code>、<code>nvm.sh</code>和补齐加入bash的~/.bashrc（或zsh的~/.zshrc）</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -1289,6 +1289,13 @@
 </pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">NVM_DIR</span><span class="o">=</span>~/.nvm
 </span><span class='line'><span class="o">[</span> -s <span class="s2">&quot;$NVM_DIR/nvm.sh&quot;</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> . <span class="s2">&quot;$NVM_DIR/nvm.sh&quot;</span>
 </span><span class='line'><span class="o">[</span> -r <span class="nv">$NVM_DIR</span>/bash_completion <span class="o">]</span> <span class="o">&amp;&amp;</span> . <span class="nv">$NVM_DIR</span>/bash_completion
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在国内，为了加速下述安装，可在bash的~/.bashrc（或zsh的~/.zshrc）加入：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">NVM_NODEJS_ORG_MIRROR</span><span class="o">=</span>https://npm.taobao.org/mirrors/node
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -1306,23 +1313,30 @@
 <h3>安装指定版本的Node.js</h3>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm install 6.2.1
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm install 10.16.2
 </span></code></pre></td></tr></table></div></figure>
 
 
 <p>它会自动下载指定版本的Node.js二进制包（不需要编译源码），安装在~/.nvm/versions/node</p>
 
+<p>通常，最好安装最近的长周期版本：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm install --lts
+</span></code></pre></td></tr></table></div></figure>
+
+
 <h3>卸载指定版本的Node.js</h3>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm uninstall 6.2.1
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm uninstall 10.16.2
 </span></code></pre></td></tr></table></div></figure>
 
 
 <h3>设置shell的Node.js版本</h3>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm use 6.2.1
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm use 10.16.2
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -1345,7 +1359,7 @@
 <p>或</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm install v6.2.1 --reinstall-packages-from<span class="o">=</span>5.0
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm install v10.16.2 --reinstall-packages-from<span class="o">=</span>10.16.0
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -1354,7 +1368,7 @@
 <p>它存储在工程根目录中，用于记录该工程依赖的Node.js版本</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo </span>6.2.1 &gt; .nvmrc
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo </span>10.16.2 &gt; .nvmrc
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -1382,6 +1396,45 @@
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>. <span class="nv">$NVM_DIR</span>/nvm.sh
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>四、制作Docker镜像</h2>
+
+<p>若不希望使用NodeJS的官方Docker镜像，可利用 <code>nvm</code> 创建镜像：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>FROM ubuntu:bionic
+</span><span class='line'>MAINTAINER ...
+</span><span class='line'>
+</span><span class='line'>ENV DEBIAN_FRONTEND noninteractive
+</span><span class='line'>ENV <span class="nv">NVM_NODEJS_ORG_MIRROR</span><span class="o">=</span>https://npm.taobao.org/mirrors/node
+</span><span class='line'>ENV NODE_VERSION 10.16.2
+</span><span class='line'>ENV PATH /root/.nvm/versions/node/v<span class="nv">$NODE_VERSION</span>/bin:<span class="nv">$PATH</span>
+</span><span class='line'>
+</span><span class='line'>RUN <span class="nb">set</span> -eux<span class="p">;</span> <span class="se">\</span>
+</span><span class='line'>    apt-get update<span class="p">;</span> <span class="se">\</span>
+</span><span class='line'>    apt-get install --no-install-recommends -y wget ca-certificates<span class="p">;</span> <span class="se">\</span>
+</span><span class='line'>    wget -O- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh <span class="p">|</span> bash<span class="p">;</span> <span class="se">\</span>
+</span><span class='line'>  apt-get remove --purge -y wget ca-certificates<span class="p">;</span> <span class="se">\</span>
+</span><span class='line'>    apt-get autoremove --purge -y<span class="p">;</span> <span class="se">\</span>
+</span><span class='line'>    apt-get clean<span class="p">;</span> <span class="se">\</span>
+</span><span class='line'>    rm -rf /var/lib/apt/lists/* /root/.nvm/.cache
 </span></code></pre></td></tr></table></div></figure>
 
 </div>
@@ -2550,15 +2603,6 @@
 
 
 
-<section class="googleplus">
-  <h1>
-    <a href="https://plus.google.com/112910538663131864533?rel=author">
-      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
-      Google+
-    </a>
-  </h1>
-</section>
-
 
 <section>
   <h1>Categories</h1>
@@ -2603,14 +2647,6 @@
 }(document, 'script', 'facebook-jssdk'));</script>
 
 
-
-  <script type="text/javascript">
-    (function() {
-      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
-      script.src = 'https://apis.google.com/js/plusone.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
-    })();
-  </script>
 
 
 
