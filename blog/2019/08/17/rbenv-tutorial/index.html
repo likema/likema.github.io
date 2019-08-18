@@ -1,0 +1,552 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>rbenv简介——Debian/Ubuntu中管理多版本Ruby - Like的世界</title>
+  <meta name="author" content="Like Ma">
+
+  
+  <meta name="description" content="一、安装 1
+2
+git clone git://github.com/rbenv/rbenv.git ~/.rbenv
+git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build 在国内，为了加速下述安装 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.malike.net.cn/blog/2019/08/17/rbenv-tutorial">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Like的世界" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-44993010-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Like的世界</a></h1>
+  
+    <h2>个人总结与随想</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:www.malike.net.cn" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">rbenv简介——Debian/Ubuntu中管理多版本Ruby</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2019-08-17T16:40:54+00:00" pubdate data-updated="true"></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>一、安装</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone git://github.com/rbenv/rbenv.git ~/.rbenv
+</span><span class='line'>git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在国内，为了加速下述安装：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone https://github.com/andorchen/rbenv-taobao-mirror.git ~/.rbenv/plugins/rbenv-taobao-mirror
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>激活rbenv</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">eval</span> <span class="s2">&quot;$(~/.rbenv/bin/rbenv init)&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了每次登录后自动激活rbenv，需将<code>NMV_DIR</code>、<code>nvm.sh</code>和补齐加入bash的~/.bashrc（或zsh的~/.zshrc）</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span>~/.rbenv/shims:~/.rbenv/bin:<span class="nv">$PATH</span>
+</span><span class='line'><span class="nb">eval</span> <span class="s2">&quot;$(rbenv init -)&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>验证是否安装正确：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>curl -fsSL https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-doctor <span class="p">|</span> bash
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>或</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>wget -qO- https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-doctor <span class="p">|</span> bash
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>输出类似：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Checking <span class="k">for</span> <span class="sb">`</span>rbenv<span class="s1">&#39; in PATH: /root/.rbenv/bin/rbenv</span>
+</span><span class='line'><span class="s1">Checking for rbenv shims in PATH: OK</span>
+</span><span class='line'><span class="s1">Checking `rbenv install&#39;</span> support: /root/.rbenv/plugins/ruby-build/bin/rbenv-install <span class="o">(</span>ruby-build 20190615-9-gf3f4193<span class="o">)</span>
+</span><span class='line'>Counting installed Ruby versions: none
+</span><span class='line'>  There aren<span class="s1">&#39;t any Ruby versions installed under `/root/.rbenv/versions&#39;</span>.
+</span><span class='line'>  You can install Ruby versions like so: rbenv install 2.2.4
+</span><span class='line'>Checking RubyGems settings: OK
+</span><span class='line'>Auditing installed plugins: OK
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>二、常用命令</h2>
+
+<h3>列表可安装的Ruby版本</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rbenv install -l
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>除了Ruby官方版本，还支持RBX和JRuby等。</p>
+
+<h3>安装指定版本的Ruby</h3>
+
+<p>安装过程，实际为下载并编译指定版本的Ruby源码，故需系统安装：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install -y make gcc libssl-dev libreadline-dev zlib1g-dev
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rbenv install 2.6.3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ruby版本安装在 <code>~/.rbenv/versions</code> 目录中。</p>
+
+<h3>卸载指定版本的Ruby</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rbenv uninstall 2.6.3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>设置shell的Ruby版本</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rbenv shell 2.6.3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>等同于</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">RBENV_VERSION</span><span class="o">=</span>2.6.3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>清除<code>RBENV_VERSION</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rbenv shell --unset
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>三、升级</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> ~/.rbenv
+</span><span class='line'>git pull
+</span><span class='line'><span class="nb">cd</span> ~/.rbenv/plugins/ruby-build
+</span><span class='line'>git pull
+</span><span class='line'><span class="nb">cd</span> ~/.rbenv/plugins/rbenv-taobao-mirror
+</span><span class='line'>git pull
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>四、配置Systemd脚本</h2>
+
+<p>若Ruby程序须通过Systemd启动，则其Systemd脚本类似：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="err">...</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">[Service]</span>
+</span><span class='line'><span class="err">...</span>
+</span><span class='line'><span class="na">User</span><span class="o">=</span><span class="s">&lt;username&gt;</span>
+</span><span class='line'><span class="na">Group</span><span class="o">=</span><span class="s">&lt;group&gt;</span>
+</span><span class='line'><span class="na">Environment</span><span class="o">=</span><span class="s">&quot;PATH=/home/&lt;username&gt;/.rbenv/shims:/home/&lt;username&gt;/.rbenv/bin:/sbin:/usr/sbin:/bin:/usr/bin&quot;</span>
+</span><span class='line'><span class="na">Environment</span><span class="o">=</span><span class="s">&quot;RBENV_ROOT=/home/&lt;username&gt;/.rbenv&quot;</span>
+</span><span class='line'><span class="na">Environment</span><span class="o">=</span><span class="s">&quot;RBENV_VERSION=&lt;ruby version&gt;&quot;</span>
+</span><span class='line'><span class="na">WorkingDirectory</span><span class="o">=</span><span class="s">&lt;app dir&gt;</span>
+</span><span class='line'><span class="na">ExecStart</span><span class="o">=</span><span class="s">&lt;app dir&gt;/&lt;app&gt;</span>
+</span><span class='line'><span class="err">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>username</code> 为服务运行的用户名，通常为 <code>RBENV_ROOT</code> 所属用户。</li>
+<li><code>group</code> 为服务运行的组名，通常为 <code>RBENV_ROOT</code> 所属组。</li>
+<li><code>RBENV_VERSION</code> 为Ruby版本号。</li>
+<li><code>app dir</code> 为Ruby程序的目录。</li>
+<li><code>app</code> 为Ruby程序或启动脚本。</li>
+</ul>
+
+
+<h2>五、制作Docker镜像</h2>
+
+<p>若不希望使用Ruby的官方Docker镜像，可利用rbenv创建镜像：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='Dockerfile'><span class='line'><span class="k">FROM</span> ubuntu:bionic
+</span><span class='line'><span class="k">MAINTAINER</span> ...
+</span><span class='line'>
+</span><span class='line'><span class="k">ENV</span> DEBIAN_FRONTEND noninteractive
+</span><span class='line'><span class="k">ENV</span> RBENV_ROOT /root/.rbenv
+</span><span class='line'><span class="k">ENV</span> RBENV_VERSION 2.6.3
+</span><span class='line'><span class="k">ENV</span> PATH <span class="nv">$RBENV_ROOT</span>/shims:<span class="nv">$RBENV_ROOT</span>/bin:<span class="nv">$PATH</span>
+</span><span class='line'><span class="k">ENV</span> RUBY_CFLAGS -O3
+</span><span class='line'>
+</span><span class='line'><span class="k">RUN</span> <span class="nb">set</span> -eux<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-get update<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    <span class="nv">savedAptMark</span><span class="o">=</span><span class="s2">&quot;$(apt-mark showmanual)&quot;</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-get install -y git wget make gcc libssl-dev libreadline-dev zlib1g-dev<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    <span class="nb">echo</span> <span class="s2">&quot;gem: --no-rdoc --no-ri&quot;</span> &gt; ~/.gemrc<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    git clone --depth <span class="m">1</span> https://github.com/rbenv/rbenv.git <span class="nv">$RBENV_ROOT</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    git clone --depth <span class="m">1</span> https://github.com/rbenv/ruby-build.git <span class="nv">$RBENV_ROOT</span>/plugins/ruby-build<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    git clone --depth <span class="m">1</span> https://github.com/andorchen/rbenv-taobao-mirror.git <span class="nv">$RBENV_ROOT</span>/plugins/rbenv-taobao-mirror<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    <span class="nv">CONFIGURE_OPTS</span><span class="o">=</span><span class="s2">&quot;--disable-install-doc&quot;</span> <span class="nv">MAKE_OPTS</span><span class="o">=</span><span class="s2">&quot;-j`grep -c &#39;^processor&#39; /proc/cpuinfo`&quot;</span> rbenv install <span class="nv">$RBENV_VERSION</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    gem sources --add https://gems.ruby-china.com/ --remove https://rubygems.com/<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    gem install bundler<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    bundle config mirror.https://rubygems.com https://gems.ruby-china.com<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-mark auto <span class="s1">&#39;.*&#39;</span> &gt; /dev/null<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    <span class="o">[</span> -z <span class="s2">&quot;$savedAptMark&quot;</span> <span class="o">]</span> <span class="o">||</span> apt-mark manual <span class="nv">$savedAptMark</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant<span class="o">=</span><span class="nb">false</span><span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    apt-get clean<span class="p">;</span> <span class="err">\</span>
+</span><span class='line'>    rm -rf /var/lib/apt/lists /var/tmp/* /tmp/* <span class="nv">$RBENV_ROOT</span>/versions/*/lib/ruby/gems/*/cache/*.gem
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>在国内，为了加速安装gem，上述gem和bundle设置国内镜像</li>
+<li><code>RUBY_CFLAGS</code> 为 <code>-O3</code> 可编译优化的Ruby程序。在某些情况，可提高应用20-30%的运行效率。</li>
+<li>可针对指定C扩展（如ffi），设置编译优化标志：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='Dockerfile'><span class='line'>bundle config build.ffi --with-cflags<span class="o">=</span><span class="s2">&quot;$RUBY_CFLAGS&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Like Ma</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2019-08-17T16:40:54+00:00" pubdate data-updated="true"></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/debian/'>debian</a>, <a class='category' href='/blog/categories/ruby/'>ruby</a>, <a class='category' href='/blog/categories/ubuntu/'>ubuntu</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.malike.net.cn/blog/2019/08/17/rbenv-tutorial/" data-via="" data-counturl="http://www.malike.net.cn/blog/2019/08/17/rbenv-tutorial/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2019/04/30/shadowsocks-rust-tutorial/" title="Previous Post: Shadowsocks-Rust简介">&laquo; Shadowsocks-Rust简介</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2019/08/17/rbenv-tutorial/">rbenv简介——Debian/Ubuntu中管理多版本Ruby</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/04/30/shadowsocks-rust-tutorial/">Shadowsocks-Rust简介</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/03/02/glusterfs-docker-tutorial/">在Docker容器中创建GlusterFS</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/11/29/shadowsocks-tutorial/">Shadowsocks简介</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/07/11/python-multiprocessing-actor/">基于Python multiprocessing的Actor模型</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/likema">@likema</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'likema',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+<section>
+  <h1>Categories</h1>
+    <ul id="category-list"><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (1)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (13)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (10)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
+</section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2019 - Like Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'likeworld';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.malike.net.cn/blog/2019/08/17/rbenv-tutorial/';
+        var disqus_url = 'http://www.malike.net.cn/blog/2019/08/17/rbenv-tutorial/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

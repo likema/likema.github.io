@@ -1,0 +1,370 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Rinse简介——Debian/Ubuntu中创建RPM安装环境 - Like的世界</title>
+  <meta name="author" content="Like Ma">
+
+  
+  <meta name="description" content="Rinse是一个Debian环境中创建RPM发行版本（如CentOS，Scientific Linux和openSUSE）的工具。你可以利用它轻松创建各种RPM发行版本的chroot环境。 以下基于Ubuntu 12.04 amd64，主要以创建CentOS 6 x86_64为例。 安装Rinse &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Like的世界" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-44993010-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Like的世界</a></h1>
+  
+    <h2>个人总结与随想</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:www.malike.net.cn" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Rinse简介——Debian/Ubuntu中创建RPM安装环境</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-07-15T20:34:58+08:00" pubdate data-updated="true"></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><a href="http://collab-maint.alioth.debian.org/rinse/">Rinse</a>是一个Debian环境中创建RPM发行版本（如CentOS，Scientific Linux和openSUSE）的工具。你可以利用它轻松创建各种RPM发行版本的chroot环境。</p>
+
+<p>以下基于Ubuntu 12.04 amd64，主要以创建CentOS 6 x86_64为例。</p>
+
+<h2>安装Rinse</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo apt-get install -y rinse
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>创建CentOS 6</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo rinse --distribution centos-6 --arch amd64 --directory centos-6
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>运行该命令将创建CentOS 6 amd64于当前工作目录的centos-6目录中。其中，</p>
+
+<ul>
+<li>&ndash;distribution指定发行版本，类似还可以centos-{4,5}， fedora-core-{4,5,6,7,8,9}和opensuse-{10.1,10.2,10.3,11.0,11.1,12.1}等。可以下述命令获取：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>rinse --list-distributions
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>具体对应于/etc/rinse/*.packages的模板名，它们主要包含RPM包列表。换一句话说，你根据需要定制自己的模板。另一方面，你也可以通过&ndash;pkgs-dir指定不同于/etc/rinse的模板目录。</p>
+
+<ul>
+<li>&ndash;arch指定架构，amd64表示64位架构，i386表示32位架构。缺省为i386.</li>
+<li>&ndash;directory指定为安装目录，安装结束后便可以chroot该目录了。</li>
+</ul>
+
+
+<p>另外，需要额外安装某些包，可以通过指定&ndash;add-pkg-list来完成。</p>
+
+<h2>配置RPM缓存</h2>
+
+<p>rinse默认使用/var/rinse/cache作为缓存目录，它大大缩短了重复运行同样命令的时间。具体通过：</p>
+
+<ul>
+<li>&ndash;cache 0指禁用缓存，缺省为1</li>
+<li>&ndash;cache-dir指定不同于/var/rinse/cache作为缓存目录。</li>
+<li>&ndash;clean-cache指清楚缓存</li>
+</ul>
+
+
+<h2>定制安装后执行脚本</h2>
+
+<p>&ndash;after-post-install, &ndash;before-post-install和&ndash;post-install顾名思义，需要指出的是&ndash;post-install默认执行/usr/lib/rinse/<distribution>/post-install.sh.</p>
+
+<h2>如何提高安装速度？</h2>
+
+<p>通过修改/etc/rinse/rinse.conf中对应发行版的镜像地址可以加速安装，如CentOS 6 x86_64的镜像地址可以修改为</p>
+
+<pre><code>http://centos.ustc.edu.cn/centos/6/os/x86_64/CentOS/
+</code></pre>
+
+<p>也可以通过&ndash;config指定不同于/etc/rinse/rinse.conf的配置文件。</p>
+
+<p>若内网存在HTTP cache服务器（如Squid)，还可以设置环境变量http_proxy来缓存rpm以及加速安装，如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo <span class="nv">http_proxy</span><span class="o">=</span>http://&lt;http proxy address&gt; rinse --distribution centos-6 --arch amd64 --directory centos-6
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Like Ma</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-07-15T20:34:58+08:00" pubdate data-updated="true"></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/debian/'>debian</a>, <a class='category' href='/blog/categories/linux/'>linux</a>, <a class='category' href='/blog/categories/ubuntu/'>ubuntu</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial/" data-via="" data-counturl="http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/04/01/restrict-ssh-access-to-rsync/" title="Previous Post: 利用SSH限制rsync的访问目录">&laquo; 利用SSH限制rsync的访问目录</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/08/07/create-chroot-for-ssh-access/" title="Next Post: 创建通过SSH访问的chroot">创建通过SSH访问的chroot &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2019/08/17/rbenv-tutorial/">rbenv简介——Debian/Ubuntu中管理多版本Ruby</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/04/30/shadowsocks-rust-tutorial/">Shadowsocks-Rust简介</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/03/02/glusterfs-docker-tutorial/">在Docker容器中创建GlusterFS</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/11/29/shadowsocks-tutorial/">Shadowsocks简介</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/07/11/python-multiprocessing-actor/">基于Python multiprocessing的Actor模型</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/likema">@likema</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'likema',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+<section>
+  <h1>Categories</h1>
+    <ul id="category-list"><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (1)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (13)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (10)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
+</section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2019 - Like Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'likeworld';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial/';
+        var disqus_url = 'http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

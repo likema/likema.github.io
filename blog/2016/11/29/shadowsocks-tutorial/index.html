@@ -1,0 +1,514 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Shadowsocks简介 - Like的世界</title>
+  <meta name="author" content="Like Ma">
+
+  
+  <meta name="description" content="Shadowsocks（中文名: 影梭） 是一款开源的安全SOCKS 5代理，它主要用于在大陆翻墙。 原理 与SSH动态代理相似，客户端呈现为SOCKS 5代理服务，客户端与服务器之间采用加密通信。服务器部署于GFW之外，从而实现代理翻墙服务。 特点 使用自行设计的协议加密通信，支持多种加密算法： &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.malike.net.cn/blog/2016/11/29/shadowsocks-tutorial">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Like的世界" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-44993010-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Like的世界</a></h1>
+  
+    <h2>个人总结与随想</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:www.malike.net.cn" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Shadowsocks简介</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-11-29T01:39:55+00:00" pubdate data-updated="true"></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><a href="https://shadowsocks.org/en/index.html">Shadowsocks</a>（中文名: 影梭） 是一款开源的安全SOCKS 5代理，它主要用于在大陆翻墙。</p>
+
+<h2>原理</h2>
+
+<p>与SSH动态代理相似，客户端呈现为SOCKS 5代理服务，客户端与服务器之间采用加密通信。服务器部署于GFW之外，从而实现代理翻墙服务。</p>
+
+<h2>特点</h2>
+
+<ul>
+<li>使用自行设计的协议加密通信，支持多种加密算法：AES、Blowfish、IDEA、RC4等。除创建TCP连接外无需握手，每次请求只转发1个连接，因此使用起来网速较快，在移动设备上较省电。</li>
+<li>通过异步I/O和事件驱动实现，响应速度快。</li>
+<li>客户端支持主流操作系统平台：Windows、Linux、OS X、Android、iOS和OpenWrt</li>
+</ul>
+
+
+<h2>shadowsocks-libev简介</h2>
+
+<p>网络中普遍采用Python版本的<a href="https://pypi.python.org/pypi/shadowsocks">shadowsocks</a>，该版本看似安装简单，却存在如下缺点：</p>
+
+<ul>
+<li>没有Linux操作系统原生安装包（如：RPM和DEB）：从Ubuntu 16.04开始，提供shadowsocks安装包。</li>
+<li>没有操作系统的服务脚本（如init.d和upstart）。</li>
+<li>Python程序占用内存较多，运行效率不佳。</li>
+</ul>
+
+
+<p>而<a href="https://github.com/shadowsocks/shadowsocks-libev">shadowsocks-libev</a>是Shadowsocks在嵌入式和低端设备的轻量级实现：</p>
+
+<ul>
+<li>纯C实现，不仅占用内存极小，且运行效率更快。</li>
+<li>在几乎所有Linux平台都存在原生安装包，且具有对应平台的服务启动脚本。</li>
+</ul>
+
+
+<p>下面基于Ubuntu 14.04/16.04介绍它的安装和配置。</p>
+
+<h2>安装shadowsocks-libev</h2>
+
+<p>客户端和服务端的安装方法相同：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo add-apt-repository ppa:max-c-lv/shadowsocks-libev
+</span><span class='line'>sudo apt-get update
+</span><span class='line'>sudo apt-get install -y shadowsocks-libev
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>配置shadowsocks-libev服务端</h2>
+
+<p>编辑/etc/shadowsocks-libev/config.json：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;server_port&quot;</span><span class="p">:</span> <span class="mi">8388</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;共享密码&gt;&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;timeout&quot;</span><span class="p">:</span> <span class="mi">60</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;aes-256-cfb&quot;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>server_port</code>为服务端监听端口</li>
+<li><code>password</code>为客户端和服务端预设的共享密码，它最好由安全密码生成器生成（如<a href="https://www.lastpass.com/">LastPass</a>或<a href="http://keepass.info/">KeePass</a>），且长度不小于6个字符。</li>
+<li><code>timeout</code>为连接超时时间。</li>
+<li><code>method</code>为加密算法，<code>aes-256-cfb</code>的安全性较好。</li>
+</ul>
+
+
+<p>配置完成后，需重启：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo service shadowsocks-libev restart
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>配置shadowsocks-libev客户端</h2>
+
+<p>创建/etc/shadowsocks-libev/client.json （文件名可修改）：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;server&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;服务端地址&gt;&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;server_port&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;服务端端口&gt;&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;local_port&quot;</span><span class="p">:</span> <span class="s2">&quot;22357&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;共享密码&gt;&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;aes-256-cfb&quot;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Ubuntu 14.04</h3>
+
+<p>安装包没有提供系统服务脚本，故须自己创建Upstart脚本/etc/init/ss-local.conf （文件名可修改）：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="err">#</span> <span class="err">ss-local</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">description</span> <span class="s2">&quot;shadowsocks client&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">start</span> <span class="err">on</span> <span class="err">(net-device-up</span> <span class="err">IFACE=eth</span><span class="mi">0</span> <span class="err">or</span> <span class="err">net-device-up</span> <span class="err">IFACE=wlan</span><span class="mi">0</span><span class="err">)</span>
+</span><span class='line'><span class="err">stop</span> <span class="err">on</span> <span class="err">(net-device-down</span> <span class="err">IFACE=eth</span><span class="mi">0</span> <span class="err">and</span> <span class="err">net-device-down</span> <span class="err">IFACE=wlan</span><span class="mi">0</span><span class="err">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">respawn</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">setuid</span> <span class="err">nobody</span>
+</span><span class='line'><span class="err">setgid</span> <span class="err">nogroup</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">exec</span> <span class="err">ss-local</span> <span class="err">-c</span> <span class="err">/etc/shadowsocks-libev/client.json</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了client.json的安全：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo chown -R root:nogroup /etc/shadowsocks-libev
+</span><span class='line'>sudo chmod <span class="m">0750</span> /etc/shadowsocks-libev
+</span><span class='line'>sudo chmod <span class="m">0640</span> /etc/shadowsocks-libev/client.json
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>启动客户端</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo start ss-local
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最后，通过修改/etc/default/shadowsocks-libev的<code>START=no</code>禁止在客户机启动服务端程序——它在客户机没有作用。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo service shadowsocks-libev stop
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Ubuntu 16.04</h3>
+
+<p>安装包提供了systemd的服务模板/lib/systemd/system/shadowsocks-libev-local@.service</p>
+
+<p>默认<code>ss-local</code>以root用户运行，可修改上述模板为nobody用户和nogroup组，从而提高安全：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>Service<span class="o">]</span>
+</span><span class='line'><span class="nv">Type</span><span class="o">=</span>simple
+</span><span class='line'><span class="nv">CapabilityBoundingSet</span><span class="o">=</span>CAP_NET_BIND_SERVICE
+</span><span class='line'><span class="nv">AmbientCapabilities</span><span class="o">=</span>CAP_NET_BIND_SERVICE
+</span><span class='line'><span class="nv">User</span><span class="o">=</span>nobody
+</span><span class='line'><span class="nv">Group</span><span class="o">=</span>nogroup
+</span><span class='line'><span class="nv">ExecStart</span><span class="o">=</span>/usr/bin/ss-local -c /etc/shadowsocks-libev/%i.json.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意，升级shadowsocks-libev，模板将回复原状，须再次修改。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo systemctl daemon-reload
+</span><span class='line'>sudo systemctl <span class="nb">enable </span>shadowsocks-libev-local@client
+</span><span class='line'>sudo systemctl start shadowsocks-libev-local@client
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意，@client与client.json的基本名必须一致。</p>
+
+<p>最后，禁用并停止服务端程序：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo systemctl disable shadowsocks-libev
+</span><span class='line'>sudo systemctl stop shadowsocks-libev
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>集群化</h2>
+
+<p>类似SSH集群，多个shadowsocks也可以构建SOCKS 5集群，具体请参考《<a href="http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster/">SSH翻墙集群</a>》的“HAProxy的配置方法”。</p>
+
+<p>实用中发现，<code>ss-local</code>不会因为shadowsocks服务器是否可达，而停止运行或拒绝HAProxy连接。</p>
+
+<p>导致HAProxy无法探测shadowsocks服务器是否离线或不可访问，部分负载将失败或重试（浏览器），从而影响体验。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Like Ma</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-11-29T01:39:55+00:00" pubdate data-updated="true"></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/linux/'>linux</a>, <a class='category' href='/blog/categories/proxy/'>proxy</a>, <a class='category' href='/blog/categories/ubuntu/'>ubuntu</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.malike.net.cn/blog/2016/11/29/shadowsocks-tutorial/" data-via="" data-counturl="http://www.malike.net.cn/blog/2016/11/29/shadowsocks-tutorial/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/07/11/python-multiprocessing-actor/" title="Previous Post: 基于Python multiprocessing的Actor模型">&laquo; 基于Python multiprocessing的Actor模型</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2017/03/02/glusterfs-docker-tutorial/" title="Next Post: 在Docker容器中创建GlusterFS">在Docker容器中创建GlusterFS &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2019/08/17/rbenv-tutorial/">rbenv简介——Debian/Ubuntu中管理多版本Ruby</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/04/30/shadowsocks-rust-tutorial/">Shadowsocks-Rust简介</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/03/02/glusterfs-docker-tutorial/">在Docker容器中创建GlusterFS</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/11/29/shadowsocks-tutorial/">Shadowsocks简介</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/07/11/python-multiprocessing-actor/">基于Python multiprocessing的Actor模型</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/likema">@likema</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'likema',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+<section>
+  <h1>Categories</h1>
+    <ul id="category-list"><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (1)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (13)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (10)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
+</section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2019 - Like Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'likeworld';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.malike.net.cn/blog/2016/11/29/shadowsocks-tutorial/';
+        var disqus_url = 'http://www.malike.net.cn/blog/2016/11/29/shadowsocks-tutorial/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
