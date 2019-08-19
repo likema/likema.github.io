@@ -9,10 +9,8 @@
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="一、安装 1
-2
-git clone git://github.com/rbenv/rbenv.git ~/.rbenv
-git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build 在国内，为了加速下述安装 &hellip;">
+  <meta name="description" content="Docker服务端（dockerd ）默认监听在Unix套接口 /var/run/docker.sock 。 若需远程访问，得配置它同时监听在TCP端口（默认2376）。 然而，远程访问并不支持用户认证。 可通过配置TLS客户端和服务端认证，规避非法客户端远程访问服务端。 一、创建CA 1
+2 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -81,6 +79,250 @@ git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build 在�
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2019/08/19/docker-remote/">安全远程访问Docker</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2019-08-19T02:40:06+00:00" pubdate data-updated="true"></time>
+        
+           | <a href="/blog/2019/08/19/docker-remote/#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn/blog/2019/08/19/docker-remote/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Docker服务端（<code>dockerd</code> ）默认监听在Unix套接口 <code>/var/run/docker.sock</code> 。</p>
+
+<p>若需远程访问，得配置它同时监听在TCP端口（默认2376）。</p>
+
+<p>然而，远程访问并不支持用户认证。 可通过配置TLS客户端和服务端认证，规避非法客户端远程访问服务端。</p>
+
+<h2>一、创建CA</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>openssl genrsa -out ca-key.pem 4096
+</span><span class='line'>openssl req -new -x509 -days <span class="m">365</span> -key ca-key.pem -sha256 -out ca.pem
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>交互式输入各种选项，其中</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Common Name <span class="o">(</span>e.g. server FQDN or YOUR name<span class="o">)</span> <span class="o">[]</span>: &lt;HOST&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>&lt;HOST&gt;</code> 为Docker远程服务端域名（允许不存在的域名）。</p>
+
+<h2>二、创建远程服务端证书</h2>
+
+<p>创建 <code>extfile.cnf</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">subjectAltName</span> <span class="o">=</span> DNS:&lt;HOST&gt;,IP:&lt;IP&gt;,IP:127.0.0.1
+</span><span class='line'><span class="nv">extendedKeyUsage</span> <span class="o">=</span> serverAuth
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>&lt;HOST&gt;</code> 与上同。</li>
+<li><code>&lt;IP&gt;</code> 为Docker远程服务端IP</li>
+</ul>
+
+
+<p>然后：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>openssl genrsa -out server-key.pem 4096
+</span><span class='line'>openssl req -subj <span class="s2">&quot;/CN=&lt;HOST&gt;&quot;</span> -sha256 -new -key server-key.pem -out server.csr
+</span><span class='line'>openssl x509 -req -days <span class="m">365</span> -sha256 -in server.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out server-cert.pem -extfile extfile.cnf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>三、创建客户端证书</h2>
+
+<p>创建 <code>extfile-client.cnf</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">extendedKeyUsage</span> <span class="o">=</span> clientAuth
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>openssl genrsa -out key.pem 4096
+</span><span class='line'>openssl req -subj <span class="s1">&#39;/CN=client&#39;</span> -new -key key.pem -out client.csr
+</span><span class='line'>openssl x509 -req -days <span class="m">365</span> -sha256 -in client.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out cert.pem -extfile extfile-client.cnf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>至此，删除中间文件，并降低相关密钥访问权限。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rm -f client.csr server.csr extfile.cnf extfile-client.cnf
+</span><span class='line'>chmod <span class="m">0400</span> ca-key.pem key.pem server-key.pem
+</span><span class='line'>chmod <span class="m">0444</span> ca.pem server-cert.pem cert.pem
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>四、远程复制服务端相关证书</h2>
+
+<p>通过<code>scp</code>，将 <code>ca.pem</code>, <code>server-cert.pem</code> 和 <code>server-key.pem</code> 复制至远程服务端 <code>/etc/docker</code> 目录中。</p>
+
+<p>注：<code>ca-key.pem</code> 不应复制至远程服务端。因既不意义，又增大泄漏可能性。</p>
+
+<h2>五、编辑远程服务端 <code>/etc/docker/daemon.json</code></h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;hosts&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;unix:///var/run/docker.sock&quot;</span><span class="p">,</span> <span class="s2">&quot;tcp://0.0.0.0:2376&quot;</span><span class="p">],</span>
+</span><span class='line'>    <span class="nt">&quot;tls&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;tlscacert&quot;</span><span class="p">:</span> <span class="s2">&quot;/etc/docker/ca.pem&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;tlscert&quot;</span><span class="p">:</span> <span class="s2">&quot;/etc/docker/server-cert.pem&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;tlskey&quot;</span><span class="p">:</span> <span class="s2">&quot;/etc/docker/server-key.pem&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;tlsverify&quot;</span><span class="p">:</span> <span class="kc">true</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为保证证书和密钥安全，须</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo chown root.root /etc/docker/<span class="o">{</span>ca,server-cert,server-key<span class="o">}</span>.pem
+</span><span class='line'>sudo chmod og-rwx /etc/docker/<span class="o">{</span>ca,server-cert,server-key<span class="o">}</span>.pem
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>六、重启远程服务端Docker服务</h2>
+
+<p>在 <code>/lib/systemd/system/docker.service</code> 的 <code>ExecStart</code> 中， <code>-H fd://</code> 与 <code>/etc/docker/daemon.json</code> 的 <code>hosts</code> 冲突，将导致Docker服务启动失败。</p>
+
+<p>若在 <code>/lib/systemd/system/docker.service</code> 中直接删除 <code>-H fd://</code> ，docker-ce包升级将恢复原样。</p>
+
+<p>可创建 <code>/etc/systemd/system/docker.service.d/options.conf</code> 及其父目录，并编辑</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[Service]</span>
+</span><span class='line'><span class="na">ExecStart</span><span class="o">=</span>
+</span><span class='line'><span class="na">ExecStart</span><span class="o">=</span><span class="s">/usr/bin/dockerd --containerd=/run/containerd/containerd.sock</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>或执行如下命令：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo mkdir -p /etc/systemd/system/docker.service.d
+</span><span class='line'>sed -n <span class="s1">&#39;/\[Service\]/ {</span>
+</span><span class='line'><span class="s1">    a \</span>
+</span><span class='line'><span class="s1">ExecStart=</span>
+</span><span class='line'><span class="s1">    p</span>
+</span><span class='line'><span class="s1">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="s1">/ExecStart=.*/ {</span>
+</span><span class='line'><span class="s1">    s/-H fd:\/\/ //p</span>
+</span><span class='line'><span class="s1">}&#39;</span> /lib/systemd/system/docker.service <span class="p">|</span> sudo tee /etc/systemd/system/docker.service.d/options.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo systemctl daemon-reload
+</span><span class='line'>sudo systemctl restart docker
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>七、配置客户端</h2>
+
+<p>在客户端和CA相关证书和密钥所在目录，创建<code>docker.env</code> ：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">DOCKER_HOST</span><span class="o">=</span>&lt;HOST&gt;:2376
+</span><span class='line'><span class="nb">export </span><span class="nv">DOCKER_TLS_VERIFY</span><span class="o">=</span>1
+</span><span class='line'><span class="nb">export </span><span class="nv">DOCKER_CERT_PATH</span><span class="o">=</span><span class="sb">`</span>realpath <span class="se">\`</span>dirname <span class="nv">$0</span><span class="se">\`</span><span class="sb">`</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在远程访问Docker前，载入该文件：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">source</span> &lt;dir&gt;/docker.env
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后，控制远程Docker与本地Docker类似，如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker images
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>参考</h2>
+
+<ul>
+<li><a href="https://docs.docker.com/engine/security/https/">Protect the Docker daemon socket</a></li>
+<li><a href="https://gist.github.com/kekru/974e40bb1cd4b947a53cca5ba4b0bbe5">Enable Docker Remote API with TLS client verification</a></li>
+<li><a href="https://tech.paulcz.net/blog/secure-docker-with-tls/">Securing Docker with TLS certificates</a></li>
+<li><a href="https://nickjanetakis.com/blog/docker-tip-73-connecting-to-a-remote-docker-daemon">Docker Tip #73: Connecting to a Remote Docker Daemon</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -2448,319 +2690,6 @@ git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build 在�
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/03/15/ssh-proxy-cluster/">SSH翻墙集群</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-03-15T21:30:43+08:00" pubdate data-updated="true"></time>
-        
-           | <a href="/blog/2015/03/15/ssh-proxy-cluster/#disqus_thread"
-             data-disqus-identifier="http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>SSH动态代理是国内较为常见的翻墙方法。正如<a href="/blog/2014/10/27/ssh-tunnel-tutorial/">SSH隧道简介</a>所说，它存在不少有优点。</p>
-
-<p>然而在实际使用中，它存在如下缺点：</p>
-
-<ul>
-<li>与PPTP等VPN协议相比，它的连接不稳定。前者应该具备协议级断线重传机制。</li>
-<li>基于廉价VPS，导致它的连接不稳定。而且廉价VPS容易掉线，有时需要用户自己找在线客户修复，进一步延长了掉线时间。</li>
-<li>由于上述缺点，不适合小型公司多人使用。</li>
-</ul>
-
-
-<p>在大概2年前，我摸索出SSH动态代理集群的办法。并将之部署于我所服务的公司，成功负载了20-30人日常翻墙学习与工作的需求。</p>
-
-<h2>原理</h2>
-
-<p>SSH动态代理，即为SOCK5代理，所以我们需要的是SOCK5集群。</p>
-
-<p>若搜索<a href="https://www.google.com/search?hl=en&amp;q=socks+5+load+balance">socks 5 load balance</a>不难发现一些有用信息：</p>
-
-<p><a href="http://serverfault.com/questions/517971/what-is-the-best-way-to-load-balance-multiple-sock5-proxys-on-seperate-vms-in-t">What is the best way to load balance multiple sock5 proxys on seperate VM&rsquo;s in the same datacenter?</a></p>
-
-<p>我将分别介绍3种方法搭建SOCK5集群：</p>
-
-<ol>
-<li>利用第三方模块<a href="https://github.com/yaoweibin/nginx_tcp_proxy_module">nginx_tcp_proxy_module</a>。</li>
-<li>Nginx 1.9开始支持<a href="http://nginx.com/resources/admin-guide/tcp-load-balancing/">TCP Load Balancing</a>。</li>
-<li><a href="http://www.haproxy.org/">HAProxy</a></li>
-</ol>
-
-
-<p>关于SSH动态代理的配置方法，请参看<a href="/blog/2014/12/23/autossh-tutorial/">AutoSSH简介</a></p>
-
-<h2>nginx_tcp_proxy_module的配置方法</h2>
-
-<p>Ubuntu的Nginx并没有将nginx_tcp_proxy_module编译进去。为了简化安装，我基于Ubuntu的Nginx包，做了Nginx的<a href="https://launchpad.net/~likemartinma/+archive/ubuntu/net">PPA</a>:</p>
-
-<ul>
-<li>升级Nginx版本</li>
-<li>加入nginx_tcp_proxy_module</li>
-</ul>
-
-
-<p>添加我的PPA</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo add-apt-repository ppa:likemartinma/net
-</span><span class='line'>sudo apt-get -y update
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>若未安装nginx，则</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install -y nginx
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>若已安装nginx，则</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get -y upgrade
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在/etc/nginx/nginx.conf中，增加如下内容：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">tcp</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kn">access_log</span> <span class="s">/var/log/nginx/tcp_access.log</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kn">upstream</span> <span class="s">ssh_cluster</span> <span class="p">{</span>
-</span><span class='line'>        <span class="c1"># simple round-robin</span>
-</span><span class='line'>        <span class="kn">server</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12345</span><span class="p">;</span>
-</span><span class='line'>        <span class="kn">server</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12346</span><span class="p">;</span>
-</span><span class='line'>        <span class="kn">server</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12347</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kn">check</span> <span class="s">interval=3000</span> <span class="s">rise=2</span> <span class="s">fall=5</span> <span class="s">timeout=1000</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kn">server</span> <span class="p">{</span>
-</span><span class='line'>        <span class="kn">listen</span> <span class="mi">9999</span><span class="p">;</span>
-</span><span class='line'>        <span class="kn">proxy_pass</span> <span class="s">ssh_cluster</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>为了查看集群的状态，在/etc/nginx/sites-enabled/default的中，增加如下内容：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">server</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kn">...</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="s">location</span> <span class="s">/status</span> <span class="p">{</span>
-</span><span class='line'>        <span class="kn">tcp_check_status</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>重启Nginx:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">service</span> <span class="s">nginx</span> <span class="s">restart</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如此，访问http://&lt;cluster IP&gt;/status将能查看集群的详细状态。</p>
-
-<h2>Nginx 1.9的配置方法</h2>
-
-<p>Ubuntu 15.10之前的官方Nginx版本都小于1.9，须通过ppa:nginx/development升级nginx。</p>
-
-<p>添加ppa:nginx/development</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo add-apt-repository ppa:nginx/development
-</span><span class='line'>sudo apt-get -y update
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>若未安装nginx，则</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install -y nginx
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>若已安装nginx，则</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get -y upgrade
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在/etc/nginx/nginx.conf中，增加如下内容：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">stream</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kn">upstream</span> <span class="s">ssh_cluster</span> <span class="p">{</span>
-</span><span class='line'>        <span class="kn">least_conn</span><span class="p">;</span>
-</span><span class='line'>        <span class="kn">server</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12345</span><span class="p">;</span>
-</span><span class='line'>        <span class="kn">server</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12346</span><span class="p">;</span>
-</span><span class='line'>        <span class="kn">server</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12347</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kn">server</span> <span class="p">{</span>
-</span><span class='line'>        <span class="kn">listen</span> <span class="mi">9999</span><span class="p">;</span>
-</span><span class='line'>        <span class="kn">proxy_pass</span> <span class="s">ssh_cluster</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>重启Nginx:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">service</span> <span class="s">nginx</span> <span class="s">restart</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>HAProxy的配置方法</h2>
-
-<p>安装haproxy</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">sudo</span> <span class="s">apt-get</span> <span class="s">install</span> <span class="s">-y</span> <span class="s">haproxy</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在/etc/haproxy/haproxy.cfg中，增加如下内容：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">frontend</span> <span class="s">socks5</span>
-</span><span class='line'>    <span class="s">mode</span> <span class="s">tcp</span>
-</span><span class='line'>    <span class="s">bind</span> <span class="s">*:9999</span>
-</span><span class='line'>    <span class="s">default_backend</span> <span class="s">ssh_cluster</span>
-</span><span class='line'>
-</span><span class='line'><span class="s">backend</span> <span class="s">ssh_cluster</span>
-</span><span class='line'>    <span class="s">mode</span> <span class="s">tcp</span>
-</span><span class='line'>    <span class="s">balance</span> <span class="s">roundrobin</span>
-</span><span class='line'>    <span class="s">server</span> <span class="s">vps1</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12345</span> <span class="s">weight</span> <span class="mi">1</span> <span class="s">check</span> <span class="s">inter</span> <span class="mi">30000</span>
-</span><span class='line'>    <span class="s">server</span> <span class="s">vps2</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12346</span> <span class="s">weight</span> <span class="mi">1</span> <span class="s">check</span> <span class="s">inter</span> <span class="mi">30000</span>
-</span><span class='line'>    <span class="s">server</span> <span class="s">vps3</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12347</span> <span class="s">weight</span> <span class="mi">1</span> <span class="s">check</span> <span class="s">inter</span> <span class="mi">30000</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>为了查看集群的状态，在/etc/haproxy/haproxy.cfg中，增加如下内容：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">listen</span> <span class="s">stats</span> <span class="p">:</span><span class="mi">9090</span>
-</span><span class='line'>    <span class="s">balance</span>
-</span><span class='line'>    <span class="s">mode</span> <span class="s">http</span>
-</span><span class='line'>    <span class="s">stats</span> <span class="s">enable</span>
-</span><span class='line'>    <span class="s">stats</span> <span class="s">auth</span> <span class="s">admin:admin</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>默认安装，haproxy处于不活动状态，须要激活它。</p>
-
-<p>在/etc/default/haproxy中，修改如下行：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">ENABLED=1</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>最后，启动haproxy:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">service</span> <span class="s">haproxy</span> <span class="s">start</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如此，访问http://&lt;cluster IP&gt;:9090/haproxy?stats将能查看集群的详细状态。</p>
-
-<h2>总结</h2>
-
-<ul>
-<li>nginx_tcp_proxy_module有简单的集群状态页面。</li>
-<li>nginx 1.9没有集群状态查页面，仅能通过错误日志/var/log/ngnix/error.log来查看掉线的集群节点。</li>
-<li>haproxy不仅有完善的集群状态页面，而且不需要任何PPA，应该是最佳选择。</li>
-<li>上述3种方法都缺乏认证机制，只能部署于家庭或企业内网。当然也可以部署于个人电脑，事实上，我就是这样使用的。</li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="2">&larr; Older</a>
@@ -2776,6 +2705,10 @@ git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build 在�
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/08/19/docker-remote/">安全远程访问Docker</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/08/17/rbenv-tutorial/">rbenv简介——Debian/Ubuntu中管理多版本Ruby</a>
       </li>
     
@@ -2789,10 +2722,6 @@ git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build 在�
     
       <li class="post">
         <a href="/blog/2016/11/29/shadowsocks-tutorial/">Shadowsocks简介</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/07/11/python-multiprocessing-actor/">基于Python multiprocessing的Actor模型</a>
       </li>
     
   </ul>
@@ -2832,7 +2761,7 @@ git clone git://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build 在�
 
 <section>
   <h1>Categories</h1>
-    <ul id="category-list"><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (1)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (13)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (10)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
+    <ul id="category-list"><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (1)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (2)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (13)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (10)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
 </section>
 
   

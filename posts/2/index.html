@@ -9,8 +9,8 @@
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="autossh (Automatically restart SSH sessions and tunnels)，它在运行的时候启动一个SSH进程，并监控该进程的健康状况；当SSH进程崩溃或停止通信时，它将重启动SSH进程。 命令选项 1
-autossh [-V] [-M port[: &hellip;">
+  <meta name="description" content="SSH动态代理是国内较为常见的翻墙方法。正如SSH隧道简介所说，它存在不少有优点。 然而在实际使用中，它存在如下缺点： 与PPTP等VPN协议相比，它的连接不稳定。前者应该具备协议级断线重传机制。
+基于廉价VPS，导致它的连接不稳定。而且廉价VPS容易掉线，有时需要用户自己找在线客户修复， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +79,319 @@ autossh [-V] [-M port[: &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/03/15/ssh-proxy-cluster/">SSH翻墙集群</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-03-15T21:30:43+08:00" pubdate data-updated="true"></time>
+        
+           | <a href="/blog/2015/03/15/ssh-proxy-cluster/#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>SSH动态代理是国内较为常见的翻墙方法。正如<a href="/blog/2014/10/27/ssh-tunnel-tutorial/">SSH隧道简介</a>所说，它存在不少有优点。</p>
+
+<p>然而在实际使用中，它存在如下缺点：</p>
+
+<ul>
+<li>与PPTP等VPN协议相比，它的连接不稳定。前者应该具备协议级断线重传机制。</li>
+<li>基于廉价VPS，导致它的连接不稳定。而且廉价VPS容易掉线，有时需要用户自己找在线客户修复，进一步延长了掉线时间。</li>
+<li>由于上述缺点，不适合小型公司多人使用。</li>
+</ul>
+
+
+<p>在大概2年前，我摸索出SSH动态代理集群的办法。并将之部署于我所服务的公司，成功负载了20-30人日常翻墙学习与工作的需求。</p>
+
+<h2>原理</h2>
+
+<p>SSH动态代理，即为SOCK5代理，所以我们需要的是SOCK5集群。</p>
+
+<p>若搜索<a href="https://www.google.com/search?hl=en&amp;q=socks+5+load+balance">socks 5 load balance</a>不难发现一些有用信息：</p>
+
+<p><a href="http://serverfault.com/questions/517971/what-is-the-best-way-to-load-balance-multiple-sock5-proxys-on-seperate-vms-in-t">What is the best way to load balance multiple sock5 proxys on seperate VM&rsquo;s in the same datacenter?</a></p>
+
+<p>我将分别介绍3种方法搭建SOCK5集群：</p>
+
+<ol>
+<li>利用第三方模块<a href="https://github.com/yaoweibin/nginx_tcp_proxy_module">nginx_tcp_proxy_module</a>。</li>
+<li>Nginx 1.9开始支持<a href="http://nginx.com/resources/admin-guide/tcp-load-balancing/">TCP Load Balancing</a>。</li>
+<li><a href="http://www.haproxy.org/">HAProxy</a></li>
+</ol>
+
+
+<p>关于SSH动态代理的配置方法，请参看<a href="/blog/2014/12/23/autossh-tutorial/">AutoSSH简介</a></p>
+
+<h2>nginx_tcp_proxy_module的配置方法</h2>
+
+<p>Ubuntu的Nginx并没有将nginx_tcp_proxy_module编译进去。为了简化安装，我基于Ubuntu的Nginx包，做了Nginx的<a href="https://launchpad.net/~likemartinma/+archive/ubuntu/net">PPA</a>:</p>
+
+<ul>
+<li>升级Nginx版本</li>
+<li>加入nginx_tcp_proxy_module</li>
+</ul>
+
+
+<p>添加我的PPA</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo add-apt-repository ppa:likemartinma/net
+</span><span class='line'>sudo apt-get -y update
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>若未安装nginx，则</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install -y nginx
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>若已安装nginx，则</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get -y upgrade
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在/etc/nginx/nginx.conf中，增加如下内容：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">tcp</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kn">access_log</span> <span class="s">/var/log/nginx/tcp_access.log</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kn">upstream</span> <span class="s">ssh_cluster</span> <span class="p">{</span>
+</span><span class='line'>        <span class="c1"># simple round-robin</span>
+</span><span class='line'>        <span class="kn">server</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12345</span><span class="p">;</span>
+</span><span class='line'>        <span class="kn">server</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12346</span><span class="p">;</span>
+</span><span class='line'>        <span class="kn">server</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12347</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kn">check</span> <span class="s">interval=3000</span> <span class="s">rise=2</span> <span class="s">fall=5</span> <span class="s">timeout=1000</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kn">server</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kn">listen</span> <span class="mi">9999</span><span class="p">;</span>
+</span><span class='line'>        <span class="kn">proxy_pass</span> <span class="s">ssh_cluster</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了查看集群的状态，在/etc/nginx/sites-enabled/default的中，增加如下内容：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">server</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kn">...</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="s">location</span> <span class="s">/status</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kn">tcp_check_status</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>重启Nginx:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">service</span> <span class="s">nginx</span> <span class="s">restart</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如此，访问http://&lt;cluster IP&gt;/status将能查看集群的详细状态。</p>
+
+<h2>Nginx 1.9的配置方法</h2>
+
+<p>Ubuntu 15.10之前的官方Nginx版本都小于1.9，须通过ppa:nginx/development升级nginx。</p>
+
+<p>添加ppa:nginx/development</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo add-apt-repository ppa:nginx/development
+</span><span class='line'>sudo apt-get -y update
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>若未安装nginx，则</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install -y nginx
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>若已安装nginx，则</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get -y upgrade
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在/etc/nginx/nginx.conf中，增加如下内容：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">stream</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kn">upstream</span> <span class="s">ssh_cluster</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kn">least_conn</span><span class="p">;</span>
+</span><span class='line'>        <span class="kn">server</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12345</span><span class="p">;</span>
+</span><span class='line'>        <span class="kn">server</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12346</span><span class="p">;</span>
+</span><span class='line'>        <span class="kn">server</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12347</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kn">server</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kn">listen</span> <span class="mi">9999</span><span class="p">;</span>
+</span><span class='line'>        <span class="kn">proxy_pass</span> <span class="s">ssh_cluster</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>重启Nginx:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">service</span> <span class="s">nginx</span> <span class="s">restart</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>HAProxy的配置方法</h2>
+
+<p>安装haproxy</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">sudo</span> <span class="s">apt-get</span> <span class="s">install</span> <span class="s">-y</span> <span class="s">haproxy</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在/etc/haproxy/haproxy.cfg中，增加如下内容：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">frontend</span> <span class="s">socks5</span>
+</span><span class='line'>    <span class="s">mode</span> <span class="s">tcp</span>
+</span><span class='line'>    <span class="s">bind</span> <span class="s">*:9999</span>
+</span><span class='line'>    <span class="s">default_backend</span> <span class="s">ssh_cluster</span>
+</span><span class='line'>
+</span><span class='line'><span class="s">backend</span> <span class="s">ssh_cluster</span>
+</span><span class='line'>    <span class="s">mode</span> <span class="s">tcp</span>
+</span><span class='line'>    <span class="s">balance</span> <span class="s">roundrobin</span>
+</span><span class='line'>    <span class="s">server</span> <span class="s">vps1</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12345</span> <span class="s">weight</span> <span class="mi">1</span> <span class="s">check</span> <span class="s">inter</span> <span class="mi">30000</span>
+</span><span class='line'>    <span class="s">server</span> <span class="s">vps2</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12346</span> <span class="s">weight</span> <span class="mi">1</span> <span class="s">check</span> <span class="s">inter</span> <span class="mi">30000</span>
+</span><span class='line'>    <span class="s">server</span> <span class="s">vps3</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">12347</span> <span class="s">weight</span> <span class="mi">1</span> <span class="s">check</span> <span class="s">inter</span> <span class="mi">30000</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了查看集群的状态，在/etc/haproxy/haproxy.cfg中，增加如下内容：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">listen</span> <span class="s">stats</span> <span class="p">:</span><span class="mi">9090</span>
+</span><span class='line'>    <span class="s">balance</span>
+</span><span class='line'>    <span class="s">mode</span> <span class="s">http</span>
+</span><span class='line'>    <span class="s">stats</span> <span class="s">enable</span>
+</span><span class='line'>    <span class="s">stats</span> <span class="s">auth</span> <span class="s">admin:admin</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>默认安装，haproxy处于不活动状态，须要激活它。</p>
+
+<p>在/etc/default/haproxy中，修改如下行：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">ENABLED=1</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最后，启动haproxy:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">service</span> <span class="s">haproxy</span> <span class="s">start</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如此，访问http://&lt;cluster IP&gt;:9090/haproxy?stats将能查看集群的详细状态。</p>
+
+<h2>总结</h2>
+
+<ul>
+<li>nginx_tcp_proxy_module有简单的集群状态页面。</li>
+<li>nginx 1.9没有集群状态查页面，仅能通过错误日志/var/log/ngnix/error.log来查看掉线的集群节点。</li>
+<li>haproxy不仅有完善的集群状态页面，而且不需要任何PPA，应该是最佳选择。</li>
+<li>上述3种方法都缺乏认证机制，只能部署于家庭或企业内网。当然也可以部署于个人电脑，事实上，我就是这样使用的。</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1581,233 +1894,6 @@ autossh [-V] [-M port[: &hellip;">
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/07/25/pep8-summary/">PEP 8总结</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-07-25T00:00:00+00:00" pubdate data-updated="true"></time>
-        
-           | <a href="/blog/2013/07/25/pep8-summary/#disqus_thread"
-             data-disqus-identifier="http://www.malike.net.cn/blog/2013/07/25/pep8-summary/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>下述内容主要源于<a href="http://www.python.org/dev/peps/pep-0008/">PEP 8 &ndash; Style Guide for Python Code</a>。</p>
-
-<h2>最大的行长度</h2>
-
-<ul>
-<li>所有行不超过79个字符。</li>
-<li>docstring或comment应不超过72字符</li>
-</ul>
-
-
-<h2>补齐</h2>
-
-<ul>
-<li>每个补齐级别为4个空格。</li>
-<li>当一行操作最大行长度时，应尽可能按照各种括号作为纵向对齐的参照物（可以适当增加括号），如：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">from</span> <span class="nn">bottle</span> <span class="kn">import</span> <span class="p">(</span><span class="n">get</span><span class="p">,</span> <span class="n">post</span><span class="p">,</span> <span class="n">delete</span><span class="p">,</span> <span class="n">error</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">default_app</span><span class="p">,</span> <span class="n">HTTPError</span><span class="p">,</span>
-</span><span class='line'>                    <span class="n">request</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">static_file</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="c"># Aligned with opening delimiter</span>
-</span><span class='line'><span class="n">foo</span> <span class="o">=</span> <span class="n">long_function_name</span><span class="p">(</span><span class="n">var_one</span><span class="p">,</span> <span class="n">var_two</span><span class="p">,</span>
-</span><span class='line'>                         <span class="n">var_three</span><span class="p">,</span> <span class="n">var_four</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="c"># More indentation included to distinguish this from the rest.</span>
-</span><span class='line'><span class="k">def</span> <span class="nf">long_function_name</span><span class="p">(</span>
-</span><span class='line'>        <span class="n">var_one</span><span class="p">,</span> <span class="n">var_two</span><span class="p">,</span> <span class="n">var_three</span><span class="p">,</span>
-</span><span class='line'>        <span class="n">var_four</span><span class="p">):</span>
-</span><span class='line'>    <span class="k">print</span><span class="p">(</span><span class="n">var_one</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>多行情况下，关闭括号可以出现在一行开始，如：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">my_dict</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>    <span class="s">&#39;hello&#39;</span><span class="p">:</span> <span class="s">&#39;foo&#39;</span><span class="p">,</span>
-</span><span class='line'>    <span class="s">&#39;world&#39;</span><span class="p">:</span> <span class="s">&#39;bar&#39;</span><span class="p">,</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">my_list</span> <span class="o">=</span> <span class="p">[</span>
-</span><span class='line'>    <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span>
-</span><span class='line'>    <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span>
-</span><span class='line'><span class="p">]</span>
-</span><span class='line'><span class="n">result</span> <span class="o">=</span> <span class="n">some_function_that_takes_arguments</span><span class="p">(</span>
-</span><span class='line'>    <span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;b&#39;</span><span class="p">,</span> <span class="s">&#39;c&#39;</span><span class="p">,</span>
-</span><span class='line'>    <span class="s">&#39;d&#39;</span><span class="p">,</span> <span class="s">&#39;e&#39;</span><span class="p">,</span> <span class="s">&#39;f&#39;</span><span class="p">,</span>
-</span><span class='line'><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>实际工作中，不同开发语言存在不同的补齐风格要求。可以在.vimrc中针对python设置：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='vim'><span class='line'><span class="k">autocmd</span> <span class="nb">BufRead</span><span class="p">,</span><span class="nb">BufNewFile</span> *.<span class="k">py</span> <span class="k">set</span> <span class="nb">et</span> <span class="k">ts</span><span class="p">=</span><span class="m">4</span> <span class="k">sw</span><span class="p">=</span><span class="m">4</span> <span class="k">sts</span><span class="p">=</span><span class="m">4</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>仅对python源文件设置4个空格补齐。</p>
-
-<p>当然，更好的办法是在每个python源文件的最后一行追加：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c"># vim: set ts=4 sw=4 sts=4 et:</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>从而保证vim打开该文件时满足4个空格补齐的要求。</p>
-
-<h2>空行</h2>
-
-<p>顶层函数或类定义的间隔为2行。
-类的方法定义的间隔为1行。</p>
-
-<h2>源文件编码</h2>
-
-<p>Python核心代码应为UTF-8（或ASCII，在Python 2中）。
-源文件若在Python 2中用ASCII或在Python 3中用UTF-8，则不应出现编码声明。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c"># -*- coding: utf-8 -*-</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>导入</h2>
-
-<ul>
-<li>每行仅导入一个模块，但每行可以导入一个模块的多个函数:</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">os</span>
-</span><span class='line'><span class="kn">import</span> <span class="nn">sys</span>
-</span><span class='line'><span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">PIPE</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>保证所有import在文件的头部，仅在模块注释后面，并先于模块的全局变量和常量。</li>
-<li><p>import应按下列顺序分组：</p>
-
-<ul>
-<li>标准库的导入</li>
-<li>相关第3方库的导入</li>
-<li>本地应用程序/库的导入</li>
-</ul>
-</li>
-</ul>
-
-
-<p>每个分组间空1行
-将类似__all__定义放在所有import后面</p>
-
-<ul>
-<li>绝对导入优于相对导入</li>
-<li>避免导入模块所有的内容（通配方式， from <module> import *)，在__init__.py中导出内部API除外。</li>
-</ul>
-
-
-<h2>表达式和语句中的空格</h2>
-
-<ul>
-<li>括号前后不允许有空格</li>
-<li>操作符号（如=，>和+=等）前后各1个空格</li>
-<li>:和,之前不允许有空格，之后仅1个空格</li>
-<li>函数默认参数的等号（=）前后不允许空格</li>
-</ul>
-
-
-<h2>注释</h2>
-
-<ul>
-<li>为所有公开模块、函数、类和方法写docstring。</li>
-<li>非公开方法的comment应出现在def行之后</li>
-<li><a href="http://www.python.org/dev/peps/pep-0257/">PEP-257</a>描述良好的docstring惯例。多行docstring的第1行后应跟着1个空白行。</li>
-<li>单行docstring可保持关闭的"&ldquo;"在同一行。</li>
-</ul>
-
-
-<h2>命名规范</h2>
-
-<p>尽管Python库代码的命名存在一些混乱，新模块和包（包括第3方框架）应满足下列规范。但已有库若风格不同，应保持原来的内部一致性。</p>
-
-<ul>
-<li>单下划线开头（如：_single_leading_underscore）弱内部使用，类似from M import *不导入类似符号。</li>
-<li>单下划线结尾（如：single_trailing_underscore<em>）用于与Python关键字冲突的情况下，如classs</em>。</li>
-<li>双下划线开头（如：__double_leading_underscore）用于类属性。</li>
-<li>双下划线开头和结构用于特殊对象或属性，如__init__, __import__或__file__。多为语言定义，避免发明类似名字。</li>
-<li>避免使用小写L、大写O和大写I作为单字符变量名。</li>
-<li>模块名应简短、全小写，可包含下划线；包名类似，但不鼓励包含下划线。</li>
-<li>C/C++实现的扩展模块应伴随着提供如面向对象等高级接口的Python模块存在，且其名字以下划线开头（如_socket）</li>
-<li>类名应为驼峰词（CapWords），内部使用的类以下划线开头。</li>
-<li>异常名与类名一样，且应以Error结尾（若该异常确为一个错误）。</li>
-<li>函数名应为小写加下划线。</li>
-<li>总是使用self作为实例方法的第1个参数，总是使用cls作为类方法的第1个参数</li>
-<li>常量名应为大写加下划线（如MAX_OVERFLOW）</li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="3">&larr; Older</a>
@@ -1825,6 +1911,10 @@ autossh [-V] [-M port[: &hellip;">
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/08/19/docker-remote/">安全远程访问Docker</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/08/17/rbenv-tutorial/">rbenv简介——Debian/Ubuntu中管理多版本Ruby</a>
       </li>
     
@@ -1838,10 +1928,6 @@ autossh [-V] [-M port[: &hellip;">
     
       <li class="post">
         <a href="/blog/2016/11/29/shadowsocks-tutorial/">Shadowsocks简介</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/07/11/python-multiprocessing-actor/">基于Python multiprocessing的Actor模型</a>
       </li>
     
   </ul>
@@ -1881,7 +1967,7 @@ autossh [-V] [-M port[: &hellip;">
 
 <section>
   <h1>Categories</h1>
-    <ul id="category-list"><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (1)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (13)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (10)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
+    <ul id="category-list"><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (1)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (2)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (13)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (10)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
 </section>
 
   

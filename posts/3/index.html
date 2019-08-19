@@ -9,7 +9,9 @@
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="在《git-buildpackage示例（一）》中，我介绍了如何利用git-buildpackage为Ubuntu已有包做一个补丁包的办法。 当时，我的补丁是基于tolua 5.1.3版本。一段时间后，tolua的作者释放了5.1.4版本。问题出现了，如何将我的补丁合并到5.1.4版本中呢？ &hellip;">
+  <meta name="description" content="下述内容主要源于PEP 8 &ndash; Style Guide for Python Code。 最大的行长度 所有行不超过79个字符。
+docstring或comment应不超过72字符 补齐 每个补齐级别为4个空格。
+当一行操作最大行长度时，应尽可能按照各种括号作为纵向对齐的参照物（ &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +80,233 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/07/25/pep8-summary/">PEP 8总结</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-07-25T00:00:00+00:00" pubdate data-updated="true"></time>
+        
+           | <a href="/blog/2013/07/25/pep8-summary/#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn/blog/2013/07/25/pep8-summary/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>下述内容主要源于<a href="http://www.python.org/dev/peps/pep-0008/">PEP 8 &ndash; Style Guide for Python Code</a>。</p>
+
+<h2>最大的行长度</h2>
+
+<ul>
+<li>所有行不超过79个字符。</li>
+<li>docstring或comment应不超过72字符</li>
+</ul>
+
+
+<h2>补齐</h2>
+
+<ul>
+<li>每个补齐级别为4个空格。</li>
+<li>当一行操作最大行长度时，应尽可能按照各种括号作为纵向对齐的参照物（可以适当增加括号），如：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">from</span> <span class="nn">bottle</span> <span class="kn">import</span> <span class="p">(</span><span class="n">get</span><span class="p">,</span> <span class="n">post</span><span class="p">,</span> <span class="n">delete</span><span class="p">,</span> <span class="n">error</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">default_app</span><span class="p">,</span> <span class="n">HTTPError</span><span class="p">,</span>
+</span><span class='line'>                    <span class="n">request</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">static_file</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># Aligned with opening delimiter</span>
+</span><span class='line'><span class="n">foo</span> <span class="o">=</span> <span class="n">long_function_name</span><span class="p">(</span><span class="n">var_one</span><span class="p">,</span> <span class="n">var_two</span><span class="p">,</span>
+</span><span class='line'>                         <span class="n">var_three</span><span class="p">,</span> <span class="n">var_four</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># More indentation included to distinguish this from the rest.</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">long_function_name</span><span class="p">(</span>
+</span><span class='line'>        <span class="n">var_one</span><span class="p">,</span> <span class="n">var_two</span><span class="p">,</span> <span class="n">var_three</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">var_four</span><span class="p">):</span>
+</span><span class='line'>    <span class="k">print</span><span class="p">(</span><span class="n">var_one</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>多行情况下，关闭括号可以出现在一行开始，如：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">my_dict</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>    <span class="s">&#39;hello&#39;</span><span class="p">:</span> <span class="s">&#39;foo&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s">&#39;world&#39;</span><span class="p">:</span> <span class="s">&#39;bar&#39;</span><span class="p">,</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">my_list</span> <span class="o">=</span> <span class="p">[</span>
+</span><span class='line'>    <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span>
+</span><span class='line'>    <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span>
+</span><span class='line'><span class="p">]</span>
+</span><span class='line'><span class="n">result</span> <span class="o">=</span> <span class="n">some_function_that_takes_arguments</span><span class="p">(</span>
+</span><span class='line'>    <span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;b&#39;</span><span class="p">,</span> <span class="s">&#39;c&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s">&#39;d&#39;</span><span class="p">,</span> <span class="s">&#39;e&#39;</span><span class="p">,</span> <span class="s">&#39;f&#39;</span><span class="p">,</span>
+</span><span class='line'><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>实际工作中，不同开发语言存在不同的补齐风格要求。可以在.vimrc中针对python设置：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='vim'><span class='line'><span class="k">autocmd</span> <span class="nb">BufRead</span><span class="p">,</span><span class="nb">BufNewFile</span> *.<span class="k">py</span> <span class="k">set</span> <span class="nb">et</span> <span class="k">ts</span><span class="p">=</span><span class="m">4</span> <span class="k">sw</span><span class="p">=</span><span class="m">4</span> <span class="k">sts</span><span class="p">=</span><span class="m">4</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>仅对python源文件设置4个空格补齐。</p>
+
+<p>当然，更好的办法是在每个python源文件的最后一行追加：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c"># vim: set ts=4 sw=4 sts=4 et:</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从而保证vim打开该文件时满足4个空格补齐的要求。</p>
+
+<h2>空行</h2>
+
+<p>顶层函数或类定义的间隔为2行。
+类的方法定义的间隔为1行。</p>
+
+<h2>源文件编码</h2>
+
+<p>Python核心代码应为UTF-8（或ASCII，在Python 2中）。
+源文件若在Python 2中用ASCII或在Python 3中用UTF-8，则不应出现编码声明。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c"># -*- coding: utf-8 -*-</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>导入</h2>
+
+<ul>
+<li>每行仅导入一个模块，但每行可以导入一个模块的多个函数:</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">os</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">sys</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">PIPE</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>保证所有import在文件的头部，仅在模块注释后面，并先于模块的全局变量和常量。</li>
+<li><p>import应按下列顺序分组：</p>
+
+<ul>
+<li>标准库的导入</li>
+<li>相关第3方库的导入</li>
+<li>本地应用程序/库的导入</li>
+</ul>
+</li>
+</ul>
+
+
+<p>每个分组间空1行
+将类似__all__定义放在所有import后面</p>
+
+<ul>
+<li>绝对导入优于相对导入</li>
+<li>避免导入模块所有的内容（通配方式， from <module> import *)，在__init__.py中导出内部API除外。</li>
+</ul>
+
+
+<h2>表达式和语句中的空格</h2>
+
+<ul>
+<li>括号前后不允许有空格</li>
+<li>操作符号（如=，>和+=等）前后各1个空格</li>
+<li>:和,之前不允许有空格，之后仅1个空格</li>
+<li>函数默认参数的等号（=）前后不允许空格</li>
+</ul>
+
+
+<h2>注释</h2>
+
+<ul>
+<li>为所有公开模块、函数、类和方法写docstring。</li>
+<li>非公开方法的comment应出现在def行之后</li>
+<li><a href="http://www.python.org/dev/peps/pep-0257/">PEP-257</a>描述良好的docstring惯例。多行docstring的第1行后应跟着1个空白行。</li>
+<li>单行docstring可保持关闭的"&ldquo;"在同一行。</li>
+</ul>
+
+
+<h2>命名规范</h2>
+
+<p>尽管Python库代码的命名存在一些混乱，新模块和包（包括第3方框架）应满足下列规范。但已有库若风格不同，应保持原来的内部一致性。</p>
+
+<ul>
+<li>单下划线开头（如：_single_leading_underscore）弱内部使用，类似from M import *不导入类似符号。</li>
+<li>单下划线结尾（如：single_trailing_underscore<em>）用于与Python关键字冲突的情况下，如classs</em>。</li>
+<li>双下划线开头（如：__double_leading_underscore）用于类属性。</li>
+<li>双下划线开头和结构用于特殊对象或属性，如__init__, __import__或__file__。多为语言定义，避免发明类似名字。</li>
+<li>避免使用小写L、大写O和大写I作为单字符变量名。</li>
+<li>模块名应简短、全小写，可包含下划线；包名类似，但不鼓励包含下划线。</li>
+<li>C/C++实现的扩展模块应伴随着提供如面向对象等高级接口的Python模块存在，且其名字以下划线开头（如_socket）</li>
+<li>类名应为驼峰词（CapWords），内部使用的类以下划线开头。</li>
+<li>异常名与类名一样，且应以Error结尾（若该异常确为一个错误）。</li>
+<li>函数名应为小写加下划线。</li>
+<li>总是使用self作为实例方法的第1个参数，总是使用cls作为类方法的第1个参数</li>
+<li>常量名应为大写加下划线（如MAX_OVERFLOW）</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1074,6 +1303,10 @@ nmake CFG="Win32 Release"
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/08/19/docker-remote/">安全远程访问Docker</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/08/17/rbenv-tutorial/">rbenv简介——Debian/Ubuntu中管理多版本Ruby</a>
       </li>
     
@@ -1087,10 +1320,6 @@ nmake CFG="Win32 Release"
     
       <li class="post">
         <a href="/blog/2016/11/29/shadowsocks-tutorial/">Shadowsocks简介</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/07/11/python-multiprocessing-actor/">基于Python multiprocessing的Actor模型</a>
       </li>
     
   </ul>
@@ -1130,7 +1359,7 @@ nmake CFG="Win32 Release"
 
 <section>
   <h1>Categories</h1>
-    <ul id="category-list"><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (1)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (13)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (10)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
+    <ul id="category-list"><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (1)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (2)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (13)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (10)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
 </section>
 
   

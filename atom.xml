@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2019-08-18T19:24:50+00:00</updated>
+  <updated>2019-08-19T05:55:27+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,220 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[安全远程访问Docker]]></title>
+    <link href="http://www.malike.net.cn/blog/2019/08/19/docker-remote/"/>
+    <updated>2019-08-19T02:40:06+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2019/08/19/docker-remote</id>
+    <content type="html"><![CDATA[<p>Docker服务端（<code>dockerd</code> ）默认监听在Unix套接口 <code>/var/run/docker.sock</code> 。</p>
+
+<p>若需远程访问，得配置它同时监听在TCP端口（默认2376）。</p>
+
+<p>然而，远程访问并不支持用户认证。 可通过配置TLS客户端和服务端认证，规避非法客户端远程访问服务端。</p>
+
+<h2>一、创建CA</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>openssl genrsa -out ca-key.pem 4096
+</span><span class='line'>openssl req -new -x509 -days <span class="m">365</span> -key ca-key.pem -sha256 -out ca.pem
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>交互式输入各种选项，其中</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Common Name <span class="o">(</span>e.g. server FQDN or YOUR name<span class="o">)</span> <span class="o">[]</span>: &lt;HOST&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>&lt;HOST&gt;</code> 为Docker远程服务端域名（允许不存在的域名）。</p>
+
+<h2>二、创建远程服务端证书</h2>
+
+<p>创建 <code>extfile.cnf</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">subjectAltName</span> <span class="o">=</span> DNS:&lt;HOST&gt;,IP:&lt;IP&gt;,IP:127.0.0.1
+</span><span class='line'><span class="nv">extendedKeyUsage</span> <span class="o">=</span> serverAuth
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>&lt;HOST&gt;</code> 与上同。</li>
+<li><code>&lt;IP&gt;</code> 为Docker远程服务端IP</li>
+</ul>
+
+
+<p>然后：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>openssl genrsa -out server-key.pem 4096
+</span><span class='line'>openssl req -subj <span class="s2">&quot;/CN=&lt;HOST&gt;&quot;</span> -sha256 -new -key server-key.pem -out server.csr
+</span><span class='line'>openssl x509 -req -days <span class="m">365</span> -sha256 -in server.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out server-cert.pem -extfile extfile.cnf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>三、创建客户端证书</h2>
+
+<p>创建 <code>extfile-client.cnf</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">extendedKeyUsage</span> <span class="o">=</span> clientAuth
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>openssl genrsa -out key.pem 4096
+</span><span class='line'>openssl req -subj <span class="s1">&#39;/CN=client&#39;</span> -new -key key.pem -out client.csr
+</span><span class='line'>openssl x509 -req -days <span class="m">365</span> -sha256 -in client.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out cert.pem -extfile extfile-client.cnf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>至此，删除中间文件，并降低相关密钥访问权限。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rm -f client.csr server.csr extfile.cnf extfile-client.cnf
+</span><span class='line'>chmod <span class="m">0400</span> ca-key.pem key.pem server-key.pem
+</span><span class='line'>chmod <span class="m">0444</span> ca.pem server-cert.pem cert.pem
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>四、远程复制服务端相关证书</h2>
+
+<p>通过<code>scp</code>，将 <code>ca.pem</code>, <code>server-cert.pem</code> 和 <code>server-key.pem</code> 复制至远程服务端 <code>/etc/docker</code> 目录中。</p>
+
+<p>注：<code>ca-key.pem</code> 不应复制至远程服务端。因既不意义，又增大泄漏可能性。</p>
+
+<h2>五、编辑远程服务端 <code>/etc/docker/daemon.json</code></h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;hosts&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;unix:///var/run/docker.sock&quot;</span><span class="p">,</span> <span class="s2">&quot;tcp://0.0.0.0:2376&quot;</span><span class="p">],</span>
+</span><span class='line'>    <span class="nt">&quot;tls&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;tlscacert&quot;</span><span class="p">:</span> <span class="s2">&quot;/etc/docker/ca.pem&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;tlscert&quot;</span><span class="p">:</span> <span class="s2">&quot;/etc/docker/server-cert.pem&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;tlskey&quot;</span><span class="p">:</span> <span class="s2">&quot;/etc/docker/server-key.pem&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;tlsverify&quot;</span><span class="p">:</span> <span class="kc">true</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为保证证书和密钥安全，须</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo chown root.root /etc/docker/<span class="o">{</span>ca,server-cert,server-key<span class="o">}</span>.pem
+</span><span class='line'>sudo chmod og-rwx /etc/docker/<span class="o">{</span>ca,server-cert,server-key<span class="o">}</span>.pem
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>六、重启远程服务端Docker服务</h2>
+
+<p>在 <code>/lib/systemd/system/docker.service</code> 的 <code>ExecStart</code> 中， <code>-H fd://</code> 与 <code>/etc/docker/daemon.json</code> 的 <code>hosts</code> 冲突，将导致Docker服务启动失败。</p>
+
+<p>若在 <code>/lib/systemd/system/docker.service</code> 中直接删除 <code>-H fd://</code> ，docker-ce包升级将恢复原样。</p>
+
+<p>可创建 <code>/etc/systemd/system/docker.service.d/options.conf</code> 及其父目录，并编辑</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[Service]</span>
+</span><span class='line'><span class="na">ExecStart</span><span class="o">=</span>
+</span><span class='line'><span class="na">ExecStart</span><span class="o">=</span><span class="s">/usr/bin/dockerd --containerd=/run/containerd/containerd.sock</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>或执行如下命令：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo mkdir -p /etc/systemd/system/docker.service.d
+</span><span class='line'>sed -n <span class="s1">&#39;/\[Service\]/ {</span>
+</span><span class='line'><span class="s1">    a \</span>
+</span><span class='line'><span class="s1">ExecStart=</span>
+</span><span class='line'><span class="s1">    p</span>
+</span><span class='line'><span class="s1">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="s1">/ExecStart=.*/ {</span>
+</span><span class='line'><span class="s1">    s/-H fd:\/\/ //p</span>
+</span><span class='line'><span class="s1">}&#39;</span> /lib/systemd/system/docker.service <span class="p">|</span> sudo tee /etc/systemd/system/docker.service.d/options.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo systemctl daemon-reload
+</span><span class='line'>sudo systemctl restart docker
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>七、配置客户端</h2>
+
+<p>在客户端和CA相关证书和密钥所在目录，创建<code>docker.env</code> ：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">DOCKER_HOST</span><span class="o">=</span>&lt;HOST&gt;:2376
+</span><span class='line'><span class="nb">export </span><span class="nv">DOCKER_TLS_VERIFY</span><span class="o">=</span>1
+</span><span class='line'><span class="nb">export </span><span class="nv">DOCKER_CERT_PATH</span><span class="o">=</span><span class="sb">`</span>realpath <span class="se">\`</span>dirname <span class="nv">$0</span><span class="se">\`</span><span class="sb">`</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在远程访问Docker前，载入该文件：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">source</span> &lt;dir&gt;/docker.env
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后，控制远程Docker与本地Docker类似，如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker images
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>参考</h2>
+
+<ul>
+<li><a href="https://docs.docker.com/engine/security/https/">Protect the Docker daemon socket</a></li>
+<li><a href="https://gist.github.com/kekru/974e40bb1cd4b947a53cca5ba4b0bbe5">Enable Docker Remote API with TLS client verification</a></li>
+<li><a href="https://tech.paulcz.net/blog/secure-docker-with-tls/">Securing Docker with TLS certificates</a></li>
+<li><a href="https://nickjanetakis.com/blog/docker-tip-73-connecting-to-a-remote-docker-daemon">Docker Tip #73: Connecting to a Remote Docker Daemon</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[rbenv简介——Debian/Ubuntu中管理多版本Ruby]]></title>
@@ -3620,203 +3834,6 @@
 <h2>存在的问题</h2>
 
 <p>由于pep8尚未支持docstring规范的检查，也没有相关Flake8的插件。目前仅能用<a href="https://github.com/GreenSteam/pep257">pep257</a>来完成docstring规范的检查。期待pep257早日衍生成Flake8的插件。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[PEP 8总结]]></title>
-    <link href="http://www.malike.net.cn/blog/2013/07/25/pep8-summary/"/>
-    <updated>2013-07-25T00:00:00+00:00</updated>
-    <id>http://www.malike.net.cn/blog/2013/07/25/pep8-summary</id>
-    <content type="html"><![CDATA[<p>下述内容主要源于<a href="http://www.python.org/dev/peps/pep-0008/">PEP 8 &ndash; Style Guide for Python Code</a>。</p>
-
-<h2>最大的行长度</h2>
-
-<ul>
-<li>所有行不超过79个字符。</li>
-<li>docstring或comment应不超过72字符</li>
-</ul>
-
-
-<h2>补齐</h2>
-
-<ul>
-<li>每个补齐级别为4个空格。</li>
-<li>当一行操作最大行长度时，应尽可能按照各种括号作为纵向对齐的参照物（可以适当增加括号），如：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">from</span> <span class="nn">bottle</span> <span class="kn">import</span> <span class="p">(</span><span class="n">get</span><span class="p">,</span> <span class="n">post</span><span class="p">,</span> <span class="n">delete</span><span class="p">,</span> <span class="n">error</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">default_app</span><span class="p">,</span> <span class="n">HTTPError</span><span class="p">,</span>
-</span><span class='line'>                    <span class="n">request</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">static_file</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="c"># Aligned with opening delimiter</span>
-</span><span class='line'><span class="n">foo</span> <span class="o">=</span> <span class="n">long_function_name</span><span class="p">(</span><span class="n">var_one</span><span class="p">,</span> <span class="n">var_two</span><span class="p">,</span>
-</span><span class='line'>                         <span class="n">var_three</span><span class="p">,</span> <span class="n">var_four</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="c"># More indentation included to distinguish this from the rest.</span>
-</span><span class='line'><span class="k">def</span> <span class="nf">long_function_name</span><span class="p">(</span>
-</span><span class='line'>        <span class="n">var_one</span><span class="p">,</span> <span class="n">var_two</span><span class="p">,</span> <span class="n">var_three</span><span class="p">,</span>
-</span><span class='line'>        <span class="n">var_four</span><span class="p">):</span>
-</span><span class='line'>    <span class="k">print</span><span class="p">(</span><span class="n">var_one</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>多行情况下，关闭括号可以出现在一行开始，如：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">my_dict</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>    <span class="s">&#39;hello&#39;</span><span class="p">:</span> <span class="s">&#39;foo&#39;</span><span class="p">,</span>
-</span><span class='line'>    <span class="s">&#39;world&#39;</span><span class="p">:</span> <span class="s">&#39;bar&#39;</span><span class="p">,</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">my_list</span> <span class="o">=</span> <span class="p">[</span>
-</span><span class='line'>    <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span>
-</span><span class='line'>    <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span>
-</span><span class='line'><span class="p">]</span>
-</span><span class='line'><span class="n">result</span> <span class="o">=</span> <span class="n">some_function_that_takes_arguments</span><span class="p">(</span>
-</span><span class='line'>    <span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;b&#39;</span><span class="p">,</span> <span class="s">&#39;c&#39;</span><span class="p">,</span>
-</span><span class='line'>    <span class="s">&#39;d&#39;</span><span class="p">,</span> <span class="s">&#39;e&#39;</span><span class="p">,</span> <span class="s">&#39;f&#39;</span><span class="p">,</span>
-</span><span class='line'><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>实际工作中，不同开发语言存在不同的补齐风格要求。可以在.vimrc中针对python设置：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='vim'><span class='line'><span class="k">autocmd</span> <span class="nb">BufRead</span><span class="p">,</span><span class="nb">BufNewFile</span> *.<span class="k">py</span> <span class="k">set</span> <span class="nb">et</span> <span class="k">ts</span><span class="p">=</span><span class="m">4</span> <span class="k">sw</span><span class="p">=</span><span class="m">4</span> <span class="k">sts</span><span class="p">=</span><span class="m">4</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>仅对python源文件设置4个空格补齐。</p>
-
-<p>当然，更好的办法是在每个python源文件的最后一行追加：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c"># vim: set ts=4 sw=4 sts=4 et:</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>从而保证vim打开该文件时满足4个空格补齐的要求。</p>
-
-<h2>空行</h2>
-
-<p>顶层函数或类定义的间隔为2行。
-类的方法定义的间隔为1行。</p>
-
-<h2>源文件编码</h2>
-
-<p>Python核心代码应为UTF-8（或ASCII，在Python 2中）。
-源文件若在Python 2中用ASCII或在Python 3中用UTF-8，则不应出现编码声明。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c"># -*- coding: utf-8 -*-</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>导入</h2>
-
-<ul>
-<li>每行仅导入一个模块，但每行可以导入一个模块的多个函数:</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">os</span>
-</span><span class='line'><span class="kn">import</span> <span class="nn">sys</span>
-</span><span class='line'><span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">PIPE</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>保证所有import在文件的头部，仅在模块注释后面，并先于模块的全局变量和常量。</li>
-<li><p>import应按下列顺序分组：</p>
-
-<ul>
-<li>标准库的导入</li>
-<li>相关第3方库的导入</li>
-<li>本地应用程序/库的导入</li>
-</ul>
-</li>
-</ul>
-
-
-<p>每个分组间空1行
-将类似__all__定义放在所有import后面</p>
-
-<ul>
-<li>绝对导入优于相对导入</li>
-<li>避免导入模块所有的内容（通配方式， from <module> import *)，在__init__.py中导出内部API除外。</li>
-</ul>
-
-
-<h2>表达式和语句中的空格</h2>
-
-<ul>
-<li>括号前后不允许有空格</li>
-<li>操作符号（如=，>和+=等）前后各1个空格</li>
-<li>:和,之前不允许有空格，之后仅1个空格</li>
-<li>函数默认参数的等号（=）前后不允许空格</li>
-</ul>
-
-
-<h2>注释</h2>
-
-<ul>
-<li>为所有公开模块、函数、类和方法写docstring。</li>
-<li>非公开方法的comment应出现在def行之后</li>
-<li><a href="http://www.python.org/dev/peps/pep-0257/">PEP-257</a>描述良好的docstring惯例。多行docstring的第1行后应跟着1个空白行。</li>
-<li>单行docstring可保持关闭的"&ldquo;"在同一行。</li>
-</ul>
-
-
-<h2>命名规范</h2>
-
-<p>尽管Python库代码的命名存在一些混乱，新模块和包（包括第3方框架）应满足下列规范。但已有库若风格不同，应保持原来的内部一致性。</p>
-
-<ul>
-<li>单下划线开头（如：_single_leading_underscore）弱内部使用，类似from M import *不导入类似符号。</li>
-<li>单下划线结尾（如：single_trailing_underscore<em>）用于与Python关键字冲突的情况下，如classs</em>。</li>
-<li>双下划线开头（如：__double_leading_underscore）用于类属性。</li>
-<li>双下划线开头和结构用于特殊对象或属性，如__init__, __import__或__file__。多为语言定义，避免发明类似名字。</li>
-<li>避免使用小写L、大写O和大写I作为单字符变量名。</li>
-<li>模块名应简短、全小写，可包含下划线；包名类似，但不鼓励包含下划线。</li>
-<li>C/C++实现的扩展模块应伴随着提供如面向对象等高级接口的Python模块存在，且其名字以下划线开头（如_socket）</li>
-<li>类名应为驼峰词（CapWords），内部使用的类以下划线开头。</li>
-<li>异常名与类名一样，且应以Error结尾（若该异常确为一个错误）。</li>
-<li>函数名应为小写加下划线。</li>
-<li>总是使用self作为实例方法的第1个参数，总是使用cls作为类方法的第1个参数</li>
-<li>常量名应为大写加下划线（如MAX_OVERFLOW）</li>
-</ul>
-
 ]]></content>
   </entry>
   
