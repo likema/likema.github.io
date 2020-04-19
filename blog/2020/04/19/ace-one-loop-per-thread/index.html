@@ -1,0 +1,523 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>用ACE实现One Loop Per Thread - Like的世界</title>
+  <meta name="author" content="Like Ma">
+
+  
+  <meta name="description" content="one loop per thread 即每个线程运行一个独立的事件循环 (event loop)，或称为 one event loop per thread 更准确。而且事件循环线程之间通常不存在同步或互斥的关系, 并发连接的处理能力随CPU核心数而扩展 (scalable)。 ACE &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.malike.net.cn/blog/2020/04/19/ace-one-loop-per-thread">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Like的世界" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-44993010-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Like的世界</a></h1>
+  
+    <h2>个人总结与随想</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:www.malike.net.cn" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">用ACE实现One Loop Per Thread</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2020-04-19T19:20:02+00:00" pubdate data-updated="true"></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><a href="https://www.cnblogs.com/Solstice/archive/2010/02/12/multithreaded_server.html#_Toc7583">one loop per thread</a> 即每个线程运行一个独立的事件循环 (event loop)，或称为 one event loop per thread 更准确。而且事件循环线程之间通常不存在同步或互斥的关系, 并发连接的处理能力随CPU核心数而扩展 (scalable)。</p>
+
+<p><a href="http://www.dre.vanderbilt.edu/~schmidt/ACE.html">ACE</a> 拥有多种实现的Reactor:</p>
+
+<ul>
+<li><code>ACE_Select_Reactor</code> : 基于 <code>select</code> 的实现。</li>
+<li><code>ACE_Dev_Poll_Reactor</code> : 基于 Linux <code>epoll</code> 或 BSD <code>/dev/poll</code> 的实现。</li>
+<li><code>ACE_WFMO_Reactor</code> : 基于 Windows <code>WaitForMultipleObjects</code> 的实现</li>
+</ul>
+
+
+<p>它们都可用于实现 one loop per thread 模式。 相比 <code>ACE_TP_Reactor</code>：</p>
+
+<ul>
+<li><code>ACE_TP_Reactor</code> 继承于 <code>ACE_Select_Reactor</code> ，<strong>加锁</strong> 保证多线程竞争同一 Reactor 的安全。并行可扩展能力受限，且最大支持 1024 个描述符。</li>
+<li>基于 <code>ACE_Dev_Poll_Reactor</code> 的 one loop er thread，每个线程拥有独立的 Reactor，线程之间不存在竞争。充分发挥并行能力，且最大支持几十万甚至百万个描述符。</li>
+</ul>
+
+
+<p>以下以 <code>ACE_Select_Reactor</code> 为例浅析实现的关键代码。更完备示例代码请参看我的 <a href="https://github.com/likema/ace_echod">ace_echod</a></p>
+
+<h2>实现浅析</h2>
+
+<h3>事件循环函数</h3>
+
+<p><code>event_loop</code> 将作为线程函数运行于独立线程中，它与 ACE 教科书基本一样：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">ACE_THR_FUNC_RETURN</span> <span class="nf">event_loop</span><span class="p">(</span><span class="n">ACE_Reactor</span><span class="o">*</span> <span class="n">reactor</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">reactor</span><span class="o">-&gt;</span><span class="n">owner</span><span class="p">(</span><span class="n">ACE_OS</span><span class="o">::</span><span class="n">thr_self</span><span class="p">());</span> <span class="c1">// 将reactor “绑定” 本线程。</span>
+</span><span class='line'>    <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="n">reactor</span><span class="o">-&gt;</span><span class="n">reactor_event_loop_done</span><span class="p">())</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">reactor</span><span class="o">-&gt;</span><span class="n">run_reactor_event_loop</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>事件循环管理器</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">class</span> <span class="nc">Event_Loop_Manager</span> <span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="c1">// 为简化，忽略 ctor 、dtor 和 close</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">bool</span> <span class="n">open</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">threads</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="c1">// 创建Reactor数组。</span>
+</span><span class='line'>        <span class="n">reactors_</span><span class="p">.</span><span class="n">reset</span><span class="p">(</span><span class="k">new</span> <span class="n">ACE_Reactor</span><span class="o">*</span><span class="p">[</span><span class="n">threads</span><span class="p">]);</span>
+</span><span class='line'>        <span class="n">memset</span><span class="p">(</span><span class="n">reactors_</span><span class="p">.</span><span class="n">get</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">ACE_Reactor</span><span class="o">*</span><span class="p">)</span> <span class="o">*</span> <span class="n">threads</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// 创建线程ID数组</span>
+</span><span class='line'>        <span class="n">tids_</span><span class="p">.</span><span class="n">reset</span><span class="p">(</span><span class="k">new</span> <span class="n">ACE_thread_t</span><span class="p">[</span><span class="n">threads</span><span class="p">]);</span>
+</span><span class='line'>        <span class="n">memset</span><span class="p">(</span><span class="n">tids_</span><span class="p">.</span><span class="n">get</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">ACE_thread_t</span><span class="o">*</span><span class="p">)</span> <span class="o">*</span> <span class="n">threads</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// 创建事件循环</span>
+</span><span class='line'>        <span class="n">threads_</span> <span class="o">=</span> <span class="n">threads</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">threads_</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">reactors_</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ACE_Reactor</span><span class="p">(</span><span class="k">new</span> <span class="n">ACE_Select_Reactor</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="nb">false</span><span class="p">);</span>
+</span><span class='line'>            <span class="n">ACE_Thread_Manager</span><span class="o">::</span><span class="n">instance</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">spawn</span><span class="p">(</span>
+</span><span class='line'>                    <span class="p">(</span><span class="n">ACE_THR_FUNC</span><span class="p">)</span> <span class="n">event_loop</span><span class="p">,</span> <span class="n">reactors</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+</span><span class='line'>                    <span class="n">THR_NEW_LWP</span> <span class="o">|</span> <span class="n">THR_JOINABLE</span> <span class="o">|</span> <span class="n">THR_INHERIT_SCHED</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">tid</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">current_</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">/// 以简单循环方式返回 Reactor</span>
+</span><span class='line'>    <span class="n">ACE_Reactor</span><span class="o">*</span> <span class="n">reactor</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">ACE_Reactor</span><span class="o">*</span> <span class="n">r</span> <span class="o">=</span> <span class="n">reactors_</span><span class="p">[</span><span class="n">current_</span><span class="p">];</span>
+</span><span class='line'>        <span class="n">current_</span> <span class="o">=</span> <span class="p">(</span><span class="n">current_</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">threads_</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">r</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="k">protected</span><span class="o">:</span>
+</span><span class='line'>    <span class="n">ACE_Auto_Basic_Array_Ptr</span><span class="o">&lt;</span><span class="n">ACE_Reactor</span><span class="o">*&gt;</span> <span class="n">reactors_</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">ACE_Auto_Basic_Array_Ptr</span><span class="o">&lt;</span><span class="n">ACE_thread_t</span><span class="o">&gt;</span> <span class="n">tids_</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">unsigned</span> <span class="n">threads_</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">unsigned</span> <span class="n">current_</span><span class="p">;</span> <span class="c1">// 当前分配 Reactor 索引</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Echo Acceptor</h3>
+
+<p>据 ACE 的 Acceptor 模式, <code>Echo_Handler</code> 继承于 <code>ACE_Svc_Handler&lt;ACE_SOCK_STREAM, ACE_NULL_SYNCH&gt;</code>，它与 ACE 教科书实现相似。</p>
+
+<ul>
+<li><code>Echo_Acceptor</code> 注册默认 Reactor ，其事件循环运行于主线程。</li>
+<li>创建 <code>Echo_Handler</code> 对象时，事件循环管理器以简单循环方式分配 Reactor 给新对象。</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">class</span> <span class="nc">Echo_Acceptor</span><span class="o">:</span> <span class="k">public</span> <span class="n">ACE_Acceptor</span><span class="o">&lt;</span><span class="n">Echo_Handler</span><span class="p">,</span> <span class="n">ACE_SOCK_ACCEPTOR</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">open</span><span class="p">(</span><span class="k">const</span> <span class="n">addr_type</span><span class="o">&amp;</span> <span class="n">local_addr</span><span class="p">,</span> <span class="kt">int</span> <span class="n">flags</span><span class="p">,</span> <span class="kt">int</span> <span class="n">use_select</span><span class="p">,</span> <span class="kt">int</span> <span class="n">reuse_addr</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">flags_</span> <span class="o">=</span> <span class="n">flags</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">use_select_</span> <span class="o">=</span> <span class="n">use_select</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">reuse_addr_</span> <span class="o">=</span> <span class="n">reuse_addr</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">peer_acceptor_addr_</span> <span class="o">=</span> <span class="n">local_addr</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">peer_acceptor_</span><span class="p">.</span><span class="n">open</span><span class="p">(</span><span class="n">local_addr</span><span class="p">,</span> <span class="n">reuse_addr</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="n">peer_acceptor_</span><span class="p">.</span><span class="n">enable</span><span class="p">(</span><span class="n">ACE_NONBLOCK</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">ACE_Reactor</span><span class="o">::</span><span class="n">instance</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">register_handler</span><span class="p">(</span>
+</span><span class='line'>            <span class="k">this</span><span class="p">,</span> <span class="n">ACE_Event_Handler</span><span class="o">::</span><span class="n">ACCEPT_MASK</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">this</span><span class="o">-&gt;</span><span class="n">reactor</span><span class="p">(</span><span class="n">ACE_Reactor</span><span class="o">::</span><span class="n">instance</span><span class="p">());</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// 按逻辑CPU数初始化事件循环（线程）数。</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">loops_</span><span class="p">.</span><span class="n">open</span><span class="p">(</span><span class="n">reactor_type</span><span class="p">,</span> <span class="n">ACE_OS</span><span class="o">::</span><span class="n">num_processors</span><span class="p">())</span> <span class="o">?</span> <span class="mi">0</span> <span class="o">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">virtual</span> <span class="kt">int</span> <span class="n">make_svc_handler</span><span class="p">(</span><span class="n">handler_type</span><span class="o">*&amp;</span> <span class="n">sh</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">sh</span><span class="p">)</span>
+</span><span class='line'>            <span class="n">ACE_NEW_RETURN</span><span class="p">(</span><span class="n">sh</span><span class="p">,</span> <span class="n">handler_type</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// 事件循环管理器给 Echo_Handler 对象分配事件循环。</span>
+</span><span class='line'>        <span class="n">sh</span><span class="o">-&gt;</span><span class="n">reactor</span><span class="p">(</span><span class="n">loops_</span><span class="p">.</span><span class="n">reactor</span><span class="p">());</span>
+</span><span class='line'>        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">protected</span><span class="o">:</span>
+</span><span class='line'>    <span class="n">Event_Loop_Manager</span> <span class="n">loops_</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>存在问题</h2>
+
+<ul>
+<li>因 <code>ACE_Reactor::size</code> 实现<a href="https://github.com/DOCGroup/ACE_TAO/issues/855#issuecomment-612391823">不一致</a>，除 <code>ACE_Dev_Poll_Reactor</code> 返回当前注册的 handler 数量，其它实现返回handler表的容量。导致无法直接通过注册 handler 的数量，实现 <a href="https://en.wikipedia.org/wiki/Round-robin_scheduling">Round-Robin</a>，即均衡分配 handler</li>
+<li>因 <code>ACE_Reactor</code> 无法获取当前是否等待事件（即空闲）状态，导致无法直接将 handler 分配到空闲事件循环中。</li>
+</ul>
+
+
+<p>解决上述问题，要么直接修改 ACE 的实现，要么在具体 handler 实现中增加状态或统计变量，两者都需用原子变量来避免加锁。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Like Ma</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2020-04-19T19:20:02+00:00" pubdate data-updated="true"></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ace/'>ace</a>, <a class='category' href='/blog/categories/c-plus-plus/'>c++</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.malike.net.cn/blog/2020/04/19/ace-one-loop-per-thread/" data-via="" data-counturl="http://www.malike.net.cn/blog/2020/04/19/ace-one-loop-per-thread/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2019/08/19/docker-remote/" title="Previous Post: 安全远程访问Docker">&laquo; 安全远程访问Docker</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2020/04/19/ace-one-loop-per-thread/">用ACE实现One Loop Per Thread</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/08/19/docker-remote/">安全远程访问Docker</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/08/17/rbenv-tutorial/">rbenv简介——Debian/Ubuntu中管理多版本Ruby</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/04/30/shadowsocks-rust-tutorial/">Shadowsocks-Rust简介</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/03/02/glusterfs-docker-tutorial/">在Docker容器中创建GlusterFS</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/likema">@likema</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'likema',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+<section>
+  <h1>Categories</h1>
+    <ul id="category-list"><li><a href='/blog/categories/ace'>ace (1)</a></li><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (2)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (2)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (13)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (10)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
+</section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2020 - Like Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'likeworld';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.malike.net.cn/blog/2020/04/19/ace-one-loop-per-thread/';
+        var disqus_url = 'http://www.malike.net.cn/blog/2020/04/19/ace-one-loop-per-thread/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

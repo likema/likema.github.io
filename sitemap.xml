@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
+<loc>http://www.malike.net.cn/blog/2020/04/19/ace-one-loop-per-thread/</loc>
+<lastmod>2020-04-19T19:20:02+00:00</lastmod>
+</url>
+<url>
 <loc>http://www.malike.net.cn/blog/2019/08/19/docker-remote/</loc>
 <lastmod>2019-08-19T02:40:06+00:00</lastmod>
 </url>
@@ -105,10 +109,10 @@
 <lastmod>2008-10-05T00:00:00+00:00</lastmod>
 </url>
 <url>
-<loc>http://www.malike.net.cn/</loc>
+<loc>http://www.malike.net.cn/blog/archives/</loc>
 </url>
 <url>
-<loc>http://www.malike.net.cn/blog/archives/</loc>
+<loc>http://www.malike.net.cn/</loc>
 </url>
 <url>
 <loc>http://www.malike.net.cn/blog/categories/</loc>
@@ -183,9 +187,6 @@
 <loc>http://www.malike.net.cn/blog/categories/ruby/</loc>
 </url>
 <url>
-<loc>http://www.malike.net.cn/posts/2/</loc>
-</url>
-<url>
-<loc>http://www.malike.net.cn/posts/3/</loc>
+<loc>http://www.malike.net.cn/blog/categories/ace/</loc>
 </url>
 </urlset>

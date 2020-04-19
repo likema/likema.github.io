@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2019-08-19T05:55:27+00:00</updated>
+  <updated>2020-04-20T04:10:22+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -18,11 +18,11 @@
     <link href="http://www.malike.net.cn/blog/2019/08/19/docker-remote/"/>
     <updated>2019-08-19T02:40:06+00:00</updated>
     <id>http://www.malike.net.cn/blog/2019/08/19/docker-remote</id>
-    <content type="html"><![CDATA[<p>Docker服务端（<code>dockerd</code> ）默认监听在Unix套接口 <code>/var/run/docker.sock</code> 。</p>
+    <content type="html"><![CDATA[<p>Docker服务端（<code>dockerd</code>）默认监听在Unix套接口 <code>/var/run/docker.sock</code> 。仅能本地或SSH至Docker运行的主机访问，不利于自动化开发测试。</p>
 
 <p>若需远程访问，得配置它同时监听在TCP端口（默认2376）。</p>
 
-<p>然而，远程访问并不支持用户认证。 可通过配置TLS客户端和服务端认证，规避非法客户端远程访问服务端。</p>
+<p>然而，Docker不支持用户认证。 可通过配置TLS客户端和服务端认证，规避非法客户端远程访问服务端。</p>
 
 <h2>一、创建CA</h2>
 
