@@ -4,7 +4,7 @@
   <title><![CDATA[Category: linux | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/linux/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2020-04-20T04:10:22+00:00</updated>
+  <updated>2020-04-30T17:23:58+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,292 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Snap简介]]></title>
+    <link href="http://www.malike.net.cn/blog/2020/04/30/snap-tutorial/"/>
+    <updated>2020-04-30T19:40:24+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2020/04/30/snap-tutorial</id>
+    <content type="html"><![CDATA[<p><a href="https://snapcraft.io/">Snap</a> 是 Canonical 开发的包管理系统，默认安装于 Ubuntu 16.04 及其后的发行版本中。</p>
+
+<p>优势：</p>
+
+<ul>
+<li>自包含：不受限于发行版的系统库版本，且每个包之间不存在运行库依赖。</li>
+<li>只读挂载：应用程序不能修改或删除，且不会污染系统应用程序或库。</li>
+<li>回退：内置回退旧版本。</li>
+<li>快照：内置备份和恢复应用数据。</li>
+<li>版本新：相比发行版更新缓慢，其应用程序版本都比较新。</li>
+</ul>
+
+
+<p>劣势主要为安装包占用较多存储空间。</p>
+
+<h2>一、安装 snapd</h2>
+
+<pre><code class="bash">sudo apt install -y snapd
+</code></pre>
+
+<p>查看版本</p>
+
+<pre><code class="bash">snap version
+</code></pre>
+
+<h2>二、安装 snap 包</h2>
+
+<pre><code class="bash">sudo snap install lxd
+</code></pre>
+
+<p>默认 <code>stable</code> 频道，也可以指定 <code>edge</code> 频道：</p>
+
+<pre><code class="bash">sudo snap install --channel=edge lxd
+</code></pre>
+
+<p>安装后，可切换频道。</p>
+
+<pre><code class="bash">sudo snap switch --channel=stable lxd
+</code></pre>
+
+<p>相比 RPM 和 Debian 包需手动更新，snap 包将在后台自动更新。若需手动更新，则</p>
+
+<pre><code class="bash">sudo snap refresh lxd
+</code></pre>
+
+<p>snap 还能切换频道并更新</p>
+
+<pre><code class="bash">sudo snap refresh --channel=beta lxd
+</code></pre>
+
+<p>snap 应用程序位于 <code>/snap/bin</code> ，如： <code>/snap/bin/lxd</code></p>
+
+<p>为便于使用，可将该路径追加于 <code>~/.bashrc</code> 或 <code>~/.zshrc</code> 环境变量 <code>PATH</code> ，如：</p>
+
+<pre><code class="bash">export PATH=$PATH:/snap/bin
+</code></pre>
+
+<h2>三、搜索包</h2>
+
+<pre><code class="bash">snap search &lt;snapname&gt;
+</code></pre>
+
+<p>也可通过浏览器在应用市场 <a href="https://snapcraft.io/">Snapcraft</a> 上搜索需要的包（应用）。</p>
+
+<h2>四、列表已安装的包</h2>
+
+<h3>列表所有包</h3>
+
+<pre><code class="bash">snap list
+</code></pre>
+
+<p>输出：</p>
+
+<pre><code>Name      Version    Rev    Tracking       Publisher   Notes
+core      16-2.44.3  9066   latest/stable  canonical✓  core
+core18    20200311   1705   latest/stable  canonical✓  base
+lxd       4.0.1      14804  latest/stable  canonical✓  -
+</code></pre>
+
+<p>若 <code>--all</code> ， 则列表包的所有版本 (revision)</p>
+
+<h3>列表指定包</h3>
+
+<pre><code class="bash">snap list lxd
+</code></pre>
+
+<p>输出：</p>
+
+<pre><code>Name  Version  Rev    Tracking       Publisher   Notes
+lxd   4.0.1    14804  latest/stable  canonical✓  -
+</code></pre>
+
+<h2>五、回退版本</h2>
+
+<pre><code class="bash">sudo snap revert lxd
+</code></pre>
+
+<p>若遇到当前版本bug，则可考虑回退程序。当前跟踪的 channel 不会因上一版本源于不同 channel 而改变。</p>
+
+<ul>
+<li><code>snap refesh</code> 不会更新已回退的包，除非指定包名，如：<code>snap refresh lxd</code></li>
+<li>新版本发布，将继续自动更新已回退的包。</li>
+</ul>
+
+
+<h2>六、卸载 snap 包</h2>
+
+<pre><code class="bash">sudo snap remove lxd
+</code></pre>
+
+<p>卸载旧版本（释放空间）。</p>
+
+<pre><code class="bash">sudo snap remove --revision=14709 lxd
+</code></pre>
+
+<h2>七、启用/禁用 snap 包</h2>
+
+<p>为避免卸载和重装而禁用：</p>
+
+<pre><code class="bash">sudo snap disable lxd
+</code></pre>
+
+<p>反之：</p>
+
+<pre><code class="bash">sudo snap enable lxd
+</code></pre>
+
+<h2>八、服务</h2>
+
+<h3>列表</h3>
+
+<pre><code class="bash">sudo snap services lxd
+</code></pre>
+
+<p>输出：</p>
+
+<pre><code>Service       Startup  Current   Notes
+lxd.activate  enabled  inactive  -
+lxd.daemon    enabled  active    socket-activated
+</code></pre>
+
+<h3>启动、停止和重启</h3>
+
+<pre><code class="bash">sudo snap stop lxd.daemon
+sudo snap start lxd.daemon
+sudo snap restart lxd.daemon
+</code></pre>
+
+<p>停止服务，并禁用自动启动：</p>
+
+<pre><code class="bash">sudo snap stop --disable lxd.daemon
+</code></pre>
+
+<p>开始服务，并启用自动启动：</p>
+
+<pre><code class="bash">sudo snap start --disable lxd.daemon
+</code></pre>
+
+<h3>查看日志</h3>
+
+<pre><code class="bash">sudo snap logs lxd
+sudo snap logs lxd.daemon
+sudo snap logs lxd -f # 类似tail -f
+</code></pre>
+
+<h2>九、快照</h2>
+
+<h3>创建</h3>
+
+<pre><code class="bash">sudo snap save
+</code></pre>
+
+<p>输出：</p>
+
+<pre><code>Set  Snap      Age    Version    Rev    Size    Notes
+1    core      42.2s  16-2.44.3  9066     124B  -
+1    core18    42.2s  20200311   1705     123B  -
+1    lxd       42.2s  4.0.1      14890   2187B  -
+</code></pre>
+
+<p>或指定包</p>
+
+<pre><code class="bash">sudo snap save lxd
+</code></pre>
+
+<p>若 <code>--no-wait</code>， 则后台运行。</p>
+
+<h3>列表</h3>
+
+<pre><code class="bash">snap saved
+</code></pre>
+
+<p>或指定Set ID</p>
+
+<pre><code class="bash">snap saved --id=1
+</code></pre>
+
+<h3>校验</h3>
+
+<pre><code class="bash">snap check-snapshot 1
+</code></pre>
+
+<h3>还原</h3>
+
+<pre><code class="bash">snap restore 1
+</code></pre>
+
+<h3>删除</h3>
+
+<pre><code class="bash">snap forget 1
+</code></pre>
+
+<h2>十、剖析</h2>
+
+<h3>包的安装</h3>
+
+<p>相比 RPM 和 Debian 等传统安装包，通过解开来安装。</p>
+
+<p>存于 <code>/var/lib/snapd</code> ，格式为 <a href="https://en.wikipedia.org/wiki/SquashFS">squashfs</a> 的 snap 包，不直接解开，而是（只读）挂载至 <code>/snap/&lt;snapname&gt;/&lt;revision&gt;</code> 目录。如：</p>
+
+<p><code>lxd</code> 的 revision 14890 的包存储于 <code>/var/lib/snapd/snaps/lxd_14890.snap</code> :</p>
+
+<pre><code class="bash">mount | grep 14890
+</code></pre>
+
+<p>发现：</p>
+
+<pre><code>/var/lib/snapd/snaps/lxd_14890.snap on /snap/lxd/14890 type squashfs (ro,nodev,relatime)
+</code></pre>
+
+<p>另外， <code>/snap/&lt;snapname&gt;/current</code> 为当前版本挂载点，它为指向 <code>/snap/&lt;snapname&gt;/&lt;revision&gt;</code> 的符号链接。</p>
+
+<p>而且，每个 snap 包含了不依赖系统库的完整的运行时库。</p>
+
+<h3>包的缓存</h3>
+
+<p>snap 为了加速二次安装，首次安装会将 snap 包缓存至 <code>/var/lib/snapd/cache</code> 。</p>
+
+<p>目前为止， snap 未提供命令清楚缓存。若需 <strong>释放空间</strong> ，须手动删除该目录中的文件。</p>
+
+<h3>包的运行数据</h3>
+
+<p><code>/var/snap</code> 存储每个包的运行数据（或元数据）。如：<code>/var/snap/lxd</code> 主要为 lxd 的元数据。</p>
+
+<p>该目录或将消耗大量的存储空间，因受制于 AppArmor ，不能通过移动目录（至另外分区）和符号链接来释放空间，须 <code>mount --bind</code> 移动的目录。</p>
+
+<h3>包的应用程序</h3>
+
+<p><code>/snap/bin</code> 存储指向包的应用程序（符号链接），如：</p>
+
+<pre><code class="bash">ls -l /snap/bin/lxd
+</code></pre>
+
+<p>看到 <code>lxd</code> 仅为 <code>snap</code> 的符号链接</p>
+
+<pre><code>lrwxrwxrwx 13 root 29 4月  12:10 /snap/bin/lxd -&gt; /usr/bin/snap
+</code></pre>
+
+<h3>快照</h3>
+
+<p>每个包快照用独立的 zip 文件存储，包含：</p>
+
+<ul>
+<li><code>meta.json</code> : 描述快照内容、配置和校验码。</li>
+<li><code>archive.tgz</code> : 包含系统数据。</li>
+<li><code>user/&lt;username&gt;.tgz</code> : 包含每个系统的用户数据。</li>
+</ul>
+
+
+<p>快照存储于 <code>/var/lib/snapd/snapshots</code></p>
+
+<h2>参考</h2>
+
+<ul>
+<li><a href="https://snapcraft.io/docs/getting-started">Snap Getting Started</a></li>
+<li><a href="http://landofnightandday.blogspot.com/2018/06/disable-snap-core-service-on-ubuntu-1804.html">Disable snap core service on Ubuntu 18.04</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Shadowsocks-Rust简介]]></title>
@@ -559,63 +845,6 @@ exec /usr/bin/ssh \
     -oServerAliveCountMax=2 \
     -q -N -D localhost:12348 sshproxy
 </code></pre>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[SSH隧道简介]]></title>
-    <link href="http://www.malike.net.cn/blog/2014/10/27/ssh-tunnel-tutorial/"/>
-    <updated>2014-10-27T00:00:00+00:00</updated>
-    <id>http://www.malike.net.cn/blog/2014/10/27/ssh-tunnel-tutorial</id>
-    <content type="html"><![CDATA[<p>SSH的功能非常强大，日常除了用于命令行远程登录服务器。它还具有神奇的隧道（tunnel）功能（也被称为SSH代理），可用于加密访问本地或远程主机的服务。</p>
-
-<p>通常，SSH代理具有3种方式：</p>
-
-<h2>SSH（正向）代理</h2>
-
-<p>通过参数-L [bind_address:]port:remote_host:remote_port，将指定本地（客户端）端口转发至远程端口上。</p>
-
-<p><img src="/images/ssh-tunnel-proxy.png" alt="SSH Proxy" /></p>
-
-<p>如上图， hosta无法直接访问hostb，但它能直接SSH登录gateway；如此通过gateway，将hosta的端口X转发至hostb的端口Y上。相当于端口X和端口Y之间建立了加密隧道。</p>
-
-<p>一般来说，端口Y为hostb上某服务的监听端口。当建立隧道后，hosta将监听端口X。应用程序访问hosta的端口X，等同于访问hostb的端口Y。对于应用程序，hostb端口Y对应的服务就如同运行在hosta上。</p>
-
-<p>日常工作中，客户的网络常由于信息安全而被网关（或防火墙）隔离。当我们的软件在客户网络中某服务器发生问题时，我们常需奔赴客户现场进行调试。若客户存在某机器安装了SSH服务器，且能被外部访问。就可以利用SSH正向代理的方法，快速简便的登录被隔离的服务器并进行应用调试。</p>
-
-<h2>SSH反向代理</h2>
-
-<p>通过参数-R [bind_address:]port:remote_host:remote_port，将指定远程端口转发至本地（客户端）端口上。</p>
-
-<p><img src="/images/ssh-tunnel-reverse-proxy.png" alt="SSH Reverse Proxy" /></p>
-
-<p>如上图，hosta在防火墙内，无法被hostb直接访问。但它能直接SSH登录hostb；如此通过hostb，将hostb的端口X转发至hosta的端口Y上。该方法与SSH正向代理类似，所不同的是该隧道的访问方向是从服务端（hostb）至客户端(hosta），故被称为反向代理。</p>
-
-<p>其应用场景也与SSH正向代理类似，所不同的是若客户不存在可供外部访问的SSH服务器时，我们可以在外网建设一个SSH服务器给客户的被隔离服务器来建立隧道。如此，我们可以访问自己的SSH服务器对应端口来调试客户服务器的应用。</p>
-
-<p>更进一步，客户内网甚至不能访问外网，此时可利用客户内网一台笔记本（或台式机，它可以访问目标服务器）USB接上3G/4G手机来达到访问外部SSH服务器的目的。</p>
-
-<p><img src="/images/ssh-tunnel-reverse-proxy-mobile.png" alt="SSH Reverse Proxy Mobile" /></p>
-
-<h2>SSH动态代理</h2>
-
-<p>通过参数-D [bind_address:]port，利用远程服务器为访问出口，在本地建立SOCKS 4/5代理服务器。</p>
-
-<p>可以形象描绘为将本地应用的端口（SOCKS客户端端口），动态转发至远程。</p>
-
-<p><img src="/images/ssh-tunnel-dynamic-proxy.png" alt="SSH Dynamic Proxy" /></p>
-
-<p>该功能广为人知的应用场景为翻墙。如上图，在国外租用VPS（hostb），客户端（hosta）通过SSH动态代理端口X（SOCKS 4/5的端口）便可以访问被GFW封锁的网络。</p>
-
-<p>这种翻墙最大的优势在于</p>
-
-<ul>
-<li>低成本：国外廉价低配置VPS基本满足个人翻墙需求。</li>
-<li>服务端0配置：服务端只需要安装SSH服务端。</li>
-<li>客户端配置简单：客户端需要安装SSH客户端，以及一条命令。</li>
-<li>加密隧道：保证网络访问的数据安全。</li>
-</ul>
-
 ]]></content>
   </entry>
   

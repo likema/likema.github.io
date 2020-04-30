@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2020-04-20T04:10:22+00:00</updated>
+  <updated>2020-04-30T17:23:58+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,377 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Snap简介]]></title>
+    <link href="http://www.malike.net.cn/blog/2020/04/30/snap-tutorial/"/>
+    <updated>2020-04-30T19:40:24+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2020/04/30/snap-tutorial</id>
+    <content type="html"><![CDATA[<p><a href="https://snapcraft.io/">Snap</a> 是 Canonical 开发的包管理系统，默认安装于 Ubuntu 16.04 及其后的发行版本中。</p>
+
+<p>优势：</p>
+
+<ul>
+<li>自包含：不受限于发行版的系统库版本，且每个包之间不存在运行库依赖。</li>
+<li>只读挂载：应用程序不能修改或删除，且不会污染系统应用程序或库。</li>
+<li>回退：内置回退旧版本。</li>
+<li>快照：内置备份和恢复应用数据。</li>
+<li>版本新：相比发行版更新缓慢，其应用程序版本都比较新。</li>
+</ul>
+
+
+<p>劣势主要为安装包占用较多存储空间。</p>
+
+<h2>一、安装 snapd</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt install -y snapd
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>查看版本</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>snap version
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>二、安装 snap 包</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo snap install lxd
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>默认 <code>stable</code> 频道，也可以指定 <code>edge</code> 频道：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo snap install --channel<span class="o">=</span>edge lxd
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>安装后，可切换频道。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo snap switch --channel<span class="o">=</span>stable lxd
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>相比 RPM 和 Debian 包需手动更新，snap 包将在后台自动更新。若需手动更新，则</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo snap refresh lxd
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>snap 还能切换频道并更新</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo snap refresh --channel<span class="o">=</span>beta lxd
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>snap 应用程序位于 <code>/snap/bin</code> ，如： <code>/snap/bin/lxd</code></p>
+
+<p>为便于使用，可将该路径追加于 <code>~/.bashrc</code> 或 <code>~/.zshrc</code> 环境变量 <code>PATH</code> ，如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:/snap/bin
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>三、搜索包</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>snap search &lt;snapname&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>也可通过浏览器在应用市场 <a href="https://snapcraft.io/">Snapcraft</a> 上搜索需要的包（应用）。</p>
+
+<h2>四、列表已安装的包</h2>
+
+<h3>列表所有包</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>snap list
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>输出：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Name      Version    Rev    Tracking       Publisher   Notes
+</span><span class='line'>core      16-2.44.3  <span class="m">9066</span>   latest/stable  canonical✓  core
+</span><span class='line'>core18    <span class="m">20200311</span>   <span class="m">1705</span>   latest/stable  canonical✓  base
+</span><span class='line'>lxd       4.0.1      <span class="m">14804</span>  latest/stable  canonical✓  -
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>若 <code>--all</code> ， 则列表包的所有版本 (revision)</p>
+
+<h3>列表指定包</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>snap list lxd
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>输出：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Name  Version  Rev    Tracking       Publisher   Notes
+</span><span class='line'>lxd   4.0.1    <span class="m">14804</span>  latest/stable  canonical✓  -
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>五、回退版本</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo snap revert lxd
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>若遇到当前版本bug，则可考虑回退程序。当前跟踪的 channel 不会因上一版本源于不同 channel 而改变。</p>
+
+<ul>
+<li><code>snap refesh</code> 不会更新已回退的包，除非指定包名，如：<code>snap refresh lxd</code></li>
+<li>新版本发布，将继续自动更新已回退的包。</li>
+</ul>
+
+
+<h2>六、卸载 snap 包</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo snap remove lxd
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>卸载旧版本（释放空间）。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo snap remove --revision<span class="o">=</span><span class="m">14709</span> lxd
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>七、启用/禁用 snap 包</h2>
+
+<p>为避免卸载和重装而禁用：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo snap disable lxd
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>反之：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo snap <span class="nb">enable </span>lxd
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>八、服务</h2>
+
+<h3>列表</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo snap services lxd
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>输出：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Service       Startup  Current   Notes
+</span><span class='line'>lxd.activate  enabled  inactive  -
+</span><span class='line'>lxd.daemon    enabled  active    socket-activated
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>启动、停止和重启</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo snap stop lxd.daemon
+</span><span class='line'>sudo snap start lxd.daemon
+</span><span class='line'>sudo snap restart lxd.daemon
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>停止服务，并禁用自动启动：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo snap stop --disable lxd.daemon
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>开始服务，并启用自动启动：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo snap start --disable lxd.daemon
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>查看日志</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo snap logs lxd
+</span><span class='line'>sudo snap logs lxd.daemon
+</span><span class='line'>sudo snap logs lxd -f <span class="c"># 类似tail -f</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>九、快照</h2>
+
+<h3>创建</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo snap save
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>输出：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Set  Snap      Age    Version    Rev    Size    Notes
+</span><span class='line'><span class="m">1</span>    core      42.2s  16-2.44.3  <span class="m">9066</span>     124B  -
+</span><span class='line'><span class="m">1</span>    core18    42.2s  <span class="m">20200311</span>   <span class="m">1705</span>     123B  -
+</span><span class='line'><span class="m">1</span>    lxd       42.2s  4.0.1      <span class="m">14890</span>   2187B  -
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>或指定包</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo snap save lxd
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>若 <code>--no-wait</code>， 则后台运行。</p>
+
+<h3>列表</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>snap saved
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>或指定Set ID</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>snap saved --id<span class="o">=</span>1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>校验</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>snap check-snapshot 1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>还原</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>snap restore 1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>删除</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>snap forget 1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>十、剖析</h2>
+
+<h3>包的安装</h3>
+
+<p>相比 RPM 和 Debian 等传统安装包，通过解开来安装。</p>
+
+<p>存于 <code>/var/lib/snapd</code> ，格式为 <a href="https://en.wikipedia.org/wiki/SquashFS">squashfs</a> 的 snap 包，不直接解开，而是（只读）挂载至 <code>/snap/&lt;snapname&gt;/&lt;revision&gt;</code> 目录。如：</p>
+
+<p><code>lxd</code> 的 revision 14890 的包存储于 <code>/var/lib/snapd/snaps/lxd_14890.snap</code> :</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mount <span class="p">|</span> grep 14890
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>发现：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>/var/lib/snapd/snaps/lxd_14890.snap on /snap/lxd/14890 <span class="nb">type </span>squashfs <span class="o">(</span>ro,nodev,relatime<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>另外， <code>/snap/&lt;snapname&gt;/current</code> 为当前版本挂载点，它为指向 <code>/snap/&lt;snapname&gt;/&lt;revision&gt;</code> 的符号链接。</p>
+
+<p>而且，每个 snap 包含了不依赖系统库的完整的运行时库。</p>
+
+<h3>包的缓存</h3>
+
+<p>snap 为了加速二次安装，首次安装会将 snap 包缓存至 <code>/var/lib/snapd/cache</code> 。</p>
+
+<p>目前为止， snap 未提供命令清楚缓存。若需 <strong>释放空间</strong> ，须手动删除该目录中的文件。</p>
+
+<h3>包的运行数据</h3>
+
+<p><code>/var/snap</code> 存储每个包的运行数据（或元数据）。如：<code>/var/snap/lxd</code> 主要为 lxd 的元数据。</p>
+
+<p>该目录或将消耗大量的存储空间，因受制于 AppArmor ，不能通过移动目录（至另外分区）和符号链接来释放空间，须 <code>mount --bind</code> 移动的目录。</p>
+
+<h3>包的应用程序</h3>
+
+<p><code>/snap/bin</code> 存储指向包的应用程序（符号链接），如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>ls -l /snap/bin/lxd
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>看到 <code>lxd</code> 仅为 <code>snap</code> 的符号链接</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lrwxrwxrwx <span class="m">13</span> root <span class="m">29</span> 4月  12:10 /snap/bin/lxd -&gt; /usr/bin/snap
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>快照</h3>
+
+<p>每个包快照用独立的 zip 文件存储，包含：</p>
+
+<ul>
+<li><code>meta.json</code> : 描述快照内容、配置和校验码。</li>
+<li><code>archive.tgz</code> : 包含系统数据。</li>
+<li><code>user/&lt;username&gt;.tgz</code> : 包含每个系统的用户数据。</li>
+</ul>
+
+
+<p>快照存储于 <code>/var/lib/snapd/snapshots</code></p>
+
+<h2>参考</h2>
+
+<ul>
+<li><a href="https://snapcraft.io/docs/getting-started">Snap Getting Started</a></li>
+<li><a href="http://landofnightandday.blogspot.com/2018/06/disable-snap-core-service-on-ubuntu-1804.html">Disable snap core service on Ubuntu 18.04</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[用ACE实现One Loop Per Thread]]></title>
@@ -3696,146 +4067,6 @@
 <p>该问题并不影响该解决方案的使用，具体请参考:</p>
 
 <p><a href="http://stackoverflow.com/questions/5365562/why-is-the-value-of-name-changing-after-assignment-to-sys-modules-name">http://stackoverflow.com/questions/5365562/why-is-the-value-of-name-changing-after-assignment-to-sys-modules-name</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[定制无源码安装Python模块]]></title>
-    <link href="http://www.malike.net.cn/blog/2013/10/27/customize-python-modules-installation-without-source-files/"/>
-    <updated>2013-10-27T00:00:00+00:00</updated>
-    <id>http://www.malike.net.cn/blog/2013/10/27/customize-python-modules-installation-without-source-files</id>
-    <content type="html"><![CDATA[<p>Python的<a href="http://docs.python.org/2/library/distutils.html">distutils</a>和<a href="https://pypi.python.org/pypi/setuptools">setuptools</a>都是为开源项目设计的，Python模块分发和安装都包含该模块的源代码。实际公司工作多为闭源项目，Python模块的安装是不能包核心源代码的。</p>
-
-<p>过去对distutils和setuptools的一知半解，为了达到闭源的目的，我通过书写Makefile来编译Python源码为.pyc或.pyo，完全绕开distutils和setuptools的限制。权宜之计虽然解决了一时之急，然总是让我追求标准和完美的心感到不安。为此，最近我花了一些时间来阅读distutils文档和部分源代码，终于找到了相对地道的解决办法。</p>
-
-<p>根据<a href="http://docs.python.org/2/distutils/extending.html">Extending Distutils</a>的描述，继承distutils.cmd.Command的子类，如distutils.command.build_py.build_py，并重载已有的方法来达到扩展的目的。</p>
-
-<p>根据<a href="http://docs.python.org/2/distutils/apiref.html#creating-a-new-distutils-command">Creating a new Distutils command</a>描述子类必须定义如下方法：</p>
-
-<ul>
-<li>Command.initialize_options()</li>
-<li>Command.finalize_options()</li>
-<li>Command.run()</li>
-<li>Command.sub_commands()</li>
-</ul>
-
-
-<p>并且命令install由install_lib和install_headers等子命令构成。</p>
-
-<p>我的目的不是扩展Distutils的install命令，而是改变其行为，避免其安装源码。其实，只需要改变install_lib的行为就足够了。</p>
-
-<p>类install_lib存在于/usr/lib/python2.7/distutils/command/install_lib.py文件中，它的方法run源码如下：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span class='line'>    <span class="c"># Make sure we have built everything we need first</span>
-</span><span class='line'>    <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="c"># Install everything: simply dump the entire contents of the build</span>
-</span><span class='line'>    <span class="c"># directory to the installation directory (that&#39;s the beauty of</span>
-</span><span class='line'>    <span class="c"># having a build directory!)</span>
-</span><span class='line'>    <span class="n">outfiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">install</span><span class="p">()</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="c"># (Optionally) compile .py to .pyc</span>
-</span><span class='line'>    <span class="k">if</span> <span class="n">outfiles</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">has_pure_modules</span><span class="p">():</span>
-</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">byte_compile</span><span class="p">(</span><span class="n">outfiles</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>与先编译再安装的直觉相反，编译生成pyc并不发生在build方法中，而是install方法执行后。所以，若重载build方法（实际调用build_py命令），则install和byte_compile都需要修改，工作量较大且复杂度较高。</p>
-
-<p>直接能想到的办法是重载install方法，使其直接编译源码，并返回None，从而使byte_compile不会被执行。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">os</span>
-</span><span class='line'><span class="kn">from</span> <span class="nn">distutils.core</span> <span class="kn">import</span> <span class="n">setup</span>
-</span><span class='line'><span class="kn">from</span> <span class="nn">distutils.command.install_lib</span> <span class="kn">import</span> <span class="n">install_lib</span>
-</span><span class='line'><span class="kn">from</span> <span class="nn">distutils</span> <span class="kn">import</span> <span class="n">log</span>
-</span><span class='line'><span class="kn">from</span> <span class="nn">distutils.dep_util</span> <span class="kn">import</span> <span class="n">newer</span>
-</span><span class='line'><span class="kn">from</span> <span class="nn">py_compile</span> <span class="kn">import</span> <span class="nb">compile</span>
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'><span class="k">class</span> <span class="nc">InstallLib</span><span class="p">(</span><span class="n">install_lib</span><span class="p">):</span>
-</span><span class='line'>    <span class="k">def</span> <span class="nf">install</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span class='line'>        <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build_dir</span><span class="p">):</span>
-</span><span class='line'>            <span class="n">current</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">install_dir</span><span class="p">)</span>
-</span><span class='line'>            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dirs</span><span class="p">:</span>
-</span><span class='line'>                <span class="bp">self</span><span class="o">.</span><span class="n">mkpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
-</span><span class='line'>
-</span><span class='line'>            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
-</span><span class='line'>                <span class="nb">file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
-</span><span class='line'>                <span class="n">cfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;c&quot;</span>
-</span><span class='line'>                <span class="n">cfile_base</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">cfile</span><span class="p">)</span>
-</span><span class='line'>                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">force</span> <span class="ow">or</span> <span class="n">newer</span><span class="p">(</span><span class="nb">file</span><span class="p">,</span> <span class="n">cfile</span><span class="p">):</span>
-</span><span class='line'>                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;byte-compiling </span><span class="si">%s</span><span class="s"> to </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="nb">file</span><span class="p">,</span> <span class="n">cfile_base</span><span class="p">)</span>
-</span><span class='line'>                    <span class="nb">compile</span><span class="p">(</span><span class="nb">file</span><span class="p">,</span> <span class="n">cfile</span><span class="p">)</span>
-</span><span class='line'>                <span class="k">else</span><span class="p">:</span>
-</span><span class='line'>                    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;skipping byte-compilation of </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'><span class="n">setup</span><span class="p">(</span><span class="n">cmdclass</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;install_lib&quot;</span><span class="p">:</span> <span class="n">InstallLib</span><span class="p">},</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;HelloWorld&quot;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="s">&quot;1.0&quot;</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>虽然这样做达到了目的，然而仔细思考一下，更简单的办法是等安装完成后，删除目标目录的源码文件（这里仅给出InstallLib的实现，其余部分同上）：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">class</span> <span class="nc">InstallLib</span><span class="p">(</span><span class="n">install_lib</span><span class="p">):</span>
-</span><span class='line'>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
-</span><span class='line'>        <span class="n">outfiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">install</span><span class="p">()</span>
-</span><span class='line'>        <span class="k">if</span> <span class="n">outfiles</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">has_pure_modules</span><span class="p">():</span>
-</span><span class='line'>            <span class="bp">self</span><span class="o">.</span><span class="n">byte_compile</span><span class="p">(</span><span class="n">outfiles</span><span class="p">)</span>
-</span><span class='line'>            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">outfiles</span><span class="p">:</span>
-</span><span class='line'>                <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如此非常简洁，实际只增加了2行代码，其余皆copy-paste。</p>
 ]]></content>
   </entry>
   
