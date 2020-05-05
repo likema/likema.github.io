@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: lxd | Like的世界]]></title>
+  <link href="http://www.malike.net.cn/blog/categories/lxd/atom.xml" rel="self"/>
+  <link href="http://www.malike.net.cn/"/>
+  <updated>2020-05-05T10:07:46+00:00</updated>
+  <id>http://www.malike.net.cn/</id>
+  <author>
+    <name><![CDATA[Like Ma]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[LXD简介（一）]]></title>
+    <link href="http://www.malike.net.cn/blog/2020/05/05/lxd-tutorial-1/"/>
+    <updated>2020-05-05T17:19:21+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2020/05/05/lxd-tutorial-1</id>
+    <content type="html"><![CDATA[<p><a href="https://linuxcontainers.org/lxd/introduction/">LXD</a> 是基于LXC容器的管理程序（hypervisor），它由开发 Ubuntu 的公司 Canonical 创建和维护。</p>
+
+<p>它由3个组建构成：</p>
+
+<ul>
+<li><code>lxd</code> ：系统守护进程，它导出能被本地和网络访问的 RESTful API</li>
+<li><code>lxc</code> ：客户端命令行，它能跨网络管理多个容器主机。</li>
+<li><code>nova-compute-lxd</code> ： OpenStack Nova 插件，它使 OpenStack 如虚拟机一般，管理容器。</li>
+</ul>
+
+
+<h2>一、安装</h2>
+
+<p>因 Ubuntu 16.04 LXD 2.x 和 Ubuntu 18.04 LXD 3.x 版本都较旧，且 Ubuntu 20.04 放弃 <code>apt</code> 安装 LXD 。</p>
+
+<p>请据 <a href="/blog/2020/04/30/snap-tutorial/">Snap简介</a> 安装 LXD</p>
+
+<p>为避免每次 <code>sudo lxc</code> ，可将 <code>lxd</code> 组加入当前（非root）用户的附加组：</p>
+
+<pre><code class="bash">sudo usermod -aG lxd $USER
+</code></pre>
+
+<h2>二、初始化</h2>
+
+<pre><code class="bash">sudo lxd init
+</code></pre>
+
+<p>输出：</p>
+
+<pre><code class="bash">Would you like to use LXD clustering? (yes/no) [default=no]:
+
+# 配置存储池
+Do you want to configure a new storage pool? (yes/no) [default=yes]:
+Name of the new storage pool [default=default]:
+Name of the storage backend to use (btrfs, dir, lvm, zfs, ceph) [default=zfs]: dir
+
+Would you like to connect to a MAAS server? (yes/no) [default=no]:
+
+# 创建虚拟网络
+Would you like to create a new local network bridge? (yes/no) [default=yes]:
+What should the new bridge be called? [default=lxdbr0]:
+What IPv4 address should be used? (CIDR subnet notation, “auto” or “none”) [default=auto]:
+What IPv6 address should be used? (CIDR subnet notation, “auto” or “none”) [default=auto]:
+
+# LXD 服务的网络配置
+Would you like LXD to be available over the network? (yes/no) [default=no]: yes
+Address to bind LXD to (not including port) [default=all]:
+Port to bind LXD to [default=8443]:
+Trust password for new clients:
+</code></pre>
+
+<p>参看： <a href="https://snapcraft.io/install/lxd/ubuntu">How to install LXD on Ubuntu</a></p>
+
+<h3>修改密码</h3>
+
+<pre><code class="bash">lxc config set core.trust_password '&lt;password&gt;'
+</code></pre>
+
+<h2>三、镜像</h2>
+
+<p>LXD 默认提供3个远程镜像：</p>
+
+<ul>
+<li><code>ubuntu</code>: Ubuntu 稳定版镜像</li>
+<li><code>ubuntu-daily</code>: Ubuntu 每日构建的镜像</li>
+<li><code>images</code>: <a href="https://images.linuxcontainers.org/">其它发行版本的镜像</a>，主要包括:
+
+<ul>
+<li>Alpine</li>
+<li>Archlinux</li>
+<li>Centos/Oracle</li>
+<li>Debian</li>
+<li>Fedora</li>
+<li>Gentoo</li>
+<li>OpenSUSE</li>
+<li>OpenWRT</li>
+<li>Ubuntu</li>
+</ul>
+</li>
+</ul>
+
+
+<h3>列表本地镜像</h3>
+
+<pre><code class="bash">lxc image list
+</code></pre>
+
+<h3>列表Ubuntu镜像</h3>
+
+<pre><code class="bash">lxc image list ubuntu:
+</code></pre>
+
+<h3>列表其他镜像</h3>
+
+<pre><code class="bash">lxc image list images:
+</code></pre>
+
+<h3>注册镜像</h3>
+
+<p>因上述镜像都在国外，复制镜像速度非常慢。可注册清华大学的镜像来加速使用：</p>
+
+<pre><code class="bash">lxc remote add tuna-images https://mirrors.tuna.tsinghua.edu.cn/lxc-images/ --protocol=simplestreams --public
+</code></pre>
+
+<p>以下主要以<code>tuna-images</code>为例。</p>
+
+<h3>复制镜像</h3>
+
+<pre><code class="bash">lxc image cp tuna-images:ubuntu/20.04 local: --copy-aliases --auto-update --public
+</code></pre>
+
+<ul>
+<li><code>--copy-aliases</code> : 复制所有镜像别名。 每个镜像可能有多个别名，如 Ubuntu 20.04 的镜像的别名为 <code>20.04</code> 和 <code>focal</code> 等。</li>
+<li><code>--auto-uppdate</code> : 自动更新镜像</li>
+<li><code>--public</code> : 公开镜像，让其它机器可以复制它。后面将进一步介绍如何公开 LXD 端口。</li>
+</ul>
+
+
+<h2>四、容器</h2>
+
+<h3>创建容器，但不启动</h3>
+
+<p>默认为 64-bit 容器：</p>
+
+<pre><code class="bash">lxc init tuna-images:ubuntu/20.04 focal
+</code></pre>
+
+<p>若须 32-bit 容器，则</p>
+
+<pre><code class="bash">lxc init tuna-images:ubuntu/20.04/i386 focal
+</code></pre>
+
+<h3>创建容器，并启动容器</h3>
+
+<pre><code class="bash">lxc launch tuna-images:ubuntu/20.04 focal
+</code></pre>
+
+<p>相当于</p>
+
+<pre><code class="bash">lxc init tuna-images:ubuntu/20.04 focal
+lxc start focal
+</code></pre>
+
+<p>直接从远程镜像初始化或启动，存在如下缺点：</p>
+
+<ul>
+<li>每次初始化或启动，可能会从远程下载镜像（若存在更新），造成初始化或启动速度缓慢。</li>
+<li>未复制任何别名至本地，不利于复用。如 <code>lxc image ls</code> ：</li>
+</ul>
+
+
+<pre><code>+-----------------------+--------------+--------+--------------------------------------+--------------+-----------+---------+-----------------------------+
+|         ALIAS         | FINGERPRINT  | PUBLIC |             DESCRIPTION              | ARCHITECTURE |   TYPE    |  SIZE   |         UPLOAD DATE         |
++-----------------------+--------------+--------+--------------------------------------+--------------+-----------+---------+-----------------------------+
+|                       | 36e7b3c6bdea | yes    | Ubuntu focal amd64 (20200504_07:42)  | x86_64       | CONTAINER | 97.40MB | May 5, 2020 at 8:07am (UTC) |
++-----------------------+--------------+--------+--------------------------------------+--------------+-----------+---------+-----------------------------+
+</code></pre>
+
+<p>故最佳实践为首先复制镜像，然后初始化或启动：</p>
+
+<pre><code class="bash">lxc image cp tuna-images:ubuntu/20.04 local: --copy-aliases --auto-update --public
+lxc launch ubuntu/20.04 focal
+</code></pre>
+
+<h3>启动/停止容器</h3>
+
+<pre><code class="bash">lxc start focal
+lxc stop focal
+</code></pre>
+
+<h3>列表容器</h3>
+
+<pre><code class="bash">lxc list
+</code></pre>
+
+<p>或 快速列表</p>
+
+<pre><code class="bash">lxc list --fast
+</code></pre>
+
+<h3>查看容器详细信息</h3>
+
+<pre><code class="bash">lxc info focal
+</code></pre>
+
+<h3>运行命令</h3>
+
+<pre><code class="bash">sudo lxc exec focal -- /bin/bash
+</code></pre>
+
+<h3>上传/下载文件</h3>
+
+<pre><code class="bash">lxc file pull focal/etc/hosts .
+lxc file push /etc/hosts focal/tmp/tmp
+</code></pre>
+
+<h2>五、虚拟机</h2>
+
+<p>LXD 3.19 开始支持创建虚拟机:</p>
+
+<p>简单的说，所有容器相关的命令加<code>--vm</code>。</p>
+
+<h3>复制镜像</h3>
+
+<p>若类似复制容器命令：</p>
+
+<pre><code class="bash">lxc image copy tuna-images:ubuntu:20.04 local: --copy-aliases --auto-update --public --vm
+</code></pre>
+
+<p>则可能 <strong>覆盖</strong> 本地容器 ubuntu 20.04 的别名，造成后者 <strong>无别名</strong>：</p>
+
+<pre><code>+-----------------------+--------------+--------+-------------------------------------+--------------+-----------------+----------+-----------------------------+
+|         ALIAS         | FINGERPRINT  | PUBLIC |             DESCRIPTION             | ARCHITECTURE |      TYPE       |   SIZE   |         UPLOAD DATE         |
++-----------------------+--------------+--------+-------------------------------------+--------------+-----------------+----------+-----------------------------+
+| ubuntu/focal (7 more) | 1bb3c2f730c5 | yes    | Ubuntu focal amd64 (20200504_07:42) | x86_64       | VIRTUAL-MACHINE | 231.06MB | May 5, 2020 at 8:08am (UTC) |
++-----------------------+--------------+--------+-------------------------------------+--------------+-----------------+----------+-----------------------------+
+|                       | 36e7b3c6bdea | yes    | Ubuntu focal amd64 (20200504_07:42) | x86_64       | CONTAINER       | 97.40MB  | May 5, 2020 at 8:07am (UTC) |
++-----------------------+--------------+--------+-------------------------------------+--------------+-----------------+----------+-----------------------------+
+</code></pre>
+
+<p>为了避免上述问题，自定义镜像别名，如以 <code>vm/</code> 作为镜像别名前缀：</p>
+
+<pre><code class="bash">lxc cpi tuna-images:ubuntu/20.04 local: --auto-update --public --vm --alias vm/ubuntu/focal --alias vm/ubuntu/20.04
+</code></pre>
+
+<h3>创建虚拟机</h3>
+
+<pre><code class="bash">lxc launch tuna-images:ubuntu/20.04 focal-vm --vm --profile default --profile vm
+</code></pre>
+
+<p>Ubuntu 16.04 默认内核 4.4 ，将遇到</p>
+
+<pre><code>Creating focal-vm
+Starting focal-vm
+Error: Failed to run: modprobe vhost_vsock: modprobe: FATAL: Module vhost_vsock not found in directory /lib/modules/4.4.0-176-generic
+Try `lxc info --show-log local:focal-vm` for more info
+</code></pre>
+
+<p>须安装 4.15 (HWE) 内核，并重启：</p>
+
+<pre><code class="bash">sudo apt-get install --install-recommends linux-generic-hwe-16.04
+</code></pre>
+
+<h2>六、快照</h2>
+
+<h3>创建只读快照</h3>
+
+<pre><code class="bash">lxc snapshot focal focal-s0
+</code></pre>
+
+<p>注：无列表快照的直接操作，只能通过获取容器的详细信息 <code>lxc info</code> 来获取的快照名字。</p>
+
+<h3>还原快照</h3>
+
+<pre><code class="bash">lxc restore focal focal-s0
+</code></pre>
+
+<h3>删除快照</h3>
+
+<pre><code class="bash">lxc delete focal/focal-s0
+</code></pre>
+
+<h2>七、别名</h2>
+
+<h3>创建别名</h3>
+
+<p>模仿 Docker 删除镜像的 <code>docker rmi</code> ， 创建 <code>lxc rmi</code> ：</p>
+
+<pre><code class="bash">lxc alias add rmi 'image rm'
+</code></pre>
+
+<p>类似：</p>
+
+<pre><code class="bash">lxc alias add lsi 'image ls'
+lxc alias add cpi 'image cp'
+lxc alias add infoi 'image info'
+</code></pre>
+
+<h3>列表别名</h3>
+
+<pre><code class="bash">lxc alias ls
+</code></pre>
+
+<h3>删除别名</h3>
+
+<pre><code class="bash">lxc alias rm infoi
+</code></pre>
+
+<h2>八、剖析</h2>
+
+<p>lxd将数据存放于 <code>/var/snap/lxd/common/lxd</code> ：</p>
+
+<ul>
+<li><code>images</code>: 存放镜像文件</li>
+<li><code>lxc</code>: 存放容器</li>
+<li><code>lxd.db</code>：lxd元数据数据库，基于sqlite3</li>
+<li><code>server.crt</code>：服务器证书</li>
+<li><code>server.key</code>：服务器密钥</li>
+<li><code>unix.socket</code>：lxd监听的本地套接口</li>
+</ul>
+
+
+<h2>参考</h2>
+
+<ul>
+<li><a href="https://linuxcontainers.org/lxd/getting-started-cli/">LXD Getting started - command line</a></li>
+<li><a href="https://ubuntu.com/blog/lxd-in-4-easy-steps">LXD in 4 Easy Steps</a></li>
+<li><a href="https://blog.simos.info/how-to-use-virtual-machines-in-lxd/">How to use virtual machines in LXD</a></li>
+<li><a href="https://discuss.linuxcontainers.org/t/trying-lxd-virtual-machines/6182">Trying LXD virtual machines</a></li>
+<li><a href="https://blog.simos.info/using-command-aliases-in-lxd-to-exec-a-shell/">Using command aliases in LXD to exec a shell</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>

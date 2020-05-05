@@ -9,10 +9,9 @@
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="Snap 是 Canonical 开发的包管理系统，默认安装于 Ubuntu 16.04 及其后的发行版本中。 优势： 自包含：不受限于发行版的系统库版本，且每个包之间不存在运行库依赖。
-只读挂载：应用程序不能修改或删除，且不会污染系统应用程序或库。
-回退：内置回退旧版本。
-快照： &hellip;">
+  <meta name="description" content="LXD 是基于LXC容器的管理程序（hypervisor），它由开发 Ubuntu 的公司 Canonical 创建和维护。 它由3个组建构成： lxd ：系统守护进程，它导出能被本地和网络访问的 RESTful API
+lxc ：客户端命令行，它能跨网络管理多个容器主机。
+nova- &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -87,6 +86,462 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2020/05/05/lxd-tutorial-1/">LXD简介（一）</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2020-05-05T17:19:21+00:00" pubdate data-updated="true"></time>
+        
+           | <a href="/blog/2020/05/05/lxd-tutorial-1/#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn/blog/2020/05/05/lxd-tutorial-1/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="https://linuxcontainers.org/lxd/introduction/">LXD</a> 是基于LXC容器的管理程序（hypervisor），它由开发 Ubuntu 的公司 Canonical 创建和维护。</p>
+
+<p>它由3个组建构成：</p>
+
+<ul>
+<li><code>lxd</code> ：系统守护进程，它导出能被本地和网络访问的 RESTful API</li>
+<li><code>lxc</code> ：客户端命令行，它能跨网络管理多个容器主机。</li>
+<li><code>nova-compute-lxd</code> ： OpenStack Nova 插件，它使 OpenStack 如虚拟机一般，管理容器。</li>
+</ul>
+
+
+<h2>一、安装</h2>
+
+<p>因 Ubuntu 16.04 LXD 2.x 和 Ubuntu 18.04 LXD 3.x 版本都较旧，且 Ubuntu 20.04 放弃 <code>apt</code> 安装 LXD 。</p>
+
+<p>请据 <a href="/blog/2020/04/30/snap-tutorial/">Snap简介</a> 安装 LXD</p>
+
+<p>为避免每次 <code>sudo lxc</code> ，可将 <code>lxd</code> 组加入当前（非root）用户的附加组：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo usermod -aG lxd <span class="nv">$USER</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>二、初始化</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo lxd init
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>输出：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Would you like to use LXD clustering? <span class="o">(</span>yes/no<span class="o">)</span> <span class="o">[</span><span class="nv">default</span><span class="o">=</span>no<span class="o">]</span>:
+</span><span class='line'>
+</span><span class='line'><span class="c"># 配置存储池</span>
+</span><span class='line'>Do you want to configure a new storage pool? <span class="o">(</span>yes/no<span class="o">)</span> <span class="o">[</span><span class="nv">default</span><span class="o">=</span>yes<span class="o">]</span>:
+</span><span class='line'>Name of the new storage pool <span class="o">[</span><span class="nv">default</span><span class="o">=</span>default<span class="o">]</span>:
+</span><span class='line'>Name of the storage backend to use <span class="o">(</span>btrfs, dir, lvm, zfs, ceph<span class="o">)</span> <span class="o">[</span><span class="nv">default</span><span class="o">=</span>zfs<span class="o">]</span>: dir
+</span><span class='line'>
+</span><span class='line'>Would you like to connect to a MAAS server? <span class="o">(</span>yes/no<span class="o">)</span> <span class="o">[</span><span class="nv">default</span><span class="o">=</span>no<span class="o">]</span>:
+</span><span class='line'>
+</span><span class='line'><span class="c"># 创建虚拟网络</span>
+</span><span class='line'>Would you like to create a new <span class="nb">local </span>network bridge? <span class="o">(</span>yes/no<span class="o">)</span> <span class="o">[</span><span class="nv">default</span><span class="o">=</span>yes<span class="o">]</span>:
+</span><span class='line'>What should the new bridge be called? <span class="o">[</span><span class="nv">default</span><span class="o">=</span>lxdbr0<span class="o">]</span>:
+</span><span class='line'>What IPv4 address should be used? <span class="o">(</span>CIDR subnet notation, “auto” or “none”<span class="o">)</span> <span class="o">[</span><span class="nv">default</span><span class="o">=</span>auto<span class="o">]</span>:
+</span><span class='line'>What IPv6 address should be used? <span class="o">(</span>CIDR subnet notation, “auto” or “none”<span class="o">)</span> <span class="o">[</span><span class="nv">default</span><span class="o">=</span>auto<span class="o">]</span>:
+</span><span class='line'>
+</span><span class='line'><span class="c"># LXD 服务的网络配置</span>
+</span><span class='line'>Would you like LXD to be available over the network? <span class="o">(</span>yes/no<span class="o">)</span> <span class="o">[</span><span class="nv">default</span><span class="o">=</span>no<span class="o">]</span>: yes
+</span><span class='line'>Address to <span class="nb">bind </span>LXD to <span class="o">(</span>not including port<span class="o">)</span> <span class="o">[</span><span class="nv">default</span><span class="o">=</span>all<span class="o">]</span>:
+</span><span class='line'>Port to <span class="nb">bind </span>LXD to <span class="o">[</span><span class="nv">default</span><span class="o">=</span>8443<span class="o">]</span>:
+</span><span class='line'>Trust password <span class="k">for</span> new clients:
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>参看： <a href="https://snapcraft.io/install/lxd/ubuntu">How to install LXD on Ubuntu</a></p>
+
+<h3>修改密码</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc config <span class="nb">set </span>core.trust_password <span class="s1">&#39;&lt;password&gt;&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>三、镜像</h2>
+
+<p>LXD 默认提供3个远程镜像：</p>
+
+<ul>
+<li><code>ubuntu</code>: Ubuntu 稳定版镜像</li>
+<li><code>ubuntu-daily</code>: Ubuntu 每日构建的镜像</li>
+<li><code>images</code>: <a href="https://images.linuxcontainers.org/">其它发行版本的镜像</a>，主要包括:
+
+<ul>
+<li>Alpine</li>
+<li>Archlinux</li>
+<li>Centos/Oracle</li>
+<li>Debian</li>
+<li>Fedora</li>
+<li>Gentoo</li>
+<li>OpenSUSE</li>
+<li>OpenWRT</li>
+<li>Ubuntu</li>
+</ul>
+</li>
+</ul>
+
+
+<h3>列表本地镜像</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc image list
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>列表Ubuntu镜像</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc image list ubuntu:
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>列表其他镜像</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc image list images:
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>注册镜像</h3>
+
+<p>因上述镜像都在国外，复制镜像速度非常慢。可注册清华大学的镜像来加速使用：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc remote add tuna-images https://mirrors.tuna.tsinghua.edu.cn/lxc-images/ --protocol<span class="o">=</span>simplestreams --public
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>以下主要以<code>tuna-images</code>为例。</p>
+
+<h3>复制镜像</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc image cp tuna-images:ubuntu/20.04 <span class="nb">local</span>: --copy-aliases --auto-update --public
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>--copy-aliases</code> : 复制所有镜像别名。 每个镜像可能有多个别名，如 Ubuntu 20.04 的镜像的别名为 <code>20.04</code> 和 <code>focal</code> 等。</li>
+<li><code>--auto-uppdate</code> : 自动更新镜像</li>
+<li><code>--public</code> : 公开镜像，让其它机器可以复制它。后面将进一步介绍如何公开 LXD 端口。</li>
+</ul>
+
+
+<h2>四、容器</h2>
+
+<h3>创建容器，但不启动</h3>
+
+<p>默认为 64-bit 容器：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc init tuna-images:ubuntu/20.04 focal
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>若须 32-bit 容器，则</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc init tuna-images:ubuntu/20.04/i386 focal
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>创建容器，并启动容器</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc launch tuna-images:ubuntu/20.04 focal
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>相当于</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc init tuna-images:ubuntu/20.04 focal
+</span><span class='line'>lxc start focal
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>直接从远程镜像初始化或启动，存在如下缺点：</p>
+
+<ul>
+<li>每次初始化或启动，可能会从远程下载镜像（若存在更新），造成初始化或启动速度缓慢。</li>
+<li>未复制任何别名至本地，不利于复用。如 <code>lxc image ls</code> ：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>+-----------------------+--------------+--------+--------------------------------------+--------------+-----------+---------+-----------------------------+
+</span><span class='line'><span class="p">|</span>         ALIAS         <span class="p">|</span> FINGERPRINT  <span class="p">|</span> PUBLIC <span class="p">|</span>             DESCRIPTION              <span class="p">|</span> ARCHITECTURE <span class="p">|</span>   TYPE    <span class="p">|</span>  SIZE   <span class="p">|</span>         UPLOAD DATE         <span class="p">|</span>
+</span><span class='line'>+-----------------------+--------------+--------+--------------------------------------+--------------+-----------+---------+-----------------------------+
+</span><span class='line'><span class="p">|</span>                       <span class="p">|</span> 36e7b3c6bdea <span class="p">|</span> yes    <span class="p">|</span> Ubuntu focal amd64 <span class="o">(</span>20200504_07:42<span class="o">)</span>  <span class="p">|</span> x86_64       <span class="p">|</span> CONTAINER <span class="p">|</span> 97.40MB <span class="p">|</span> May 5, <span class="m">2020</span> at 8:07am <span class="o">(</span>UTC<span class="o">)</span> <span class="p">|</span>
+</span><span class='line'>+-----------------------+--------------+--------+--------------------------------------+--------------+-----------+---------+-----------------------------+
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>故最佳实践为首先复制镜像，然后初始化或启动：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc image cp tuna-images:ubuntu/20.04 <span class="nb">local</span>: --copy-aliases --auto-update --public
+</span><span class='line'>lxc launch ubuntu/20.04 focal
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>启动/停止容器</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc start focal
+</span><span class='line'>lxc stop focal
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>列表容器</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc list
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>或 快速列表</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc list --fast
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>查看容器详细信息</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc info focal
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>运行命令</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo lxc <span class="nb">exec </span>focal -- /bin/bash
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>上传/下载文件</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc file pull focal/etc/hosts .
+</span><span class='line'>lxc file push /etc/hosts focal/tmp/tmp
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>五、虚拟机</h2>
+
+<p>LXD 3.19 开始支持创建虚拟机:</p>
+
+<p>简单的说，所有容器相关的命令加<code>--vm</code>。</p>
+
+<h3>复制镜像</h3>
+
+<p>若类似复制容器命令：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc image copy tuna-images:ubuntu:20.04 <span class="nb">local</span>: --copy-aliases --auto-update --public --vm
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>则可能 <strong>覆盖</strong> 本地容器 ubuntu 20.04 的别名，造成后者 <strong>无别名</strong>：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>+-----------------------+--------------+--------+-------------------------------------+--------------+-----------------+----------+-----------------------------+
+</span><span class='line'><span class="p">|</span>         ALIAS         <span class="p">|</span> FINGERPRINT  <span class="p">|</span> PUBLIC <span class="p">|</span>             DESCRIPTION             <span class="p">|</span> ARCHITECTURE <span class="p">|</span>      TYPE       <span class="p">|</span>   SIZE   <span class="p">|</span>         UPLOAD DATE         <span class="p">|</span>
+</span><span class='line'>+-----------------------+--------------+--------+-------------------------------------+--------------+-----------------+----------+-----------------------------+
+</span><span class='line'><span class="p">|</span> ubuntu/focal <span class="o">(</span><span class="m">7</span> more<span class="o">)</span> <span class="p">|</span> 1bb3c2f730c5 <span class="p">|</span> yes    <span class="p">|</span> Ubuntu focal amd64 <span class="o">(</span>20200504_07:42<span class="o">)</span> <span class="p">|</span> x86_64       <span class="p">|</span> VIRTUAL-MACHINE <span class="p">|</span> 231.06MB <span class="p">|</span> May 5, <span class="m">2020</span> at 8:08am <span class="o">(</span>UTC<span class="o">)</span> <span class="p">|</span>
+</span><span class='line'>+-----------------------+--------------+--------+-------------------------------------+--------------+-----------------+----------+-----------------------------+
+</span><span class='line'><span class="p">|</span>                       <span class="p">|</span> 36e7b3c6bdea <span class="p">|</span> yes    <span class="p">|</span> Ubuntu focal amd64 <span class="o">(</span>20200504_07:42<span class="o">)</span> <span class="p">|</span> x86_64       <span class="p">|</span> CONTAINER       <span class="p">|</span> 97.40MB  <span class="p">|</span> May 5, <span class="m">2020</span> at 8:07am <span class="o">(</span>UTC<span class="o">)</span> <span class="p">|</span>
+</span><span class='line'>+-----------------------+--------------+--------+-------------------------------------+--------------+-----------------+----------+-----------------------------+
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了避免上述问题，自定义镜像别名，如以 <code>vm/</code> 作为镜像别名前缀：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc cpi tuna-images:ubuntu/20.04 <span class="nb">local</span>: --auto-update --public --vm --alias vm/ubuntu/focal --alias vm/ubuntu/20.04
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>创建虚拟机</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc launch tuna-images:ubuntu/20.04 focal-vm --vm --profile default --profile vm
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ubuntu 16.04 默认内核 4.4 ，将遇到</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Creating focal-vm
+</span><span class='line'>Starting focal-vm
+</span><span class='line'>Error: Failed to run: modprobe vhost_vsock: modprobe: FATAL: Module vhost_vsock not found in directory /lib/modules/4.4.0-176-generic
+</span><span class='line'>Try <span class="sb">`</span>lxc info --show-log <span class="nb">local</span>:focal-vm<span class="sb">`</span> <span class="k">for</span> more info
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>须安装 4.15 (HWE) 内核，并重启：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install --install-recommends linux-generic-hwe-16.04
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>六、快照</h2>
+
+<h3>创建只读快照</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc snapshot focal focal-s0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注：无列表快照的直接操作，只能通过获取容器的详细信息 <code>lxc info</code> 来获取的快照名字。</p>
+
+<h3>还原快照</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc restore focal focal-s0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>删除快照</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc delete focal/focal-s0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>七、别名</h2>
+
+<h3>创建别名</h3>
+
+<p>模仿 Docker 删除镜像的 <code>docker rmi</code> ， 创建 <code>lxc rmi</code> ：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc <span class="nb">alias </span>add rmi <span class="s1">&#39;image rm&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>类似：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc <span class="nb">alias </span>add lsi <span class="s1">&#39;image ls&#39;</span>
+</span><span class='line'>lxc <span class="nb">alias </span>add cpi <span class="s1">&#39;image cp&#39;</span>
+</span><span class='line'>lxc <span class="nb">alias </span>add infoi <span class="s1">&#39;image info&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>列表别名</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc <span class="nb">alias </span>ls
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>删除别名</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc <span class="nb">alias </span>rm infoi
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>八、剖析</h2>
+
+<p>lxd将数据存放于 <code>/var/snap/lxd/common/lxd</code> ：</p>
+
+<ul>
+<li><code>images</code>: 存放镜像文件</li>
+<li><code>lxc</code>: 存放容器</li>
+<li><code>lxd.db</code>：lxd元数据数据库，基于sqlite3</li>
+<li><code>server.crt</code>：服务器证书</li>
+<li><code>server.key</code>：服务器密钥</li>
+<li><code>unix.socket</code>：lxd监听的本地套接口</li>
+</ul>
+
+
+<h2>参考</h2>
+
+<ul>
+<li><a href="https://linuxcontainers.org/lxd/getting-started-cli/">LXD Getting started - command line</a></li>
+<li><a href="https://ubuntu.com/blog/lxd-in-4-easy-steps">LXD in 4 Easy Steps</a></li>
+<li><a href="https://blog.simos.info/how-to-use-virtual-machines-in-lxd/">How to use virtual machines in LXD</a></li>
+<li><a href="https://discuss.linuxcontainers.org/t/trying-lxd-virtual-machines/6182">Trying LXD virtual machines</a></li>
+<li><a href="https://blog.simos.info/using-command-aliases-in-lxd-to-exec-a-shell/">Using command aliases in LXD to exec a shell</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2020/04/30/snap-tutorial/">Snap简介</a></h1>
     
     
@@ -128,6 +583,8 @@
 
 <p>劣势主要为安装包占用较多存储空间。</p>
 
+<p>以下主要以 LXD 的 snap 包为例。</p>
+
 <h2>一、安装 snapd</h2>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -143,6 +600,15 @@
 
 
 <h2>二、安装 snap 包</h2>
+
+<p>为避免系统可能存在旧版本 LXD 与 snap 安装的最新版 LXD 冲突：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt remove --purge lxd lxd-client
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo snap install lxd
@@ -2430,220 +2896,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/06/09/nvm-tutorial/">nvm简介——Debian/Ubuntu中管理多版本Node.js</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-06-09T00:00:00+00:00" pubdate data-updated="true"></time>
-        
-           | <a href="/blog/2016/06/09/nvm-tutorial/#disqus_thread"
-             data-disqus-identifier="http://www.malike.net.cn/blog/2016/06/09/nvm-tutorial/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><a href="https://github.com/creationix/nvm">nvm</a>是管理Node.js版本的工具，它支持在多个Node.js版本间切换。</p>
-
-<h2>一、安装</h2>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone https://github.com/creationix/nvm.git ~/.nvm
-</span><span class='line'><span class="nb">cd</span> ~/.nvm
-</span><span class='line'>git checkout <span class="sb">`</span>git describe --abbrev<span class="o">=</span><span class="m">0</span> --tags<span class="sb">`</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>激活nvm</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>. ~/.nvm/nvm.sh
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>为了每次登录后自动激活nvm，需将<code>NMV_DIR</code>、<code>nvm.sh</code>和补齐加入bash的~/.bashrc（或zsh的~/.zshrc）</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">NVM_DIR</span><span class="o">=</span>~/.nvm
-</span><span class='line'><span class="o">[</span> -s <span class="s2">&quot;$NVM_DIR/nvm.sh&quot;</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> . <span class="s2">&quot;$NVM_DIR/nvm.sh&quot;</span>
-</span><span class='line'><span class="o">[</span> -r <span class="nv">$NVM_DIR</span>/bash_completion <span class="o">]</span> <span class="o">&amp;&amp;</span> . <span class="nv">$NVM_DIR</span>/bash_completion
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在国内，为了加速下述安装，可在bash的~/.bashrc（或zsh的~/.zshrc）加入：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">NVM_NODEJS_ORG_MIRROR</span><span class="o">=</span>https://npm.taobao.org/mirrors/node
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>二、常用命令</h2>
-
-<h3>列表可安装的Node.js版本</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm ls-remote
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>除了Node.js官方版本，还支持io.js</p>
-
-<h3>安装指定版本的Node.js</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm install 10.16.2
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>它会自动下载指定版本的Node.js二进制包（不需要编译源码），安装在~/.nvm/versions/node</p>
-
-<p>通常，最好安装最近的长周期版本：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm install --lts
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>卸载指定版本的Node.js</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm uninstall 10.16.2
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>设置shell的Node.js版本</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm use 10.16.2
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>它将Node.js指定版本的bin路径加入PATH.</p>
-
-<p>还原环境变量PATH</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm deactivate
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>迁移npm至新版本的Node.js</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm install node --reinstall-packages-from<span class="o">=</span>node
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>或</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm install v10.16.2 --reinstall-packages-from<span class="o">=</span>10.16.0
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>.nvmrc</h3>
-
-<p>它存储在工程根目录中，用于记录该工程依赖的Node.js版本</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo </span>10.16.2 &gt; .nvmrc
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>进入工程目录（当前目录），运行</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>nvm use
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>将根据.nvmrc指定shell的Nodejs版本</p>
-
-<h2>三、升级nvm</h2>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> <span class="nv">$NVM_DIR</span>
-</span><span class='line'>git fetch origin
-</span><span class='line'>git checkout <span class="sb">`</span>git describe --abbrev<span class="o">=</span><span class="m">0</span> --tags<span class="sb">`</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>升级完成后，需要重新激活nvm</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>. <span class="nv">$NVM_DIR</span>/nvm.sh
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>四、制作Docker镜像</h2>
-
-<p>若不希望使用NodeJS的官方Docker镜像，可利用nvm创建镜像：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='Dockerfile'><span class='line'><span class="k">FROM</span> ubuntu:bionic
-</span><span class='line'><span class="k">MAINTAINER</span> ...
-</span><span class='line'>
-</span><span class='line'><span class="k">ENV</span> DEBIAN_FRONTEND noninteractive
-</span><span class='line'><span class="k">ENV</span> <span class="nv">NVM_NODEJS_ORG_MIRROR</span><span class="o">=</span>https://npm.taobao.org/mirrors/node
-</span><span class='line'><span class="k">ENV</span> NODE_VERSION 10.16.2
-</span><span class='line'><span class="k">ENV</span> PATH /root/.nvm/versions/node/v<span class="nv">$NODE_VERSION</span>/bin:<span class="nv">$PATH</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">RUN</span> <span class="nb">set</span> -eux<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>    apt-get update<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>    apt-get install --no-install-recommends -y wget ca-certificates<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>    wget -O- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh <span class="p">|</span> bash<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>    apt-get remove --purge -y wget ca-certificates<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>    apt-get autoremove --purge -y<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>    apt-get clean<span class="p">;</span> <span class="err">\</span>
-</span><span class='line'>    rm -rf /var/lib/apt/lists/* /root/.nvm/.cache
-</span></code></pre></td></tr></table></div></figure>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="2">&larr; Older</a>
@@ -2659,6 +2911,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2020/05/05/lxd-tutorial-1/">LXD简介（一）</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2020/04/30/snap-tutorial/">Snap简介</a>
       </li>
     
@@ -2672,10 +2928,6 @@
     
       <li class="post">
         <a href="/blog/2019/08/17/rbenv-tutorial/">rbenv简介——Debian/Ubuntu中管理多版本Ruby</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/04/30/shadowsocks-rust-tutorial/">Shadowsocks-Rust简介</a>
       </li>
     
   </ul>
@@ -2715,7 +2967,7 @@
 
 <section>
   <h1>Categories</h1>
-    <ul id="category-list"><li><a href='/blog/categories/ace'>ace (1)</a></li><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (2)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (2)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (14)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (11)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
+    <ul id="category-list"><li><a href='/blog/categories/ace'>ace (1)</a></li><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (2)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (2)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (15)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/lxd'>lxd (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/snap'>snap (2)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (12)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
 </section>
 
   
