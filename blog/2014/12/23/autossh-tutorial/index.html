@@ -9,7 +9,7 @@
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="autossh (Automatically restart SSH sessions and tunnels)，它在运行的时候启动一个SSH进程，并监控该进程的健康状况；当SSH进程崩溃或停止通信时，它将重启动SSH进程。 命令选项 1
+  <meta name="description" content="autossh (Automatically restart SSH sessions and tunnels) 在运行的时候启动一个 ssh 进程，并监控该进程的健康状况；当 ssh 进程崩溃或停止通信时，它将重启动 ssh 进程。 命令选项 1
 autossh [-V] [-M port[: &hellip;">
   
 
@@ -108,7 +108,7 @@ autossh [-V] [-M port[: &hellip;">
   </header>
 
 
-<div class="entry-content"><p><a href="http://www.harding.motd.ca/autossh/">autossh</a> (Automatically restart SSH sessions and tunnels)，它在运行的时候启动一个SSH进程，并监控该进程的健康状况；当SSH进程崩溃或停止通信时，它将重启动SSH进程。</p>
+<div class="entry-content"><p><a href="http://www.harding.motd.ca/autossh/">autossh</a> (Automatically restart SSH sessions and tunnels) 在运行的时候启动一个 ssh 进程，并监控该进程的健康状况；当 ssh 进程崩溃或停止通信时，它将重启动 ssh 进程。</p>
 
 <h2>命令选项</h2>
 
@@ -118,31 +118,37 @@ autossh [-V] [-M port[: &hellip;">
 
 
 <ul>
-<li><p><strong>-M port[:echo_port]</strong> 指定监控端口（和echo端口，默认为前者加1）。</p>
+<li><p><code>-M port[:echo_port]</code> 指定监控端口（和echo端口，默认为前者加1）。</p>
 
 <ul>
-<li>若希望使远程标准inetd的echo服务（默认端口为7），则指定echo_port，仅需服务监听地址为localhost。</li>
-<li>若port设置为0，则将禁用监控功能。仅在ssh退出后重启它。</li>
+<li>若希望使远程标准 inetd 的 echo 服务（默认端口为7），则指定 <code>echo_port</code> ，仅需服务监听地址为 <code>localhost</code>。</li>
+<li>若 <code>port</code> 设置为 <code>0</code> ，则将禁用监控功能。仅在 ssh 退出后重启它。</li>
 </ul>
 </li>
-<li><p><strong>-f</strong> 使autossh在后台运行。</p></li>
+<li><p><code>-f</code> 使 autossh 在后台运行。</p></li>
 </ul>
 
 
-<p>另外，autossh还提供了一组环境变量来控制其行为, 这里仅介绍几个有代表性的，其可以man autossh</p>
+<p>另外，autossh 还提供了一组环境变量来控制其行为, 这里仅介绍几个有代表性的，其可以 <code>man autossh</code></p>
 
 <ul>
-<li><strong>AUTOSSH_FIRST_POLL</strong> 指定首次论询测试时间。</li>
-<li><strong>AUTOSSH_POLL</strong> 指定连接论询时间，默认600。若该值小于两次网络超时（默认15秒），则网络超将被调整为该值的1/2</li>
-<li><strong>AUTOSSH_GATETIME</strong> 指定等待SSH连接成功建立的时间，默认30秒，超时表示首次运行失败，将退出autossh。若设为0，则禁用该功能，通常用于启动时运行autossh。</li>
-<li><strong>AUTOSSH_MAXLIFETIME</strong> 指autossh最长运行时间，达到该时间，autossh将退出，并杀死SSH进程。</li>
-<li><strong>AUTOSSH_MAXSTART</strong> 指定SSH最大启动次数。默认-1，表示无限制。</li>
+<li><code>AUTOSSH_FIRST_POLL</code> : 首次论询测试时间。</li>
+<li><code>AUTOSSH_POLL</code> : 连接论询时间，默认 600 。若该值小于两次网络超时（默认 15 秒），则网络超将被调整为该值的 &frac12;</li>
+<li><code>AUTOSSH_GATETIME</code> : 等待 ssh 连接成功建立的时间，默认 30 秒，超时表示首次运行失败，将退出 autossh 。若设为 0 ，则禁用该功能，通常用于启动时运行 autossh 。</li>
+<li><code>AUTOSSH_MAXLIFETIME</code> : autossh 最长运行时间，达到该时间，autossh 将退出，并杀死 ssh 进程。</li>
+<li><code>AUTOSSH_MAXSTART</code> : ssh 最大启动次数。默认-1，表示无限制。</li>
 </ul>
 
 
-<h2>Ubuntu配置方法</h2>
+<h2>Ubuntu 配置方法</h2>
 
-<p>基于Ubuntu 12.04或14.04，以SSH动态代理（即SSH翻墙）为例。init script和Upstart都可以将autossh变成服务，然Upstart的<em>respawn</em>容错能力更强，它能在服务进程掉线，重新启动该服务。</p>
+<p>以 SSH 动态代理（即 SSH 翻墙）为例:</p>
+
+<h3>Ubuntu 12.04/14.04</h3>
+
+<p>init script 和 Upstart 都可以将 autossh 变成服务，然 Upstart 的 <code>respawn</code> 容错能力更强，它能在服务进程掉线，重新启动该服务。</p>
+
+<p>创建 <code>/etc/init/autossh.conf</code> :</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -174,16 +180,74 @@ autossh [-V] [-M port[: &hellip;">
 
 
 <ul>
-<li><em>setuid</em>和<em>setgid</em>为了让autossh运行在指定的用户和用户组上。</li>
-<li><em>start on</em>表示当eth0或wlan0激活时，启动autossh，<em>stop on</em>反之。其目的为避免系统启动或网络掉线时，频繁尝试启动autossh。</li>
+<li><code>setuid</code> 和 <code>setgid</code> 为了让 autossh 运行在指定的用户和用户组上。</li>
+<li><code>start on</code> 表示当 <code>eth0</code> 或 <code>wlan0</code> 激活时，启动 autossh ， <code>stop on</code> 反之。其目的为避免系统启动或网络掉线时，频繁尝试启动 autossh 。</li>
+<li><code>sshproxy</code> 为 ssh 别名，须在 <code>setuid</code> 和 <code>setgid</code> 指定用户的 <code>~/.ssh/config</code> 中配置。</li>
 </ul>
+
+
+<p>开始服务：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo start autossh
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Ubuntu 16.04/18.04/20.04</h3>
+
+<p>systemd 也能自动重启掉线的服务进程。</p>
+
+<p>创建 <code>/etc/systemd/system/autossh.service</code> :</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>Unit<span class="o">]</span>
+</span><span class='line'><span class="nv">Description</span><span class="o">=</span>SSH Proxy
+</span><span class='line'><span class="nv">After</span><span class="o">=</span>network.target
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>Service<span class="o">]</span>
+</span><span class='line'><span class="nv">Type</span><span class="o">=</span>simple
+</span><span class='line'><span class="nv">CapabilityBoundingSet</span><span class="o">=</span>CAP_NET_BIND_SERVICE
+</span><span class='line'><span class="nv">AmbientCapabilities</span><span class="o">=</span>CAP_NET_BIND_SERVICE
+</span><span class='line'><span class="nv">User</span><span class="o">=</span>like
+</span><span class='line'><span class="nv">Group</span><span class="o">=</span>like
+</span><span class='line'><span class="nv">ExecStart</span><span class="o">=</span>/usr/bin/autossh -M64000 -q -N -D localhost:12348 sshproxy
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>Install<span class="o">]</span>
+</span><span class='line'><span class="nv">WantedBy</span><span class="o">=</span>multi-user.target
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>开启服务：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo systemctl <span class="nb">enable </span>autossh
+</span><span class='line'>sudo systemctl start autossh
+</span></code></pre></td></tr></table></div></figure>
 
 
 <h2>更好的办法</h2>
 
-<p>最近OpenSSH都支持选项<strong>ServerAliveInterval</strong>和<strong>ServerAliveCountMax</strong>，实际为建立在SSH协议上的心跳测试。当测试失败后，SSH客户端进程将退出。通过Upstart的respawn功能重启SSH客户端进程，也能达到autossh目的。</p>
+<p>最近 OpenSSH 都支持选项 <code>ServerAliveInterval</code> 和 <code>ServerAliveCountMax</code> ，实际为建立在 SSH 协议上的心跳测试。当测试失败后， SSH 客户端进程将退出。通过 Upstart 的 respawn 功能重启 SSH 客户端进程，也能达到 autossh 目的。</p>
 
-<p>仍以SSH动态代理为例：</p>
+<p>仍以 SSH 动态代理为例：</p>
+
+<h3>Ubuntu 12.04/14.04</h3>
+
+<p>创建 <code>/etc/init/sshproxy.conf</code> :</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -217,6 +281,122 @@ autossh [-V] [-M port[: &hellip;">
 </span><span class='line'>    -oServerAliveInterval<span class="o">=</span><span class="m">300</span> <span class="se">\</span>
 </span><span class='line'>    -oServerAliveCountMax<span class="o">=</span><span class="m">2</span> <span class="se">\</span>
 </span><span class='line'>    -q -N -D localhost:12348 sshproxy
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>开始服务：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo start sshproxy
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Ubuntu 16.04/18.04/20.04</h3>
+
+<p>创建 <code>/etc/systemd/system/sshproxy.service</code> :</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>Unit<span class="o">]</span>
+</span><span class='line'><span class="nv">Description</span><span class="o">=</span>SSH Proxy
+</span><span class='line'><span class="nv">After</span><span class="o">=</span>network.target
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>Service<span class="o">]</span>
+</span><span class='line'><span class="nv">Type</span><span class="o">=</span>simple
+</span><span class='line'><span class="nv">CapabilityBoundingSet</span><span class="o">=</span>CAP_NET_BIND_SERVICE
+</span><span class='line'><span class="nv">AmbientCapabilities</span><span class="o">=</span>CAP_NET_BIND_SERVICE
+</span><span class='line'><span class="nv">User</span><span class="o">=</span>like
+</span><span class='line'><span class="nv">Group</span><span class="o">=</span>like
+</span><span class='line'><span class="nv">ExecStart</span><span class="o">=</span>/usr/bin/ssh -oServerAliveInterval<span class="o">=</span><span class="m">300</span> -oServerAliveCountMax<span class="o">=</span><span class="m">2</span> -q -N -D localhost:12348 sshproxy
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>Install<span class="o">]</span>
+</span><span class='line'><span class="nv">WantedBy</span><span class="o">=</span>multi-user.target
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>开启服务：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo systemctl <span class="nb">enable </span>sshproxy
+</span><span class='line'>sudo systemctl start sshproxy
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>若存在多个 SSH 动态代理，则可模板化服务。</p>
+
+<p>创建 <code>/etc/systemd/system/sshproxy@.service</code> :</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>Unit<span class="o">]</span>
+</span><span class='line'><span class="nv">Description</span><span class="o">=</span>SSH Proxy
+</span><span class='line'><span class="nv">After</span><span class="o">=</span>network.target
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>Service<span class="o">]</span>
+</span><span class='line'><span class="nv">Type</span><span class="o">=</span>simple
+</span><span class='line'><span class="nv">CapabilityBoundingSet</span><span class="o">=</span>CAP_NET_BIND_SERVICE
+</span><span class='line'><span class="nv">AmbientCapabilities</span><span class="o">=</span>CAP_NET_BIND_SERVICE
+</span><span class='line'><span class="nv">User</span><span class="o">=</span>like
+</span><span class='line'><span class="nv">Group</span><span class="o">=</span>like
+</span><span class='line'><span class="nv">ExecStart</span><span class="o">=</span>/usr/bin/ssh -qN sshproxy-%i
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>Install<span class="o">]</span>
+</span><span class='line'><span class="nv">WantedBy</span><span class="o">=</span>multi-user.target
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为每个动态代理在 <code>~/.ssh/config</code> 中创建别名：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>host sshproxy-hello
+</span><span class='line'>    HostName &lt;hello ip&gt;
+</span><span class='line'>    Port &lt;port&gt;
+</span><span class='line'>    User sshproxy
+</span><span class='line'>    ServerAliveInterval 300
+</span><span class='line'>    ServerAliveCountMax 2
+</span><span class='line'>    DynamicForward localhost:&lt;socks port&gt;
+</span><span class='line'>    IdentityFile ~/.ssh/sshproxy-hello/id_rsa
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>开启服务：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo systemctl <span class="nb">enable </span>sshproxy@hello
+</span><span class='line'>sudo systemctl start sshproxy@hello
 </span></code></pre></td></tr></table></div></figure>
 
 </div>

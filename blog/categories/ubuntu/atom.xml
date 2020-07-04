@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ubuntu | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/ubuntu/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2020-05-05T10:07:46+00:00</updated>
+  <updated>2020-07-04T15:35:31+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -884,8 +884,8 @@ WantedBy=multi-user.target
 <pre><code class="bash">sudo chown -R root:nogroup /etc/shadowsocks-rust
 sudo chmod -R g-w,o-rwx /etc/shadowsocks-rust
 sudo systemctl daemon-reload
-sudo systemctl enable shadowsocks-rust
-sudo systemctl start shadowsocks-rust
+sudo systemctl enable shadowsocks-rust-local
+sudo systemctl start shadowsocks-rust-local
 </code></pre>
 
 <p>注：</p>
