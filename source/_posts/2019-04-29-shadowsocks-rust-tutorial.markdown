@@ -81,8 +81,8 @@ WantedBy=multi-user.target
 sudo chown -R root:nogroup /etc/shadowsocks-rust
 sudo chmod -R g-w,o-rwx /etc/shadowsocks-rust
 sudo systemctl daemon-reload
-sudo systemctl enable shadowsocks-rust
-sudo systemctl start shadowsocks-rust
+sudo systemctl enable shadowsocks-rust-local
+sudo systemctl start shadowsocks-rust-local
 ```
 
 注：
