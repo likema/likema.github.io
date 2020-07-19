@@ -4,7 +4,7 @@
   <title><![CDATA[Category: lvm | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/lvm/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2020-07-19T17:01:05+00:00</updated>
+  <updated>2020-07-19T17:23:02+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -91,7 +91,7 @@ done
 
 <h3>导入重复 VG</h3>
 
-<p>以新卷组名 <code>ubuntu</code> 导入重复 VG ：</p>
+<p>以新卷组名 <code>ubuntu</code> 执行 <a href="http://manpages.ubuntu.com/manpages/focal/man8/vgimportclone.8.html">vgimportclone</a> 导入重复 VG ：</p>
 
 <pre><code class="bash">vgimportclone -n ubuntu /dev/sdb5
 </code></pre>
@@ -102,7 +102,9 @@ done
   WARNING: PV kyDNAt-ONdQ-9MIb-4tJO-w8kC-WnEY-xmJ2qj prefers device /dev/sda5 because device is used by LV.
 </code></pre>
 
-<p>最后，激活新卷组：</p>
+<p><code>/dev/sdb5</code> 为新盘 VG 的 PV 。实际环境中，若 VG 存在多个 PV，则须全部作为该命令的参数。</p>
+
+<h3>激活新卷组</h3>
 
 <pre><code class="bash">vgchange -ay
 </code></pre>

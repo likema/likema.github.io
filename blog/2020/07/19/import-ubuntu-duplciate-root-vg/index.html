@@ -203,7 +203,7 @@
 
 <h3>导入重复 VG</h3>
 
-<p>以新卷组名 <code>ubuntu</code> 导入重复 VG ：</p>
+<p>以新卷组名 <code>ubuntu</code> 执行 <a href="http://manpages.ubuntu.com/manpages/focal/man8/vgimportclone.8.html">vgimportclone</a> 导入重复 VG ：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>vgimportclone -n ubuntu /dev/sdb5
@@ -219,7 +219,9 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>最后，激活新卷组：</p>
+<p><code>/dev/sdb5</code> 为新盘 VG 的 PV 。实际环境中，若 VG 存在多个 PV，则须全部作为该命令的参数。</p>
+
+<h3>激活新卷组</h3>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>vgchange -ay
