@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ubuntu | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/ubuntu/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2020-07-19T16:42:31+00:00</updated>
+  <updated>2020-07-19T16:54:37+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,108 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[如何导入 Ubuntu 重复 root 卷组]]></title>
+    <link href="http://www.malike.net.cn/blog/2020/07/19/import-ubuntu-duplciate-root-vg/"/>
+    <updated>2020-07-19T23:30:00+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2020/07/19/import-ubuntu-duplciate-root-vg</id>
+    <content type="html"><![CDATA[<h2>场景</h2>
+
+<ul>
+<li>某云平台的 Ubuntu 虚拟机运行中突遇挂起，重启时挂起于某阶段，且无法进入恢复模式。</li>
+<li>因该云平台限制或问题，无法通过 Ubuntu 安装 ISO 引导该虚拟机。</li>
+<li>该虚拟机的 root 分区位于 LVM 卷组上。</li>
+</ul>
+
+
+<p>当时，基本思路为挂载问题虚拟机的虚拟盘至新虚拟机，通过后者导入原虚拟盘的卷组，从而备份出重要数据。</p>
+
+<p>然而，恰好该云平台仅有该虚拟机的原始模板，新实例的虚拟盘与旧盘：</p>
+
+<ul>
+<li>PV UUID 重复</li>
+<li>VG UUID 和名称重复</li>
+</ul>
+
+
+<p>导致无法激活旧卷组。</p>
+
+<h2>办法</h2>
+
+<p>以下以 VirtualBox 安装 Ubuntu 20.04 虚拟机，克隆其系统盘为新虚拟盘，并将新盘加入该虚拟机来模拟场景。</p>
+
+<h3>启动系统</h3>
+
+<p>启动虚拟机将遇到 <strong>重复 PV</strong> 错误：</p>
+
+<p><img src="/images/boot-focal-duplicate-root-vg.png" alt="Boot Ubuntu 20.04 duplicate root VG" /></p>
+
+<p>进入 initramfs shell ，为了避免激活 root 卷组失败，暂时删除 <code>/dev/sdb</code> ：</p>
+
+<pre><code class="bash">echo 1 &gt; /sys/block/sdb/device/delete
+vgchange -ay
+exit
+</code></pre>
+
+<p>将正常进入系统。</p>
+
+<h3>扫描 <code>/dev/sdb</code></h3>
+
+<p>登录系统，切换 root 用户, 重新扫密 <code>/dev/sdb</code> ：</p>
+
+<pre><code class="bash">echo '- - -' &gt; /sys/class/scsi_host/host1/scan
+</code></pre>
+
+<p>查看内核日志：</p>
+
+<pre><code class="bash">dmesg | tail
+</code></pre>
+
+<p>可发现 <code>/dev/sdb</code> 被加入系统：</p>
+
+<pre><code>[  747.671254] scsi 1:0:0:0: Direct-Access     ATA      VBOX HARDDISK    1.0  PQ: 0 ANSI: 5
+[  747.674322] sd 1:0:0:0: [sdb] 20971520 512-byte logical blocks: (10.7 GB/10.0 GiB)
+[  747.674345] sd 1:0:0:0: [sdb] Write Protect is off
+[  747.674350] sd 1:0:0:0: [sdb] Mode Sense: 00 3a 00 00
+[  747.674382] sd 1:0:0:0: [sdb] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+[  747.678357] sd 1:0:0:0: Attached scsi generic sg1 type 0
+[  747.681741]  sdb: sdb1 sdb2 &lt; sdb5 &gt;
+[  747.681959] sd 1:0:0:0: [sdb] Attached SCSI disk
+</code></pre>
+
+<p>这里 <code>/dev/sda</code> 位于 SCSI host 0 ，而 <code>/dev/sdb</code> 位于 SCSI host 1 。实际环境中，若无法确定目标盘在第几个 host ，可全部扫描一遍：</p>
+
+<pre><code class="bash">for i in /sys/class/scsi_host/host*/scan; do
+    echo '- - -' &gt; $i
+done
+</code></pre>
+
+<h3>导入重复 VG</h3>
+
+<p>以新卷组名 <code>ubuntu</code> 导入重复 VG ：</p>
+
+<pre><code class="bash">vgimportclone -n ubuntu /dev/sdb5
+</code></pre>
+
+<p>输出：</p>
+
+<pre><code>  WARNING: Not using device /dev/sdb5 for PV kyDNAt-ONdQ-9MIb-4tJO-w8kC-WnEY-xmJ2qj.
+  WARNING: PV kyDNAt-ONdQ-9MIb-4tJO-w8kC-WnEY-xmJ2qj prefers device /dev/sda5 because device is used by LV.
+</code></pre>
+
+<p>最后，激活新卷组：</p>
+
+<pre><code class="bash">vgchange -ay
+</code></pre>
+
+<p>输出：</p>
+
+<pre><code>  2 logical volume(s) in volume group "ubuntu" now active
+  2 logical volume(s) in volume group "vgfocal" now active
+</code></pre>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[LXD简介（一）]]></title>
@@ -896,170 +998,6 @@ sudo systemctl start shadowsocks-rust-local
 <li>限制<code>sslocal</code>进程仅能监听socket.</li>
 </ul>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Shadowsocks简介]]></title>
-    <link href="http://www.malike.net.cn/blog/2016/11/29/shadowsocks-tutorial/"/>
-    <updated>2016-11-29T01:39:55+00:00</updated>
-    <id>http://www.malike.net.cn/blog/2016/11/29/shadowsocks-tutorial</id>
-    <content type="html"><![CDATA[<p><a href="https://shadowsocks.org/en/index.html">Shadowsocks</a>（中文名: 影梭） 是一款开源的安全SOCKS 5代理，它主要用于在大陆翻墙。</p>
-
-<h2>原理</h2>
-
-<p>与SSH动态代理相似，客户端呈现为SOCKS 5代理服务，客户端与服务器之间采用加密通信。服务器部署于GFW之外，从而实现代理翻墙服务。</p>
-
-<h2>特点</h2>
-
-<ul>
-<li>使用自行设计的协议加密通信，支持多种加密算法：AES、Blowfish、IDEA、RC4等。除创建TCP连接外无需握手，每次请求只转发1个连接，因此使用起来网速较快，在移动设备上较省电。</li>
-<li>通过异步I/O和事件驱动实现，响应速度快。</li>
-<li>客户端支持主流操作系统平台：Windows、Linux、OS X、Android、iOS和OpenWrt</li>
-</ul>
-
-
-<h2>shadowsocks-libev简介</h2>
-
-<p>网络中普遍采用Python版本的<a href="https://pypi.python.org/pypi/shadowsocks">shadowsocks</a>，该版本看似安装简单，却存在如下缺点：</p>
-
-<ul>
-<li>没有Linux操作系统原生安装包（如：RPM和DEB）：从Ubuntu 16.04开始，提供shadowsocks安装包。</li>
-<li>没有操作系统的服务脚本（如init.d和upstart）。</li>
-<li>Python程序占用内存较多，运行效率不佳。</li>
-</ul>
-
-
-<p>而<a href="https://github.com/shadowsocks/shadowsocks-libev">shadowsocks-libev</a>是Shadowsocks在嵌入式和低端设备的轻量级实现：</p>
-
-<ul>
-<li>纯C实现，不仅占用内存极小，且运行效率更快。</li>
-<li>在几乎所有Linux平台都存在原生安装包，且具有对应平台的服务启动脚本。</li>
-</ul>
-
-
-<p>下面基于Ubuntu 14.04/16.04介绍它的安装和配置。</p>
-
-<h2>安装shadowsocks-libev</h2>
-
-<p>客户端和服务端的安装方法相同：</p>
-
-<pre><code class="bash">sudo add-apt-repository ppa:max-c-lv/shadowsocks-libev
-sudo apt-get update
-sudo apt-get install -y shadowsocks-libev
-</code></pre>
-
-<h2>配置shadowsocks-libev服务端</h2>
-
-<p>编辑/etc/shadowsocks-libev/config.json：</p>
-
-<pre><code class="json">{
-    "server_port": 8388,
-    "password": "&lt;共享密码&gt;",
-    "timeout": 60,
-    "method": "aes-256-cfb"
-}
-</code></pre>
-
-<ul>
-<li><code>server_port</code>为服务端监听端口</li>
-<li><code>password</code>为客户端和服务端预设的共享密码，它最好由安全密码生成器生成（如<a href="https://www.lastpass.com/">LastPass</a>或<a href="http://keepass.info/">KeePass</a>），且长度不小于6个字符。</li>
-<li><code>timeout</code>为连接超时时间。</li>
-<li><code>method</code>为加密算法，<code>aes-256-cfb</code>的安全性较好。</li>
-</ul>
-
-
-<p>配置完成后，需重启：</p>
-
-<pre><code class="bash">sudo service shadowsocks-libev restart
-</code></pre>
-
-<h2>配置shadowsocks-libev客户端</h2>
-
-<p>创建/etc/shadowsocks-libev/client.json （文件名可修改）：</p>
-
-<pre><code class="json">{
-    "server": "&lt;服务端地址&gt;",
-    "server_port": "&lt;服务端端口&gt;",
-    "local_port": "22357",
-    "password": "&lt;共享密码&gt;",
-    "method": "aes-256-cfb"
-}
-</code></pre>
-
-<h3>Ubuntu 14.04</h3>
-
-<p>安装包没有提供系统服务脚本，故须自己创建Upstart脚本/etc/init/ss-local.conf （文件名可修改）：</p>
-
-<pre><code># ss-local
-
-description "shadowsocks client"
-
-start on (net-device-up IFACE=eth0 or net-device-up IFACE=wlan0)
-stop on (net-device-down IFACE=eth0 and net-device-down IFACE=wlan0)
-
-respawn
-
-setuid nobody
-setgid nogroup
-
-exec ss-local -c /etc/shadowsocks-libev/client.json
-</code></pre>
-
-<p>为了client.json的安全：</p>
-
-<pre><code class="bash">sudo chown -R root:nogroup /etc/shadowsocks-libev
-sudo chmod 0750 /etc/shadowsocks-libev
-sudo chmod 0640 /etc/shadowsocks-libev/client.json
-</code></pre>
-
-<p>启动客户端</p>
-
-<pre><code class="bash">sudo start ss-local
-</code></pre>
-
-<p>最后，通过修改/etc/default/shadowsocks-libev的<code>START=no</code>禁止在客户机启动服务端程序——它在客户机没有作用。</p>
-
-<pre><code class="bash">sudo service shadowsocks-libev stop
-</code></pre>
-
-<h3>Ubuntu 16.04</h3>
-
-<p>安装包提供了systemd的服务模板/lib/systemd/system/shadowsocks-libev-local@.service</p>
-
-<p>默认<code>ss-local</code>以root用户运行，可修改上述模板为nobody用户和nogroup组，从而提高安全：</p>
-
-<pre><code>[Service]
-Type=simple
-CapabilityBoundingSet=CAP_NET_BIND_SERVICE
-AmbientCapabilities=CAP_NET_BIND_SERVICE
-User=nobody
-Group=nogroup
-ExecStart=/usr/bin/ss-local -c /etc/shadowsocks-libev/%i.json.
-</code></pre>
-
-<p>注意，升级shadowsocks-libev，模板将回复原状，须再次修改。</p>
-
-<pre><code class="bash">sudo systemctl daemon-reload
-sudo systemctl enable shadowsocks-libev-local@client
-sudo systemctl start shadowsocks-libev-local@client
-</code></pre>
-
-<p>注意，@client与client.json的基本名必须一致。</p>
-
-<p>最后，禁用并停止服务端程序：</p>
-
-<pre><code class="bash">sudo systemctl disable shadowsocks-libev
-sudo systemctl stop shadowsocks-libev
-</code></pre>
-
-<h2>集群化</h2>
-
-<p>类似SSH集群，多个shadowsocks也可以构建SOCKS 5集群，具体请参考《<a href="http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster/">SSH翻墙集群</a>》的“HAProxy的配置方法”。</p>
-
-<p>实用中发现，<code>ss-local</code>不会因为shadowsocks服务器是否可达，而停止运行或拒绝HAProxy连接。</p>
-
-<p>导致HAProxy无法探测shadowsocks服务器是否离线或不可访问，部分负载将失败或重试（浏览器），从而影响体验。</p>
 ]]></content>
   </entry>
   

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: lvm | Like的世界]]></title>
+  <link href="http://www.malike.net.cn/blog/categories/lvm/atom.xml" rel="self"/>
+  <link href="http://www.malike.net.cn/"/>
+  <updated>2020-07-19T16:54:37+00:00</updated>
+  <id>http://www.malike.net.cn/</id>
+  <author>
+    <name><![CDATA[Like Ma]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[如何导入 Ubuntu 重复 root 卷组]]></title>
+    <link href="http://www.malike.net.cn/blog/2020/07/19/import-ubuntu-duplciate-root-vg/"/>
+    <updated>2020-07-19T23:30:00+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2020/07/19/import-ubuntu-duplciate-root-vg</id>
+    <content type="html"><![CDATA[<h2>场景</h2>
+
+<ul>
+<li>某云平台的 Ubuntu 虚拟机运行中突遇挂起，重启时挂起于某阶段，且无法进入恢复模式。</li>
+<li>因该云平台限制或问题，无法通过 Ubuntu 安装 ISO 引导该虚拟机。</li>
+<li>该虚拟机的 root 分区位于 LVM 卷组上。</li>
+</ul>
+
+
+<p>当时，基本思路为挂载问题虚拟机的虚拟盘至新虚拟机，通过后者导入原虚拟盘的卷组，从而备份出重要数据。</p>
+
+<p>然而，恰好该云平台仅有该虚拟机的原始模板，新实例的虚拟盘与旧盘：</p>
+
+<ul>
+<li>PV UUID 重复</li>
+<li>VG UUID 和名称重复</li>
+</ul>
+
+
+<p>导致无法激活旧卷组。</p>
+
+<h2>办法</h2>
+
+<p>以下以 VirtualBox 安装 Ubuntu 20.04 虚拟机，克隆其系统盘为新虚拟盘，并将新盘加入该虚拟机来模拟场景。</p>
+
+<h3>启动系统</h3>
+
+<p>启动虚拟机将遇到 <strong>重复 PV</strong> 错误：</p>
+
+<p><img src="/images/boot-focal-duplicate-root-vg.png" alt="Boot Ubuntu 20.04 duplicate root VG" /></p>
+
+<p>进入 initramfs shell ，为了避免激活 root 卷组失败，暂时删除 <code>/dev/sdb</code> ：</p>
+
+<pre><code class="bash">echo 1 &gt; /sys/block/sdb/device/delete
+vgchange -ay
+exit
+</code></pre>
+
+<p>将正常进入系统。</p>
+
+<h3>扫描 <code>/dev/sdb</code></h3>
+
+<p>登录系统，切换 root 用户, 重新扫密 <code>/dev/sdb</code> ：</p>
+
+<pre><code class="bash">echo '- - -' &gt; /sys/class/scsi_host/host1/scan
+</code></pre>
+
+<p>查看内核日志：</p>
+
+<pre><code class="bash">dmesg | tail
+</code></pre>
+
+<p>可发现 <code>/dev/sdb</code> 被加入系统：</p>
+
+<pre><code>[  747.671254] scsi 1:0:0:0: Direct-Access     ATA      VBOX HARDDISK    1.0  PQ: 0 ANSI: 5
+[  747.674322] sd 1:0:0:0: [sdb] 20971520 512-byte logical blocks: (10.7 GB/10.0 GiB)
+[  747.674345] sd 1:0:0:0: [sdb] Write Protect is off
+[  747.674350] sd 1:0:0:0: [sdb] Mode Sense: 00 3a 00 00
+[  747.674382] sd 1:0:0:0: [sdb] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+[  747.678357] sd 1:0:0:0: Attached scsi generic sg1 type 0
+[  747.681741]  sdb: sdb1 sdb2 &lt; sdb5 &gt;
+[  747.681959] sd 1:0:0:0: [sdb] Attached SCSI disk
+</code></pre>
+
+<p>这里 <code>/dev/sda</code> 位于 SCSI host 0 ，而 <code>/dev/sdb</code> 位于 SCSI host 1 。实际环境中，若无法确定目标盘在第几个 host ，可全部扫描一遍：</p>
+
+<pre><code class="bash">for i in /sys/class/scsi_host/host*/scan; do
+    echo '- - -' &gt; $i
+done
+</code></pre>
+
+<h3>导入重复 VG</h3>
+
+<p>以新卷组名 <code>ubuntu</code> 导入重复 VG ：</p>
+
+<pre><code class="bash">vgimportclone -n ubuntu /dev/sdb5
+</code></pre>
+
+<p>输出：</p>
+
+<pre><code>  WARNING: Not using device /dev/sdb5 for PV kyDNAt-ONdQ-9MIb-4tJO-w8kC-WnEY-xmJ2qj.
+  WARNING: PV kyDNAt-ONdQ-9MIb-4tJO-w8kC-WnEY-xmJ2qj prefers device /dev/sda5 because device is used by LV.
+</code></pre>
+
+<p>最后，激活新卷组：</p>
+
+<pre><code class="bash">vgchange -ay
+</code></pre>
+
+<p>输出：</p>
+
+<pre><code>  2 logical volume(s) in volume group "ubuntu" now active
+  2 logical volume(s) in volume group "vgfocal" now active
+</code></pre>
+]]></content>
+  </entry>
+  
+</feed>

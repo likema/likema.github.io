@@ -5,11 +5,13 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Rinse简介——Debian/Ubuntu中创建RPM安装环境 - Like的世界</title>
+  <title>如何导入 Ubuntu 重复 root 卷组 - Like的世界</title>
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="Rinse是一个Debian环境中创建RPM发行版本（如CentOS，Scientific Linux和openSUSE）的工具。你可以利用它轻松创建各种RPM发行版本的chroot环境。 以下基于Ubuntu 12.04 amd64，主要以创建CentOS 6 x86_64为例。 安装Rinse &hellip;">
+  <meta name="description" content="场景 某云平台的 Ubuntu 虚拟机运行中突遇挂起，重启时挂起于某阶段，且无法进入恢复模式。
+因该云平台限制或问题，无法通过 Ubuntu 安装 ISO 引导该虚拟机。
+该虚拟机的 root 分区位于 LVM 卷组上。 当时，基本思路为挂载问题虚拟机的虚拟盘至新虚拟机，通过后者导入原虚拟盘的卷组 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +20,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial">
+  <link rel="canonical" href="http://www.malike.net.cn/blog/2020/07/19/import-ubuntu-duplciate-root-vg">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Like的世界" type="application/atom+xml">
@@ -81,7 +83,7 @@
   
   <header>
     
-      <h1 class="entry-title">Rinse简介——Debian/Ubuntu中创建RPM安装环境</h1>
+      <h1 class="entry-title">如何导入 Ubuntu 重复 Root 卷组</h1>
     
     
       <p class="meta">
@@ -97,7 +99,7 @@
   
 
 
-<time datetime="2014-07-15T20:34:58+08:00" pubdate data-updated="true"></time>
+<time datetime="2020-07-19T23:30:00+00:00" pubdate data-updated="true"></time>
         
            | <a href="#disqus_thread"
              data-disqus-identifier="http://www.malike.net.cn">Comments</a>
@@ -107,74 +109,129 @@
   </header>
 
 
-<div class="entry-content"><p><a href="http://collab-maint.alioth.debian.org/rinse/">Rinse</a>是一个Debian环境中创建RPM发行版本（如CentOS，Scientific Linux和openSUSE）的工具。你可以利用它轻松创建各种RPM发行版本的chroot环境。</p>
-
-<p>以下基于Ubuntu 12.04 amd64，主要以创建CentOS 6 x86_64为例。</p>
-
-<h2>安装Rinse</h2>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo apt-get install -y rinse
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>创建CentOS 6</h2>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo rinse --distribution centos-6 --arch amd64 --directory centos-6
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>运行该命令将创建CentOS 6 amd64于当前工作目录的centos-6目录中。其中，</p>
+<div class="entry-content"><h2>场景</h2>
 
 <ul>
-<li>&ndash;distribution指定发行版本，类似还可以centos-{4,5}， fedora-core-{4,5,6,7,8,9}和opensuse-{10.1,10.2,10.3,11.0,11.1,12.1}等。可以下述命令获取：</li>
+<li>某云平台的 Ubuntu 虚拟机运行中突遇挂起，重启时挂起于某阶段，且无法进入恢复模式。</li>
+<li>因该云平台限制或问题，无法通过 Ubuntu 安装 ISO 引导该虚拟机。</li>
+<li>该虚拟机的 root 分区位于 LVM 卷组上。</li>
 </ul>
 
 
+<p>当时，基本思路为挂载问题虚拟机的虚拟盘至新虚拟机，通过后者导入原虚拟盘的卷组，从而备份出重要数据。</p>
+
+<p>然而，恰好该云平台仅有该虚拟机的原始模板，新实例的虚拟盘与旧盘：</p>
+
+<ul>
+<li>PV UUID 重复</li>
+<li>VG UUID 和名称重复</li>
+</ul>
+
+
+<p>导致无法激活旧卷组。</p>
+
+<h2>办法</h2>
+
+<p>以下以 VirtualBox 安装 Ubuntu 20.04 虚拟机，克隆其系统盘为新虚拟盘，并将新盘加入该虚拟机来模拟场景。</p>
+
+<h3>启动系统</h3>
+
+<p>启动虚拟机将遇到 <strong>重复 PV</strong> 错误：</p>
+
+<p><img src="/images/boot-focal-duplicate-root-vg.png" alt="Boot Ubuntu 20.04 duplicate root VG" /></p>
+
+<p>进入 initramfs shell ，为了避免激活 root 卷组失败，暂时删除 <code>/dev/sdb</code> ：</p>
+
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>rinse --list-distributions
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo </span><span class="m">1</span> &gt; /sys/block/sdb/device/delete
+</span><span class='line'>vgchange -ay
+</span><span class='line'><span class="nb">exit</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>具体对应于/etc/rinse/*.packages的模板名，它们主要包含RPM包列表。换一句话说，你根据需要定制自己的模板。另一方面，你也可以通过&ndash;pkgs-dir指定不同于/etc/rinse的模板目录。</p>
+<p>将正常进入系统。</p>
 
-<ul>
-<li>&ndash;arch指定架构，amd64表示64位架构，i386表示32位架构。缺省为i386.</li>
-<li>&ndash;directory指定为安装目录，安装结束后便可以chroot该目录了。</li>
-</ul>
+<h3>扫描 <code>/dev/sdb</code></h3>
 
-
-<p>另外，需要额外安装某些包，可以通过指定&ndash;add-pkg-list来完成。</p>
-
-<h2>配置RPM缓存</h2>
-
-<p>rinse默认使用/var/rinse/cache作为缓存目录，它大大缩短了重复运行同样命令的时间。具体通过：</p>
-
-<ul>
-<li>&ndash;cache 0指禁用缓存，缺省为1</li>
-<li>&ndash;cache-dir指定不同于/var/rinse/cache作为缓存目录。</li>
-<li>&ndash;clean-cache指清楚缓存</li>
-</ul>
-
-
-<h2>定制安装后执行脚本</h2>
-
-<p>&ndash;after-post-install, &ndash;before-post-install和&ndash;post-install顾名思义，需要指出的是&ndash;post-install默认执行/usr/lib/rinse/<distribution>/post-install.sh.</p>
-
-<h2>如何提高安装速度？</h2>
-
-<p>通过修改/etc/rinse/rinse.conf中对应发行版的镜像地址可以加速安装，如CentOS 6 x86_64的镜像地址可以修改为</p>
-
-<pre><code>http://centos.ustc.edu.cn/centos/6/os/x86_64/CentOS/
-</code></pre>
-
-<p>也可以通过&ndash;config指定不同于/etc/rinse/rinse.conf的配置文件。</p>
-
-<p>若内网存在HTTP cache服务器（如Squid)，还可以设置环境变量http_proxy来缓存rpm以及加速安装，如：</p>
+<p>登录系统，切换 root 用户, 重新扫密 <code>/dev/sdb</code> ：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo <span class="nv">http_proxy</span><span class="o">=</span>http://&lt;http proxy address&gt; rinse --distribution centos-6 --arch amd64 --directory centos-6
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="s1">&#39;- - -&#39;</span> &gt; /sys/class/scsi_host/host1/scan
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>查看内核日志：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>dmesg <span class="p">|</span> tail
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可发现 <code>/dev/sdb</code> 被加入系统：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>  747.671254<span class="o">]</span> scsi 1:0:0:0: Direct-Access     ATA      VBOX HARDDISK    1.0  PQ: <span class="m">0</span> ANSI: 5
+</span><span class='line'><span class="o">[</span>  747.674322<span class="o">]</span> sd 1:0:0:0: <span class="o">[</span>sdb<span class="o">]</span> <span class="m">20971520</span> 512-byte logical blocks: <span class="o">(</span>10.7 GB/10.0 GiB<span class="o">)</span>
+</span><span class='line'><span class="o">[</span>  747.674345<span class="o">]</span> sd 1:0:0:0: <span class="o">[</span>sdb<span class="o">]</span> Write Protect is off
+</span><span class='line'><span class="o">[</span>  747.674350<span class="o">]</span> sd 1:0:0:0: <span class="o">[</span>sdb<span class="o">]</span> Mode Sense: <span class="m">00</span> 3a <span class="m">00</span> 00
+</span><span class='line'><span class="o">[</span>  747.674382<span class="o">]</span> sd 1:0:0:0: <span class="o">[</span>sdb<span class="o">]</span> Write cache: enabled, <span class="nb">read </span>cache: enabled, doesn<span class="err">&#39;</span>t support DPO or FUA
+</span><span class='line'><span class="o">[</span>  747.678357<span class="o">]</span> sd 1:0:0:0: Attached scsi generic sg1 <span class="nb">type </span>0
+</span><span class='line'><span class="o">[</span>  747.681741<span class="o">]</span>  sdb: sdb1 sdb2 &lt; sdb5 &gt;
+</span><span class='line'><span class="o">[</span>  747.681959<span class="o">]</span> sd 1:0:0:0: <span class="o">[</span>sdb<span class="o">]</span> Attached SCSI disk
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这里 <code>/dev/sda</code> 位于 SCSI host 0 ，而 <code>/dev/sdb</code> 位于 SCSI host 1 。实际环境中，若无法确定目标盘在第几个 host ，可全部扫描一遍：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="k">for</span> i in /sys/class/scsi_host/host*/scan<span class="p">;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="nb">echo</span> <span class="s1">&#39;- - -&#39;</span> &gt; <span class="nv">$i</span>
+</span><span class='line'><span class="k">done</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>导入重复 VG</h3>
+
+<p>以新卷组名 <code>ubuntu</code> 导入重复 VG ：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>vgimportclone -n ubuntu /dev/sdb5
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>输出：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>  WARNING: Not using device /dev/sdb5 <span class="k">for</span> PV kyDNAt-ONdQ-9MIb-4tJO-w8kC-WnEY-xmJ2qj.
+</span><span class='line'>  WARNING: PV kyDNAt-ONdQ-9MIb-4tJO-w8kC-WnEY-xmJ2qj prefers device /dev/sda5 because device is used by LV.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最后，激活新卷组：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>vgchange -ay
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>输出：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>  <span class="m">2</span> logical volume<span class="o">(</span>s<span class="o">)</span> in volume group <span class="s2">&quot;ubuntu&quot;</span> now active
+</span><span class='line'>  <span class="m">2</span> logical volume<span class="o">(</span>s<span class="o">)</span> in volume group <span class="s2">&quot;vgfocal&quot;</span> now active
 </span></code></pre></td></tr></table></div></figure>
 
 </div>
@@ -199,12 +256,12 @@
   
 
 
-<time datetime="2014-07-15T20:34:58+08:00" pubdate data-updated="true"></time>
+<time datetime="2020-07-19T23:30:00+00:00" pubdate data-updated="true"></time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/debian/'>debian</a>, <a class='category' href='/blog/categories/linux/'>linux</a>, <a class='category' href='/blog/categories/ubuntu/'>ubuntu</a>
+    <a class='category' href='/blog/categories/linux/'>linux</a>, <a class='category' href='/blog/categories/lvm/'>lvm</a>, <a class='category' href='/blog/categories/ubuntu/'>ubuntu</a>
   
 </span>
 
@@ -213,7 +270,7 @@
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial/" data-via="" data-counturl="http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.malike.net.cn/blog/2020/07/19/import-ubuntu-duplciate-root-vg/" data-via="" data-counturl="http://www.malike.net.cn/blog/2020/07/19/import-ubuntu-duplciate-root-vg/" >Tweet</a>
   
   
   
@@ -224,10 +281,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2014/04/01/restrict-ssh-access-to-rsync/" title="Previous Post: 利用SSH限制rsync的访问目录">&laquo; 利用SSH限制rsync的访问目录</a>
+        <a class="basic-alignment left" href="/blog/2020/05/05/lxd-tutorial-1/" title="Previous Post: LXD简介（一）">&laquo; LXD简介（一）</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2014/08/07/create-chroot-for-ssh-access/" title="Next Post: 创建通过SSH访问的chroot">创建通过SSH访问的chroot &raquo;</a>
       
     </p>
   </footer>
@@ -326,8 +381,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial/';
-        var disqus_url = 'http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial/';
+        var disqus_identifier = 'http://www.malike.net.cn/blog/2020/07/19/import-ubuntu-duplciate-root-vg/';
+        var disqus_url = 'http://www.malike.net.cn/blog/2020/07/19/import-ubuntu-duplciate-root-vg/';
         var disqus_script = 'embed.js';
       
     (function () {

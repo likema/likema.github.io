@@ -4,7 +4,7 @@
   <title><![CDATA[Category: linux | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/linux/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2020-07-19T16:42:31+00:00</updated>
+  <updated>2020-07-19T16:54:37+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,108 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[如何导入 Ubuntu 重复 root 卷组]]></title>
+    <link href="http://www.malike.net.cn/blog/2020/07/19/import-ubuntu-duplciate-root-vg/"/>
+    <updated>2020-07-19T23:30:00+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2020/07/19/import-ubuntu-duplciate-root-vg</id>
+    <content type="html"><![CDATA[<h2>场景</h2>
+
+<ul>
+<li>某云平台的 Ubuntu 虚拟机运行中突遇挂起，重启时挂起于某阶段，且无法进入恢复模式。</li>
+<li>因该云平台限制或问题，无法通过 Ubuntu 安装 ISO 引导该虚拟机。</li>
+<li>该虚拟机的 root 分区位于 LVM 卷组上。</li>
+</ul>
+
+
+<p>当时，基本思路为挂载问题虚拟机的虚拟盘至新虚拟机，通过后者导入原虚拟盘的卷组，从而备份出重要数据。</p>
+
+<p>然而，恰好该云平台仅有该虚拟机的原始模板，新实例的虚拟盘与旧盘：</p>
+
+<ul>
+<li>PV UUID 重复</li>
+<li>VG UUID 和名称重复</li>
+</ul>
+
+
+<p>导致无法激活旧卷组。</p>
+
+<h2>办法</h2>
+
+<p>以下以 VirtualBox 安装 Ubuntu 20.04 虚拟机，克隆其系统盘为新虚拟盘，并将新盘加入该虚拟机来模拟场景。</p>
+
+<h3>启动系统</h3>
+
+<p>启动虚拟机将遇到 <strong>重复 PV</strong> 错误：</p>
+
+<p><img src="/images/boot-focal-duplicate-root-vg.png" alt="Boot Ubuntu 20.04 duplicate root VG" /></p>
+
+<p>进入 initramfs shell ，为了避免激活 root 卷组失败，暂时删除 <code>/dev/sdb</code> ：</p>
+
+<pre><code class="bash">echo 1 &gt; /sys/block/sdb/device/delete
+vgchange -ay
+exit
+</code></pre>
+
+<p>将正常进入系统。</p>
+
+<h3>扫描 <code>/dev/sdb</code></h3>
+
+<p>登录系统，切换 root 用户, 重新扫密 <code>/dev/sdb</code> ：</p>
+
+<pre><code class="bash">echo '- - -' &gt; /sys/class/scsi_host/host1/scan
+</code></pre>
+
+<p>查看内核日志：</p>
+
+<pre><code class="bash">dmesg | tail
+</code></pre>
+
+<p>可发现 <code>/dev/sdb</code> 被加入系统：</p>
+
+<pre><code>[  747.671254] scsi 1:0:0:0: Direct-Access     ATA      VBOX HARDDISK    1.0  PQ: 0 ANSI: 5
+[  747.674322] sd 1:0:0:0: [sdb] 20971520 512-byte logical blocks: (10.7 GB/10.0 GiB)
+[  747.674345] sd 1:0:0:0: [sdb] Write Protect is off
+[  747.674350] sd 1:0:0:0: [sdb] Mode Sense: 00 3a 00 00
+[  747.674382] sd 1:0:0:0: [sdb] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+[  747.678357] sd 1:0:0:0: Attached scsi generic sg1 type 0
+[  747.681741]  sdb: sdb1 sdb2 &lt; sdb5 &gt;
+[  747.681959] sd 1:0:0:0: [sdb] Attached SCSI disk
+</code></pre>
+
+<p>这里 <code>/dev/sda</code> 位于 SCSI host 0 ，而 <code>/dev/sdb</code> 位于 SCSI host 1 。实际环境中，若无法确定目标盘在第几个 host ，可全部扫描一遍：</p>
+
+<pre><code class="bash">for i in /sys/class/scsi_host/host*/scan; do
+    echo '- - -' &gt; $i
+done
+</code></pre>
+
+<h3>导入重复 VG</h3>
+
+<p>以新卷组名 <code>ubuntu</code> 导入重复 VG ：</p>
+
+<pre><code class="bash">vgimportclone -n ubuntu /dev/sdb5
+</code></pre>
+
+<p>输出：</p>
+
+<pre><code>  WARNING: Not using device /dev/sdb5 for PV kyDNAt-ONdQ-9MIb-4tJO-w8kC-WnEY-xmJ2qj.
+  WARNING: PV kyDNAt-ONdQ-9MIb-4tJO-w8kC-WnEY-xmJ2qj prefers device /dev/sda5 because device is used by LV.
+</code></pre>
+
+<p>最后，激活新卷组：</p>
+
+<pre><code class="bash">vgchange -ay
+</code></pre>
+
+<p>输出：</p>
+
+<pre><code>  2 logical volume(s) in volume group "ubuntu" now active
+  2 logical volume(s) in volume group "vgfocal" now active
+</code></pre>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[LXD简介（一）]]></title>
@@ -887,207 +989,6 @@ sudo systemctl stop shadowsocks-libev
 <p>实用中发现，<code>ss-local</code>不会因为shadowsocks服务器是否可达，而停止运行或拒绝HAProxy连接。</p>
 
 <p>导致HAProxy无法探测shadowsocks服务器是否离线或不可访问，部分负载将失败或重试（浏览器），从而影响体验。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[SSH翻墙集群]]></title>
-    <link href="http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster/"/>
-    <updated>2015-03-15T21:30:43+08:00</updated>
-    <id>http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster</id>
-    <content type="html"><![CDATA[<p>SSH动态代理是国内较为常见的翻墙方法。正如<a href="/blog/2014/10/27/ssh-tunnel-tutorial/">SSH隧道简介</a>所说，它存在不少有优点。</p>
-
-<p>然而在实际使用中，它存在如下缺点：</p>
-
-<ul>
-<li>与PPTP等VPN协议相比，它的连接不稳定。前者应该具备协议级断线重传机制。</li>
-<li>基于廉价VPS，导致它的连接不稳定。而且廉价VPS容易掉线，有时需要用户自己找在线客户修复，进一步延长了掉线时间。</li>
-<li>由于上述缺点，不适合小型公司多人使用。</li>
-</ul>
-
-
-<p>在大概2年前，我摸索出SSH动态代理集群的办法。并将之部署于我所服务的公司，成功负载了20-30人日常翻墙学习与工作的需求。</p>
-
-<h2>原理</h2>
-
-<p>SSH动态代理，即为SOCK5代理，所以我们需要的是SOCK5集群。</p>
-
-<p>若搜索<a href="https://www.google.com/search?hl=en&amp;q=socks+5+load+balance">socks 5 load balance</a>不难发现一些有用信息：</p>
-
-<p><a href="http://serverfault.com/questions/517971/what-is-the-best-way-to-load-balance-multiple-sock5-proxys-on-seperate-vms-in-t">What is the best way to load balance multiple sock5 proxys on seperate VM&rsquo;s in the same datacenter?</a></p>
-
-<p>我将分别介绍3种方法搭建SOCK5集群：</p>
-
-<ol>
-<li>利用第三方模块<a href="https://github.com/yaoweibin/nginx_tcp_proxy_module">nginx_tcp_proxy_module</a>。</li>
-<li>Nginx 1.9开始支持<a href="http://nginx.com/resources/admin-guide/tcp-load-balancing/">TCP Load Balancing</a>。</li>
-<li><a href="http://www.haproxy.org/">HAProxy</a></li>
-</ol>
-
-
-<p>关于SSH动态代理的配置方法，请参看<a href="/blog/2014/12/23/autossh-tutorial/">AutoSSH简介</a></p>
-
-<h2>nginx_tcp_proxy_module的配置方法</h2>
-
-<p>Ubuntu的Nginx并没有将nginx_tcp_proxy_module编译进去。为了简化安装，我基于Ubuntu的Nginx包，做了Nginx的<a href="https://launchpad.net/~likemartinma/+archive/ubuntu/net">PPA</a>:</p>
-
-<ul>
-<li>升级Nginx版本</li>
-<li>加入nginx_tcp_proxy_module</li>
-</ul>
-
-
-<p>添加我的PPA</p>
-
-<pre><code class="bash">sudo add-apt-repository ppa:likemartinma/net
-sudo apt-get -y update
-</code></pre>
-
-<p>若未安装nginx，则</p>
-
-<pre><code class="bash">sudo apt-get install -y nginx
-</code></pre>
-
-<p>若已安装nginx，则</p>
-
-<pre><code class="bash">sudo apt-get -y upgrade
-</code></pre>
-
-<p>在/etc/nginx/nginx.conf中，增加如下内容：</p>
-
-<pre><code class="nginx">tcp {
-    access_log /var/log/nginx/tcp_access.log;
-
-    upstream ssh_cluster {
-        # simple round-robin
-        server 127.0.0.1:12345;
-        server 127.0.0.1:12346;
-        server 127.0.0.1:12347;
-
-        check interval=3000 rise=2 fall=5 timeout=1000;
-    }
-
-    server {
-        listen 9999;
-        proxy_pass ssh_cluster;
-    }
-}
-</code></pre>
-
-<p>为了查看集群的状态，在/etc/nginx/sites-enabled/default的中，增加如下内容：</p>
-
-<pre><code class="nginx">server {
-    ...
-
-    location /status {
-        tcp_check_status;
-    }
-}
-</code></pre>
-
-<p>重启Nginx:</p>
-
-<pre><code>service nginx restart
-</code></pre>
-
-<p>如此，访问http://&lt;cluster IP&gt;/status将能查看集群的详细状态。</p>
-
-<h2>Nginx 1.9的配置方法</h2>
-
-<p>Ubuntu 15.10之前的官方Nginx版本都小于1.9，须通过ppa:nginx/development升级nginx。</p>
-
-<p>添加ppa:nginx/development</p>
-
-<pre><code class="bash">sudo add-apt-repository ppa:nginx/development
-sudo apt-get -y update
-</code></pre>
-
-<p>若未安装nginx，则</p>
-
-<pre><code class="bash">sudo apt-get install -y nginx
-</code></pre>
-
-<p>若已安装nginx，则</p>
-
-<pre><code class="bash">sudo apt-get -y upgrade
-</code></pre>
-
-<p>在/etc/nginx/nginx.conf中，增加如下内容：</p>
-
-<pre><code class="nginx">stream {
-    upstream ssh_cluster {
-        least_conn;
-        server 127.0.0.1:12345;
-        server 127.0.0.1:12346;
-        server 127.0.0.1:12347;
-    }
-
-    server {
-        listen 9999;
-        proxy_pass ssh_cluster;
-    }
-}
-</code></pre>
-
-<p>重启Nginx:</p>
-
-<pre><code>service nginx restart
-</code></pre>
-
-<h2>HAProxy的配置方法</h2>
-
-<p>安装haproxy</p>
-
-<pre><code>sudo apt-get install -y haproxy
-</code></pre>
-
-<p>在/etc/haproxy/haproxy.cfg中，增加如下内容：</p>
-
-<pre><code>frontend socks5
-    mode tcp
-    bind *:9999
-    default_backend ssh_cluster
-
-backend ssh_cluster
-    mode tcp
-    balance roundrobin
-    server vps1 127.0.0.1:12345 weight 1 check inter 30000
-    server vps2 127.0.0.1:12346 weight 1 check inter 30000
-    server vps3 127.0.0.1:12347 weight 1 check inter 30000
-</code></pre>
-
-<p>为了查看集群的状态，在/etc/haproxy/haproxy.cfg中，增加如下内容：</p>
-
-<pre><code>listen stats :9090
-    balance
-    mode http
-    stats enable
-    stats auth admin:admin
-</code></pre>
-
-<p>默认安装，haproxy处于不活动状态，须要激活它。</p>
-
-<p>在/etc/default/haproxy中，修改如下行：</p>
-
-<pre><code>ENABLED=1
-</code></pre>
-
-<p>最后，启动haproxy:</p>
-
-<pre><code>service haproxy start
-</code></pre>
-
-<p>如此，访问http://&lt;cluster IP&gt;:9090/haproxy?stats将能查看集群的详细状态。</p>
-
-<h2>总结</h2>
-
-<ul>
-<li>nginx_tcp_proxy_module有简单的集群状态页面。</li>
-<li>nginx 1.9没有集群状态查页面，仅能通过错误日志/var/log/ngnix/error.log来查看掉线的集群节点。</li>
-<li>haproxy不仅有完善的集群状态页面，而且不需要任何PPA，应该是最佳选择。</li>
-<li>上述3种方法都缺乏认证机制，只能部署于家庭或企业内网。当然也可以部署于个人电脑，事实上，我就是这样使用的。</li>
-</ul>
-
 ]]></content>
   </entry>
   
