@@ -4,7 +4,7 @@
   <title><![CDATA[Category: snap | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/snap/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2020-09-23T06:08:01+00:00</updated>
+  <updated>2020-09-23T12:46:00+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -411,7 +411,8 @@ lxc alias add infoi 'image info'
 
 <h3>离线安装</h3>
 
-<pre><code class="bash">snap install--dangerous lxd_16926.snap
+<pre><code class="bash">sudo snap ack lxd_17320.assert
+sudo snap install lxd_17320.snap
 </code></pre>
 
 <h2>三、搜索包</h2>
