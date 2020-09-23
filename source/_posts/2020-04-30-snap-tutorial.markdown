@@ -78,6 +78,19 @@ snap 应用程序位于 `/snap/bin` ，如： `/snap/bin/lxd`
 export PATH=$PATH:/snap/bin
 ```
 
+### 下载包
+
+```bash
+snap download lxd
+```
+
+### 离线安装
+
+```bash
+sudo snap ack lxd_17320.assert
+sudo snap install lxd_17320.snap
+```
+
 ## 三、搜索包
 
 ```bash
