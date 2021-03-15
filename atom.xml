@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2020-09-23T12:46:00+00:00</updated>
+  <updated>2021-03-15T07:59:06+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,219 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Fail2Ban 简介 （一）]]></title>
+    <link href="http://www.malike.net.cn/blog/2021/03/15/fail2ban-tutorial-1/"/>
+    <updated>2021-03-15T07:15:05+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2021/03/15/fail2ban-tutorial-1</id>
+    <content type="html"><![CDATA[<p>Fail2Ban 是入侵检测软件框架，保护计算机免受暴力破解（brute-force attack）。以 Python 语言编写，能运行于具有包（packet）控制或防火墙的 POSIX 系统，如 iptables 或 TCP Wrapper.</p>
+
+<p>鉴于互联网针对 VPS 暴力破解 SSH 越来越频繁，以下以 Ubuntu 为例，介绍如何利用 Fail2Ban 有效禁止 SSH 破解。</p>
+
+<h2>一、安装</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install -y fail2ban
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>二、配置</h2>
+
+<p>Fail2Ban 配置文件格式 <a href="https://en.wikipedia.org/wiki/INI_file">INI</a>，存于 <code>/etc/fail2ban</code> 目录：</p>
+
+<ul>
+<li><code>fail2ban.conf</code> : <code>fail2ban</code> 程序运行的日志和数据库等参数。</li>
+<li><code>jail.conf</code> : 禁止（ban）相关参数。</li>
+<li><code>filter.d/*</code> : <code>jail.conf</code> 中涉及“节”（section，如 <code>[sshd]</code> ）的过滤器，由正则表达式构成。</li>
+<li><code>action.d/*</code> : <code>jail.conf</code> 中涉及“节”（section，如 <code>[sshd]</code> ）的处理器。</li>
+</ul>
+
+
+<p>它们皆为安装文件，直接修改将导致后续升级 <strong>无法自动合并</strong> 配置文件。Fail2Ban 提供了自定义配置文件的机制:</p>
+
+<ul>
+<li><code>fail2ban.conf</code> 可依此通过 <code>fail2ban.d/*</code> 和 <code>fail2ban.local</code> 来重定义相关选项。</li>
+<li><code>jail.conf</code> 可依此通过 <code>jail.d/*</code> 和 <code>jail.local</code> 来重定义相关选项。</li>
+</ul>
+
+
+<p>默认安装，<code>/etc/fail2ban/jail.d/defaults-debian.conf</code> <strong>已启用</strong> <code>sshd</code> 的 jail</p>
+
+<p>通常，除 <code>jail.conf</code> 外，不需要改变配置。以下着重介绍 <code>jail.conf</code> 中的参数，它们不仅是默认（全局）参数（隶属于 <code>[DEFAULT]</code>），而且可在具体 <code>jail</code> 中重定义（如 <code>[sshd]</code>）。</p>
+
+<h3>常用参数</h3>
+
+<ul>
+<li><code>ignoreip</code> : 忽略不 IP 地址（CIDR 格式）或机器名，以空格分隔。</li>
+<li><code>bantime</code> : 主机被禁止时长，默认 600 秒。</li>
+<li><code>maxretry</code> : 在 <code>findtime</code> 时间窗口中，允许主机认证失败次数。达到最大次数，主机将被禁止。</li>
+<li><code>findtime</code> : 查找主机认证失败的时间窗口。 <strong>不意味</strong> 着每隔 <code>findtime</code> 时间扫描一次日志。</li>
+</ul>
+
+
+<p>高版本 Fail2ban 支持 <code>s</code> （秒）, <code>m</code> （分）和 <code>d</code> （天）作为时间单位，如 <code>10m</code> 和 <code>1d</code></p>
+
+<h3><code>backend</code></h3>
+
+<p>默认 <code>auto</code> ，支持 4 种文件修改的监控后端：</p>
+
+<ul>
+<li><code>pynotify</code> : <a href="https://en.wikipedia.org/wiki/Inotify">inotify</a> 的 Python 绑定。在 Debian/Ubuntu 中，对应 <code>python3-pyinotify</code> 包。</li>
+<li><code>gamin</code> :  KDE 和 GNOME 等桌面使用的文件监控系统，通常基于 <a href="https://en.wikipedia.org/wiki/Inotify">inotify</a> 实现。 在 Debian/Ubuntu 中，对应 <code>gamin</code> 包。</li>
+<li><code>polling</code> : 周期性扫描相关系统日志。相对于其它几种后端，或将占用 <strong>更多</strong> CPU 时间。</li>
+<li><code>systemd</code> :  通过 Systemd 的 Python 绑定来访问 systemd 日志，<code>logpath</code> 将无效。 在 Debian/Ubuntu 中，对应 <code>python3-systemd</code> 包。</li>
+<li><code>auto</code> : 依此尝试 <code>pyinotify</code> , <code>gamin</code> 和 <code>polling</code></li>
+</ul>
+
+
+<p>通常，在安装 <code>fail2ban</code> 安装包时，将自动安装 <code>iptables</code> , <code>whois</code> , <code>python3-pyinotify</code> 和 <code>python3-systemd</code> ，即启用 <code>pyinotify</code> 后端。除非 APT 配置 <code>APT::Install-Recommends "false";</code> （如：<code>/etc/apt/apt.conf</code>）或 <code>--no-install--recommends</code> 。</p>
+
+<h3>最佳实践</h3>
+
+<p>建议将 <code>bantime</code> 设为 <code>86400</code> （即 1 天）。如 <code>jail.local</code> :</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>DEFAULT<span class="o">]</span>
+</span><span class='line'><span class="nv">bantime</span> <span class="o">=</span> 86400
+</span><span class='line'><span class="nv">findtime</span> <span class="o">=</span> 600
+</span><span class='line'><span class="nv">maxretry</span> <span class="o">=</span> 3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>或</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>sshd<span class="o">]</span>
+</span><span class='line'><span class="nv">bantime</span> <span class="o">=</span> 86400
+</span><span class='line'><span class="nv">findtime</span> <span class="o">=</span> 600
+</span><span class='line'><span class="nv">maxretry</span> <span class="o">=</span> 3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>修改后，须重载 <code>fail2ban</code> ：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo service fail2ban reload
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>/var/log/fail2ban.log</code> 将出现类似：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>2021-02-20 17:04:59,580 fail2ban.observer       <span class="o">[</span>2615<span class="o">]</span>: INFO    Observer start...
+</span><span class='line'>2021-02-20 17:04:59,583 fail2ban.database       <span class="o">[</span>2615<span class="o">]</span>: INFO    Connected to fail2ban persistent database <span class="s1">&#39;/var/lib/fail2ban/fail2ban.sqlite3&#39;</span>
+</span><span class='line'>2021-02-20 17:04:59,583 fail2ban.jail           <span class="o">[</span>2615<span class="o">]</span>: INFO    Creating new jail <span class="s1">&#39;sshd&#39;</span>
+</span><span class='line'>2021-02-20 17:04:59,593 fail2ban.jail           <span class="o">[</span>2615<span class="o">]</span>: INFO    Jail <span class="s1">&#39;sshd&#39;</span> uses pyinotify <span class="o">{}</span>
+</span><span class='line'>2021-02-20 17:04:59,596 fail2ban.jail           <span class="o">[</span>2615<span class="o">]</span>: INFO    Initiated <span class="s1">&#39;pyinotify&#39;</span> backend
+</span><span class='line'>2021-02-20 17:04:59,597 fail2ban.filter         <span class="o">[</span>2615<span class="o">]</span>: INFO      maxLines: 1
+</span><span class='line'>2021-02-20 17:04:59,611 fail2ban.filter         <span class="o">[</span>2615<span class="o">]</span>: INFO      maxRetry: 3
+</span><span class='line'>2021-02-20 17:04:59,611 fail2ban.filter         <span class="o">[</span>2615<span class="o">]</span>: INFO      findtime: 600
+</span><span class='line'>2021-02-20 17:04:59,611 fail2ban.actions        <span class="o">[</span>2615<span class="o">]</span>: INFO      banTime: 86400
+</span><span class='line'>2021-02-20 17:04:59,611 fail2ban.filter         <span class="o">[</span>2615<span class="o">]</span>: INFO      encoding: UTF-8
+</span><span class='line'>2021-02-20 17:04:59,611 fail2ban.filter         <span class="o">[</span>2615<span class="o">]</span>: INFO    Added logfile: <span class="s1">&#39;/var/log/auth.log&#39;</span> <span class="o">(</span><span class="nv">pos</span> <span class="o">=</span> 34274, <span class="nb">hash</span> <span class="o">=</span> 5cdc6285962a0352611a54aa860667fc35ededc1<span class="o">)</span>
+</span><span class='line'>2021-02-20 17:04:59,614 fail2ban.jail           <span class="o">[</span>2615<span class="o">]</span>: INFO    Jail <span class="s1">&#39;sshd&#39;</span> started
+</span><span class='line'>2021-02-20 17:08:12,674 fail2ban.server         <span class="o">[</span>2615<span class="o">]</span>: INFO    Reload all jails
+</span><span class='line'>2021-02-20 17:08:12,674 fail2ban.server         <span class="o">[</span>2615<span class="o">]</span>: INFO    Reload jail <span class="s1">&#39;sshd&#39;</span>
+</span><span class='line'>2021-02-20 17:08:12,674 fail2ban.filter         <span class="o">[</span>2615<span class="o">]</span>: INFO      maxLines: 1
+</span><span class='line'>2021-02-20 17:08:12,674 fail2ban.filter         <span class="o">[</span>2615<span class="o">]</span>: INFO      maxRetry: 3
+</span><span class='line'>2021-02-20 17:08:12,675 fail2ban.filter         <span class="o">[</span>2615<span class="o">]</span>: INFO      findtime: 600
+</span><span class='line'>2021-02-20 17:08:12,675 fail2ban.actions        <span class="o">[</span>2615<span class="o">]</span>: INFO      banTime: 86400
+</span><span class='line'>2021-02-20 17:08:12,675 fail2ban.filter         <span class="o">[</span>2615<span class="o">]</span>: INFO      encoding: UTF-8
+</span><span class='line'>2021-02-20 17:08:12,675 fail2ban.server         <span class="o">[</span>2615<span class="o">]</span>: INFO    Jail <span class="s1">&#39;sshd&#39;</span> reloaded
+</span><span class='line'>2021-02-20 17:08:12,675 fail2ban.server         <span class="o">[</span>2615<span class="o">]</span>: INFO    Reload finished.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>三、查看状态</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo fail2ban-client status sshd
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>输出类似：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Status <span class="k">for</span> the jail: sshd
+</span><span class='line'><span class="p">|</span>- Filter
+</span><span class='line'><span class="p">|</span>  <span class="p">|</span>- Currently failed: 2
+</span><span class='line'><span class="p">|</span>  <span class="p">|</span>- Total failed:     5343
+</span><span class='line'><span class="p">|</span>  <span class="sb">`</span>- File list:        /var/log/auth.log
+</span><span class='line'><span class="sb">`</span>- Actions
+</span><span class='line'>   <span class="p">|</span>- Currently banned: 178
+</span><span class='line'>   <span class="p">|</span>- Total banned:     1354
+</span><span class='line'>   <span class="sb">`</span>- Banned IP list:   ...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>列表 iptables 的规则：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>iptables -S
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>输出类似：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>-P INPUT ACCEPT
+</span><span class='line'>-P FORWARD ACCEPT
+</span><span class='line'>-P OUTPUT ACCEPT
+</span><span class='line'>-N fail2ban-ssh
+</span><span class='line'>-A INPUT -p tcp -m multiport --dports <span class="m">22</span> -j fail2ban-ssh
+</span><span class='line'>-A fail2ban-nginx-http-auth -j RETURN
+</span><span class='line'>-A fail2ban-ssh -s &lt;IP 1&gt; -j REJECT --reject-with icmp-port-unreachable
+</span><span class='line'>-A fail2ban-ssh -s &lt;IP 2&gt; -j REJECT --reject-with icmp-port-unreachable
+</span><span class='line'>...
+</span><span class='line'>-A fail2ban-ssh -j RETURN
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[如何导入 Ubuntu 重复 root 卷组]]></title>
@@ -4339,151 +4552,6 @@
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo <span class="nv">http_proxy</span><span class="o">=</span>http://&lt;http proxy address&gt; rinse --distribution centos-6 --arch amd64 --directory centos-6
 </span></code></pre></td></tr></table></div></figure>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[利用SSH限制rsync的访问目录]]></title>
-    <link href="http://www.malike.net.cn/blog/2014/04/01/restrict-ssh-access-to-rsync/"/>
-    <updated>2014-04-01T00:00:00+00:00</updated>
-    <id>http://www.malike.net.cn/blog/2014/04/01/restrict-ssh-access-to-rsync</id>
-    <content type="html"><![CDATA[<p>我经常使用VPS来共享数据给朋友同事。由于VPS通常内存较小，不太适合安装ftp服务器；而http服务器常常只有下载的功能；更重要是某些数据较大，每天可能都在改变，需要增量同步上传或下载。</p>
-
-<p>rsync是这类场景的良好选择。一方面，通过SSH服务器来工作，它不常驻内存，节约了VPS内存使用；另一方面，它优秀的二进制增量同步功能，不仅减少了同步时间，也节约了VPS有限的带宽。</p>
-
-<p>在实际使用过程中，我遇到了下述问题：</p>
-
-<ul>
-<li>针对某些目录，某些用户仅能读（下载）;</li>
-<li>针对某些目录，某些用户仅能写（上传）;</li>
-<li>具有读或写权限的用户不能登录SSH，也不能执行任何程序;</li>
-<li>具有读或写权限的用户不能访问其他目录。</li>
-</ul>
-
-
-<p>诚然，这些问题可以通过操作系统用户相对复杂的权限控制（包括目录基本权限和ACL以及SELinux等）。然而，通过搜索和学习，我发现强大的SSH早已具备这样的接口：</p>
-
-<ul>
-<li>通过密钥对，简化用户使用，让用户彻底摆脱密码的记忆（当然用户加密私钥，还是要自己记密码的）；</li>
-<li>通过~/.ssh/authorized_keys的<code>command</code>选项（通过<a href="http://man.he.net/man5/authorized_keys">man authorized_keys</a>阅读详细内容），设置脚本过滤掉业务上无效的指令；</li>
-<li>还是通过command选项，限制不同密钥有不同权限，如密钥A只能读，密钥B只能写。</li>
-</ul>
-
-
-<p>下面，我将通过具体示例来解释command选项:</p>
-
-<h2>限制用户仅能读</h2>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="c">#!/bin/sh</span>
-</span><span class='line'>
-</span><span class='line'><span class="nv">DATA_DIR</span><span class="o">=</span>/home/share/data
-</span><span class='line'>
-</span><span class='line'><span class="k">case</span> <span class="s2">&quot;$SSH_ORIGINAL_COMMAND&quot;</span> in
-</span><span class='line'>rsync<span class="se">\ </span>--server*<span class="o">)</span>
-</span><span class='line'>        <span class="nv">TARGET</span><span class="o">=</span><span class="sb">`</span><span class="nb">echo</span> <span class="s2">&quot;$SSH_ORIGINAL_COMMAND&quot;</span> <span class="p">|</span> awk <span class="s1">&#39;{ print $NF }&#39;</span><span class="sb">`</span>
-</span><span class='line'>        <span class="k">if</span> <span class="nb">echo</span> <span class="s2">&quot;$SSH_ORIGINAL_COMMAND&quot;</span> <span class="p">|</span> grep -q <span class="s2">&quot; --sender &quot;</span> <span class="o">&amp;&amp;</span> <span class="o">[</span> <span class="s2">&quot;$TARGET&quot;</span> <span class="o">=</span> <span class="nv">$DATA_DIR</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
-</span><span class='line'>                <span class="nv">$SSH_ORIGINAL_COMMAND</span>
-</span><span class='line'>        <span class="k">else</span>
-</span><span class='line'>                <span class="nb">echo</span> <span class="s2">&quot;Rejected&quot;</span>
-</span><span class='line'>        <span class="k">fi</span>
-</span><span class='line'>        <span class="p">;;</span>
-</span><span class='line'>*<span class="o">)</span>
-</span><span class='line'>        <span class="nb">echo</span> <span class="s2">&quot;Rejected&quot;</span>
-</span><span class='line'>        <span class="p">;;</span>
-</span><span class='line'><span class="k">esac</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>该脚本（存储在文件/usr/local/bin/validate_pull_share）限制用户share仅能下载<code>$DATA_DIR</code>的文件, 它需要跟公钥配置在服务器的/home/share/.ssh/authorized_keys，如：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">command</span><span class="o">=</span><span class="s2">&quot;/usr/local/bin/validate_pull_share&quot;</span> ssh-rsa &lt;用户公钥A&gt;
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li><code>command</code>选项用于指定脚本，该脚本可以过滤一些远程命令（禁止执行），它相当于远程命令的前置脚本。</li>
-<li><code>$SSH_ORIGINAL_COMMAND</code>是sshd传递给<code>command</code>脚本环境变量，表示ssh客户端需要远程执行的命令。</li>
-<li>第6行限制仅能执行rsync服务端指令。</li>
-<li>第7行获取<code>$SSH_ORIGINAL_COMMAND</code>的最后一个参数（这里没有考虑有空格的目录），这个参数在这里是rsync需要访问的目录$TARGET.</li>
-<li>第8行为命令合法性判断, 由两个条件组成：
-
-<ul>
-<li>判断<code>--sender</code>参数是否存在于<code>$SSH_ORIGINAL_COMMAND</code>中，<code>--sender</code>表示该命令为下载命令；</li>
-<li>判断下载目录$TARGET是否与规定的目录一致。</li>
-</ul>
-</li>
-</ul>
-
-
-<h2>限制用户仅能写</h2>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="c">#!/bin/sh</span>
-</span><span class='line'>
-</span><span class='line'><span class="nv">DATA_DIR</span><span class="o">=</span>/home/share/data
-</span><span class='line'>
-</span><span class='line'><span class="k">case</span> <span class="s2">&quot;$SSH_ORIGINAL_COMMAND&quot;</span> in
-</span><span class='line'>rsync<span class="se">\ </span>--server*<span class="o">)</span>
-</span><span class='line'>        <span class="nv">TARGET</span><span class="o">=</span><span class="sb">`</span><span class="nb">echo</span> <span class="s2">&quot;$SSH_ORIGINAL_COMMAND&quot;</span> <span class="p">|</span> awk <span class="s1">&#39;{ print $NF }&#39;</span><span class="sb">`</span>
-</span><span class='line'>        <span class="k">if</span> ! <span class="nb">echo</span> <span class="s2">&quot;$SSH_ORIGINAL_COMMAND&quot;</span> <span class="p">|</span> grep -q <span class="s2">&quot; --sender &quot;</span> <span class="o">&amp;&amp;</span> <span class="o">[</span> <span class="s2">&quot;$TARGET&quot;</span> <span class="o">=</span> <span class="nv">$DATA_DIR</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
-</span><span class='line'>                <span class="nv">$SSH_ORIGINAL_COMMAND</span>
-</span><span class='line'>        <span class="k">else</span>
-</span><span class='line'>                <span class="nb">echo</span> <span class="s2">&quot;Rejected&quot;</span>
-</span><span class='line'>        <span class="k">fi</span>
-</span><span class='line'>        <span class="p">;;</span>
-</span><span class='line'>*<span class="o">)</span>
-</span><span class='line'>        <span class="nb">echo</span> <span class="s2">&quot;Rejected&quot;</span>
-</span><span class='line'>        <span class="p">;;</span>
-</span><span class='line'><span class="k">esac</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>实际仅与读限制脚本相差一行（第8行），仅允许没有<code>--sender</code>参数的命令（即上传命令）。</p>
-
-<p>该脚本（存储在文件/usr/local/bin/validate_push_share）同样需要跟另一个公钥配置在服务器的/home/share/.ssh/authorized_keys，如：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">command</span><span class="o">=</span><span class="s2">&quot;/usr/local/bin/validate_push_share&quot;</span> ssh-rsa &lt;用户公钥B&gt;
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>总结</h2>
-
-<p>通过上述脚本和配置实现了不同密钥访问同一目录的不同权限控制。还可以在这些脚本基础上扩展到多个目录或文件的访问控制。以及访问时间的控制，如某时段只能读，另外时段只能写；避免正在写数据的时候，有用户读数据造成数据不一致的问题。</p>
 ]]></content>
   </entry>
   

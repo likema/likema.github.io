@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
+<loc>http://www.malike.net.cn/blog/2021/03/15/fail2ban-tutorial-1/</loc>
+<lastmod>2021-03-15T07:15:05+00:00</lastmod>
+</url>
+<url>
 <loc>http://www.malike.net.cn/blog/2020/07/19/import-ubuntu-duplciate-root-vg/</loc>
 <lastmod>2020-07-19T23:30:00+00:00</lastmod>
 </url>
@@ -121,10 +125,10 @@
 <lastmod>2008-10-05T00:00:00+00:00</lastmod>
 </url>
 <url>
-<loc>http://www.malike.net.cn/blog/archives/</loc>
+<loc>http://www.malike.net.cn/</loc>
 </url>
 <url>
-<loc>http://www.malike.net.cn/</loc>
+<loc>http://www.malike.net.cn/blog/archives/</loc>
 </url>
 <url>
 <loc>http://www.malike.net.cn/blog/categories/</loc>
@@ -209,5 +213,8 @@
 </url>
 <url>
 <loc>http://www.malike.net.cn/blog/categories/lvm/</loc>
+</url>
+<url>
+<loc>http://www.malike.net.cn/blog/categories/fail2ban/</loc>
 </url>
 </urlset>
