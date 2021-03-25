@@ -144,10 +144,15 @@ AmbientCapabilities=CAP_NET_BIND_SERVICE
 User=like
 Group=like
 ExecStart=/usr/bin/ssh -oServerAliveInterval=300 -oServerAliveCountMax=2 -q -N -D localhost:12348 sshproxy
+Restart=always
+RestartSec=3s
+StartLimitInterval=0
 
 [Install]
 WantedBy=multi-user.target
 ```
+
+`Restart` , `RestartSec` 和 `RestartSec` 为当对等端 `sshd` 停止或网络异常时，服务 sshproxy 将退出并每 3 秒重启服务，直至连接上对等端 `sshd` . 参见 [Systemd service that is always restarted](https://selivan.github.io/2017/12/30/systemd-serice-always-restart.html)
 
 开启服务：
 
@@ -172,6 +177,9 @@ AmbientCapabilities=CAP_NET_BIND_SERVICE
 User=like
 Group=like
 ExecStart=/usr/bin/ssh -qN sshproxy-%i
+Restart=always
+RestartSec=3s
+StartLimitInterval=0
 
 [Install]
 WantedBy=multi-user.target
