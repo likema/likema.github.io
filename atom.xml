@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2021-03-15T07:59:06+00:00</updated>
+  <updated>2021-03-25T06:05:42+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -4217,6 +4217,9 @@
 <span class='line-number'>12</span>
 <span class='line-number'>13</span>
 <span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>Unit<span class="o">]</span>
 </span><span class='line'><span class="nv">Description</span><span class="o">=</span>SSH Proxy
 </span><span class='line'><span class="nv">After</span><span class="o">=</span>network.target
@@ -4228,11 +4231,16 @@
 </span><span class='line'><span class="nv">User</span><span class="o">=</span>like
 </span><span class='line'><span class="nv">Group</span><span class="o">=</span>like
 </span><span class='line'><span class="nv">ExecStart</span><span class="o">=</span>/usr/bin/ssh -oServerAliveInterval<span class="o">=</span><span class="m">300</span> -oServerAliveCountMax<span class="o">=</span><span class="m">2</span> -q -N -D localhost:12348 sshproxy
+</span><span class='line'><span class="nv">Restart</span><span class="o">=</span>always
+</span><span class='line'><span class="nv">RestartSec</span><span class="o">=</span>3s
+</span><span class='line'><span class="nv">StartLimitInterval</span><span class="o">=</span>0
 </span><span class='line'>
 </span><span class='line'><span class="o">[</span>Install<span class="o">]</span>
 </span><span class='line'><span class="nv">WantedBy</span><span class="o">=</span>multi-user.target
 </span></code></pre></td></tr></table></div></figure>
 
+
+<p><code>Restart</code> , <code>RestartSec</code> 和 <code>RestartSec</code> 为当对等端 <code>sshd</code> 停止或网络异常时，服务 sshproxy 将退出并每 3 秒重启服务，直至连接上对等端 <code>sshd</code> . 参见 <a href="https://selivan.github.io/2017/12/30/systemd-serice-always-restart.html">Systemd service that is always restarted</a></p>
 
 <p>开启服务：</p>
 
@@ -4261,6 +4269,9 @@
 <span class='line-number'>12</span>
 <span class='line-number'>13</span>
 <span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>Unit<span class="o">]</span>
 </span><span class='line'><span class="nv">Description</span><span class="o">=</span>SSH Proxy
 </span><span class='line'><span class="nv">After</span><span class="o">=</span>network.target
@@ -4272,6 +4283,9 @@
 </span><span class='line'><span class="nv">User</span><span class="o">=</span>like
 </span><span class='line'><span class="nv">Group</span><span class="o">=</span>like
 </span><span class='line'><span class="nv">ExecStart</span><span class="o">=</span>/usr/bin/ssh -qN sshproxy-%i
+</span><span class='line'><span class="nv">Restart</span><span class="o">=</span>always
+</span><span class='line'><span class="nv">RestartSec</span><span class="o">=</span>3s
+</span><span class='line'><span class="nv">StartLimitInterval</span><span class="o">=</span>0
 </span><span class='line'>
 </span><span class='line'><span class="o">[</span>Install<span class="o">]</span>
 </span><span class='line'><span class="nv">WantedBy</span><span class="o">=</span>multi-user.target
