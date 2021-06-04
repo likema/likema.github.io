@@ -4,7 +4,7 @@
   <title><![CDATA[Category: linux | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/linux/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2021-03-25T06:05:42+00:00</updated>
+  <updated>2021-06-04T07:25:12+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,150 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[CentOS 8 上安装 LXC]]></title>
+    <link href="http://www.malike.net.cn/blog/2021/06/04/centos-8-lxc/"/>
+    <updated>2021-06-04T01:31:04+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2021/06/04/centos-8-lxc</id>
+    <content type="html"><![CDATA[<h2>一、安装 LXC 包</h2>
+
+<pre><code class="bash">yum install -y epel-release
+yum update -y
+yum install -y lxc lxc-devel lxc-templates dnsmasq iptables debootstrap
+</code></pre>
+
+<ul>
+<li><code>epel-release</code> : <a href="https://fedoraproject.org/wiki/EPEL">Extra Packages for Enterprise Linux (EPEL)</a> 仓库配置文件，因 EPEL 才包含 LXC 相关包。</li>
+<li><code>dnsmasq</code> 和 <code>iptables</code> 为后续配置 LXC 网络。</li>
+<li><code>debootstrap</code> 为后续安装 Ubuntu 容器。</li>
+</ul>
+
+
+<p>安装 LXC 模板</p>
+
+<pre><code class="bash">yum install -y gcc make
+wget -O- https://linuxcontainers.org/downloads/lxc/lxc-templates-3.0.4.tar.gz | tar zx
+cd lxc-templates-3.0.4
+./configure --prefix=/usr --localstatedir=/var
+make install
+</code></pre>
+
+<ul>
+<li>虽然 <code>lxc-templates</code> 包，但该包未包含 Ubuntu 容器模板。故还须从其源码安装。</li>
+<li><code>lxc-templates-3.0.4</code> 并不需要编译任何 C 程序，但 <code>configure</code> 将检查 <code>gcc</code>。故须安装 <code>gcc</code></li>
+<li>安装模板后，若不需要 <code>gcc</code> 和 <code>make</code> ，则可自行 <strong>卸载</strong> 。</li>
+</ul>
+
+
+<h2>二、配置 LXC 网络</h2>
+
+<p>创建虚拟网卡 <code>lxcbr0</code> ，作为容器虚拟网络的网桥：</p>
+
+<pre><code class="bash">echo 'USE_LXC_BRIDGE="true"' &gt; /etc/sysconfig/lxc
+systemctl enable --now lxc-net.service
+systemctl start lxc-net
+
+cat &gt; /etc/lxc/default.conf &lt;&lt;EOF
+lxc.net.0.type = veth
+lxc.net.0.flags = up
+lxc.net.0.link = lxcbr0
+EOF
+</code></pre>
+
+<h2>三、创建容器</h2>
+
+<p>以安装 Ubuntu 20.04 容器为例：</p>
+
+<pre><code class="bash">lxc-create -n focal -t ubuntu \
+    -- -r focal \
+    --mirror http://cn.archive.ubuntu.com/ubuntu/ \
+    --security-mirror http://cn.archive.ubuntu.com/ubuntu/
+</code></pre>
+
+<ul>
+<li><code>-n</code> ：容器名。</li>
+<li><code>-t</code> ：模板名，对应 <code>/usr/share/lxc/templates/lxc-*</code> 文件。</li>
+<li><code>--</code> ：其后为传入 <code>/usr/share/lxc/templates/lxc-ubuntu</code> 的参数。</li>
+<li><code>-r</code> ： Ubuntu 发行代号，默认为主机的 Ubuntu 发行代号，否则为最近 LTS</li>
+<li><code>--mirror</code> 和 <code>--security-mirror</code> ：为加速创建，两者设置为国内镜像。</li>
+</ul>
+
+
+<p>其它参数：</p>
+
+<ul>
+<li><code>-u &lt;user&gt;</code> : 容器用户名，默认 <code>ubuntu</code> 。</li>
+<li><code>--password &lt;password&gt;</code> ：容器密码，默认 <code>ubuntu</code> 。</li>
+<li><code>-S &lt;keyfile&gt;</code> : SSH 私钥文件。</li>
+</ul>
+
+
+<p>其它模板，如 CentOS ，可通过 <code>/usr/share/lxc/templates/lxc-centos -h</code> 查看相关参数。</p>
+
+<h2>四、启动容器</h2>
+
+<pre><code class="bash">lxc-start focal
+</code></pre>
+
+<p>登录</p>
+
+<pre><code class="bash">lxc-console focal
+</code></pre>
+
+<h2>五、查看容器</h2>
+
+<pre><code class="bash">lxc-info focal
+</code></pre>
+
+<p>输出形如：</p>
+
+<pre><code>Name:           focal
+State:          RUNNING
+PID:            26063
+IP:             &lt;container ip&gt;
+CPU use:        0.35 seconds
+BlkIO use:      26.36 MiB
+Memory use:     21.13 MiB
+KMem use:       0 bytes
+Link:           vethJI5UF9
+ TX bytes:      1.51 KiB
+ RX bytes:      2.18 KiB
+ Total bytes:   3.68 KiB
+</code></pre>
+
+<h2>六、端口转发</h2>
+
+<p>仅以将主机端口 <code>2222</code> 重定向至容器 <code>22</code> 为例（须将 <code>&lt;container ip&gt;</code> 替换为容器 IP ）。</p>
+
+<p>以下两者取其一，若未安装 <code>firewalld</code> ，则采用 <code>iptables</code> ：</p>
+
+<h3>iptables</h3>
+
+<pre><code class="bash">iptables -t nat -A PREROUTING -p tcp -i lxcbr0 --dport 2222 -j DNAT --to-destination &lt;container ip&gt;:22
+</code></pre>
+
+<p>将上述命令写入 <code>/etc/rc.local</code> ，从而保证重启依旧生效：</p>
+
+<pre><code class="bash">echo 'iptables -t nat -A PREROUTING -p tcp -i lxcbr0 --dport 2222 -j DNAT --to-destination &lt;container ip&gt;:22' &gt; /etc/rc.local
+</code></pre>
+
+<h3>firewalld</h3>
+
+<pre><code class="bash">firewall-cmd --zone=public --add-forward-port=port=2222:proto=tcp:toport=22:toaddr=&lt;container ip&gt; --permanent
+firewall-cmd --zone=public --add-port=2222/tcp --permanent
+firewall-cmd --reload
+</code></pre>
+
+<h2>七、参考</h2>
+
+<ul>
+<li><a href="https://fedoraproject.org/wiki/LXC">Fedora LXC</a></li>
+<li><a href="https://www.cyberciti.biz/faq/how-to-set-up-a-firewall-using-firewalld-on-centos-8/">How to set up a firewall using FirewallD on CentOS 8</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[如何导入 Ubuntu 重复 root 卷组]]></title>
@@ -838,170 +982,6 @@ sudo systemctl start shadowsocks-rust-local
 <li>限制<code>sslocal</code>进程仅能监听socket.</li>
 </ul>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Shadowsocks简介]]></title>
-    <link href="http://www.malike.net.cn/blog/2016/11/29/shadowsocks-tutorial/"/>
-    <updated>2016-11-29T01:39:55+00:00</updated>
-    <id>http://www.malike.net.cn/blog/2016/11/29/shadowsocks-tutorial</id>
-    <content type="html"><![CDATA[<p><a href="https://shadowsocks.org/en/index.html">Shadowsocks</a>（中文名: 影梭） 是一款开源的安全SOCKS 5代理，它主要用于在大陆翻墙。</p>
-
-<h2>原理</h2>
-
-<p>与SSH动态代理相似，客户端呈现为SOCKS 5代理服务，客户端与服务器之间采用加密通信。服务器部署于GFW之外，从而实现代理翻墙服务。</p>
-
-<h2>特点</h2>
-
-<ul>
-<li>使用自行设计的协议加密通信，支持多种加密算法：AES、Blowfish、IDEA、RC4等。除创建TCP连接外无需握手，每次请求只转发1个连接，因此使用起来网速较快，在移动设备上较省电。</li>
-<li>通过异步I/O和事件驱动实现，响应速度快。</li>
-<li>客户端支持主流操作系统平台：Windows、Linux、OS X、Android、iOS和OpenWrt</li>
-</ul>
-
-
-<h2>shadowsocks-libev简介</h2>
-
-<p>网络中普遍采用Python版本的<a href="https://pypi.python.org/pypi/shadowsocks">shadowsocks</a>，该版本看似安装简单，却存在如下缺点：</p>
-
-<ul>
-<li>没有Linux操作系统原生安装包（如：RPM和DEB）：从Ubuntu 16.04开始，提供shadowsocks安装包。</li>
-<li>没有操作系统的服务脚本（如init.d和upstart）。</li>
-<li>Python程序占用内存较多，运行效率不佳。</li>
-</ul>
-
-
-<p>而<a href="https://github.com/shadowsocks/shadowsocks-libev">shadowsocks-libev</a>是Shadowsocks在嵌入式和低端设备的轻量级实现：</p>
-
-<ul>
-<li>纯C实现，不仅占用内存极小，且运行效率更快。</li>
-<li>在几乎所有Linux平台都存在原生安装包，且具有对应平台的服务启动脚本。</li>
-</ul>
-
-
-<p>下面基于Ubuntu 14.04/16.04介绍它的安装和配置。</p>
-
-<h2>安装shadowsocks-libev</h2>
-
-<p>客户端和服务端的安装方法相同：</p>
-
-<pre><code class="bash">sudo add-apt-repository ppa:max-c-lv/shadowsocks-libev
-sudo apt-get update
-sudo apt-get install -y shadowsocks-libev
-</code></pre>
-
-<h2>配置shadowsocks-libev服务端</h2>
-
-<p>编辑/etc/shadowsocks-libev/config.json：</p>
-
-<pre><code class="json">{
-    "server_port": 8388,
-    "password": "&lt;共享密码&gt;",
-    "timeout": 60,
-    "method": "aes-256-cfb"
-}
-</code></pre>
-
-<ul>
-<li><code>server_port</code>为服务端监听端口</li>
-<li><code>password</code>为客户端和服务端预设的共享密码，它最好由安全密码生成器生成（如<a href="https://www.lastpass.com/">LastPass</a>或<a href="http://keepass.info/">KeePass</a>），且长度不小于6个字符。</li>
-<li><code>timeout</code>为连接超时时间。</li>
-<li><code>method</code>为加密算法，<code>aes-256-cfb</code>的安全性较好。</li>
-</ul>
-
-
-<p>配置完成后，需重启：</p>
-
-<pre><code class="bash">sudo service shadowsocks-libev restart
-</code></pre>
-
-<h2>配置shadowsocks-libev客户端</h2>
-
-<p>创建/etc/shadowsocks-libev/client.json （文件名可修改）：</p>
-
-<pre><code class="json">{
-    "server": "&lt;服务端地址&gt;",
-    "server_port": "&lt;服务端端口&gt;",
-    "local_port": "22357",
-    "password": "&lt;共享密码&gt;",
-    "method": "aes-256-cfb"
-}
-</code></pre>
-
-<h3>Ubuntu 14.04</h3>
-
-<p>安装包没有提供系统服务脚本，故须自己创建Upstart脚本/etc/init/ss-local.conf （文件名可修改）：</p>
-
-<pre><code># ss-local
-
-description "shadowsocks client"
-
-start on (net-device-up IFACE=eth0 or net-device-up IFACE=wlan0)
-stop on (net-device-down IFACE=eth0 and net-device-down IFACE=wlan0)
-
-respawn
-
-setuid nobody
-setgid nogroup
-
-exec ss-local -c /etc/shadowsocks-libev/client.json
-</code></pre>
-
-<p>为了client.json的安全：</p>
-
-<pre><code class="bash">sudo chown -R root:nogroup /etc/shadowsocks-libev
-sudo chmod 0750 /etc/shadowsocks-libev
-sudo chmod 0640 /etc/shadowsocks-libev/client.json
-</code></pre>
-
-<p>启动客户端</p>
-
-<pre><code class="bash">sudo start ss-local
-</code></pre>
-
-<p>最后，通过修改/etc/default/shadowsocks-libev的<code>START=no</code>禁止在客户机启动服务端程序——它在客户机没有作用。</p>
-
-<pre><code class="bash">sudo service shadowsocks-libev stop
-</code></pre>
-
-<h3>Ubuntu 16.04</h3>
-
-<p>安装包提供了systemd的服务模板/lib/systemd/system/shadowsocks-libev-local@.service</p>
-
-<p>默认<code>ss-local</code>以root用户运行，可修改上述模板为nobody用户和nogroup组，从而提高安全：</p>
-
-<pre><code>[Service]
-Type=simple
-CapabilityBoundingSet=CAP_NET_BIND_SERVICE
-AmbientCapabilities=CAP_NET_BIND_SERVICE
-User=nobody
-Group=nogroup
-ExecStart=/usr/bin/ss-local -c /etc/shadowsocks-libev/%i.json.
-</code></pre>
-
-<p>注意，升级shadowsocks-libev，模板将回复原状，须再次修改。</p>
-
-<pre><code class="bash">sudo systemctl daemon-reload
-sudo systemctl enable shadowsocks-libev-local@client
-sudo systemctl start shadowsocks-libev-local@client
-</code></pre>
-
-<p>注意，@client与client.json的基本名必须一致。</p>
-
-<p>最后，禁用并停止服务端程序：</p>
-
-<pre><code class="bash">sudo systemctl disable shadowsocks-libev
-sudo systemctl stop shadowsocks-libev
-</code></pre>
-
-<h2>集群化</h2>
-
-<p>类似SSH集群，多个shadowsocks也可以构建SOCKS 5集群，具体请参考《<a href="http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster/">SSH翻墙集群</a>》的“HAProxy的配置方法”。</p>
-
-<p>实用中发现，<code>ss-local</code>不会因为shadowsocks服务器是否可达，而停止运行或拒绝HAProxy连接。</p>
-
-<p>导致HAProxy无法探测shadowsocks服务器是否离线或不可访问，部分负载将失败或重试（浏览器），从而影响体验。</p>
 ]]></content>
   </entry>
   

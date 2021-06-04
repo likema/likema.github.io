@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2021-03-25T06:05:42+00:00</updated>
+  <updated>2021-06-04T07:25:12+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,202 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[CentOS 8 上安装 LXC]]></title>
+    <link href="http://www.malike.net.cn/blog/2021/06/04/centos-8-lxc/"/>
+    <updated>2021-06-04T01:31:04+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2021/06/04/centos-8-lxc</id>
+    <content type="html"><![CDATA[<h2>一、安装 LXC 包</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum install -y epel-release
+</span><span class='line'>yum update -y
+</span><span class='line'>yum install -y lxc lxc-devel lxc-templates dnsmasq iptables debootstrap
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>epel-release</code> : <a href="https://fedoraproject.org/wiki/EPEL">Extra Packages for Enterprise Linux (EPEL)</a> 仓库配置文件，因 EPEL 才包含 LXC 相关包。</li>
+<li><code>dnsmasq</code> 和 <code>iptables</code> 为后续配置 LXC 网络。</li>
+<li><code>debootstrap</code> 为后续安装 Ubuntu 容器。</li>
+</ul>
+
+
+<p>安装 LXC 模板</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum install -y gcc make
+</span><span class='line'>wget -O- https://linuxcontainers.org/downloads/lxc/lxc-templates-3.0.4.tar.gz <span class="p">|</span> tar zx
+</span><span class='line'><span class="nb">cd </span>lxc-templates-3.0.4
+</span><span class='line'>./configure --prefix<span class="o">=</span>/usr --localstatedir<span class="o">=</span>/var
+</span><span class='line'>make install
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>虽然 <code>lxc-templates</code> 包，但该包未包含 Ubuntu 容器模板。故还须从其源码安装。</li>
+<li><code>lxc-templates-3.0.4</code> 并不需要编译任何 C 程序，但 <code>configure</code> 将检查 <code>gcc</code>。故须安装 <code>gcc</code></li>
+<li>安装模板后，若不需要 <code>gcc</code> 和 <code>make</code> ，则可自行 <strong>卸载</strong> 。</li>
+</ul>
+
+
+<h2>二、配置 LXC 网络</h2>
+
+<p>创建虚拟网卡 <code>lxcbr0</code> ，作为容器虚拟网络的网桥：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="s1">&#39;USE_LXC_BRIDGE=&quot;true&quot;&#39;</span> &gt; /etc/sysconfig/lxc
+</span><span class='line'>systemctl <span class="nb">enable</span> --now lxc-net.service
+</span><span class='line'>systemctl start lxc-net
+</span><span class='line'>
+</span><span class='line'>cat &gt; /etc/lxc/default.conf <span class="s">&lt;&lt;EOF</span>
+</span><span class='line'><span class="s">lxc.net.0.type = veth</span>
+</span><span class='line'><span class="s">lxc.net.0.flags = up</span>
+</span><span class='line'><span class="s">lxc.net.0.link = lxcbr0</span>
+</span><span class='line'><span class="s">EOF</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>三、创建容器</h2>
+
+<p>以安装 Ubuntu 20.04 容器为例：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc-create -n focal -t ubuntu <span class="se">\</span>
+</span><span class='line'>  -- -r focal <span class="se">\</span>
+</span><span class='line'>  --mirror http://cn.archive.ubuntu.com/ubuntu/ <span class="se">\</span>
+</span><span class='line'>  --security-mirror http://cn.archive.ubuntu.com/ubuntu/
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>-n</code> ：容器名。</li>
+<li><code>-t</code> ：模板名，对应 <code>/usr/share/lxc/templates/lxc-*</code> 文件。</li>
+<li><code>--</code> ：其后为传入 <code>/usr/share/lxc/templates/lxc-ubuntu</code> 的参数。</li>
+<li><code>-r</code> ： Ubuntu 发行代号，默认为主机的 Ubuntu 发行代号，否则为最近 LTS</li>
+<li><code>--mirror</code> 和 <code>--security-mirror</code> ：为加速创建，两者设置为国内镜像。</li>
+</ul>
+
+
+<p>其它参数：</p>
+
+<ul>
+<li><code>-u &lt;user&gt;</code> : 容器用户名，默认 <code>ubuntu</code> 。</li>
+<li><code>--password &lt;password&gt;</code> ：容器密码，默认 <code>ubuntu</code> 。</li>
+<li><code>-S &lt;keyfile&gt;</code> : SSH 私钥文件。</li>
+</ul>
+
+
+<p>其它模板，如 CentOS ，可通过 <code>/usr/share/lxc/templates/lxc-centos -h</code> 查看相关参数。</p>
+
+<h2>四、启动容器</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc-start focal
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>登录</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc-console focal
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>五、查看容器</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc-info focal
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>输出形如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Name:           focal
+</span><span class='line'>State:          RUNNING
+</span><span class='line'>PID:            26063
+</span><span class='line'>IP:             &lt;container ip&gt;
+</span><span class='line'>CPU use:        0.35 seconds
+</span><span class='line'>BlkIO use:      26.36 MiB
+</span><span class='line'>Memory use:     21.13 MiB
+</span><span class='line'>KMem use:       <span class="m">0</span> bytes
+</span><span class='line'>Link:           vethJI5UF9
+</span><span class='line'> TX bytes:      1.51 KiB
+</span><span class='line'> RX bytes:      2.18 KiB
+</span><span class='line'> Total bytes:   3.68 KiB
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>六、端口转发</h2>
+
+<p>仅以将主机端口 <code>2222</code> 重定向至容器 <code>22</code> 为例（须将 <code>&lt;container ip&gt;</code> 替换为容器 IP ）。</p>
+
+<p>以下两者取其一，若未安装 <code>firewalld</code> ，则采用 <code>iptables</code> ：</p>
+
+<h3>iptables</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>iptables -t nat -A PREROUTING -p tcp -i lxcbr0 --dport <span class="m">2222</span> -j DNAT --to-destination &lt;container ip&gt;:22
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>将上述命令写入 <code>/etc/rc.local</code> ，从而保证重启依旧生效：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="s1">&#39;iptables -t nat -A PREROUTING -p tcp -i lxcbr0 --dport 2222 -j DNAT --to-destination &lt;container ip&gt;:22&#39;</span> &gt; /etc/rc.local
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>firewalld</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>firewall-cmd --zone<span class="o">=</span>public --add-forward-port<span class="o">=</span><span class="nv">port</span><span class="o">=</span>2222:proto<span class="o">=</span>tcp:toport<span class="o">=</span>22:toaddr<span class="o">=</span>&lt;container ip&gt; --permanent
+</span><span class='line'>firewall-cmd --zone<span class="o">=</span>public --add-port<span class="o">=</span>2222/tcp --permanent
+</span><span class='line'>firewall-cmd --reload
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>七、参考</h2>
+
+<ul>
+<li><a href="https://fedoraproject.org/wiki/LXC">Fedora LXC</a></li>
+<li><a href="https://www.cyberciti.biz/faq/how-to-set-up-a-firewall-using-firewalld-on-centos-8/">How to set up a firewall using FirewallD on CentOS 8</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Fail2Ban 简介 （一）]]></title>
@@ -4488,84 +4684,6 @@
 <p>chroot的ssh密钥登录与常规情况的唯一区别在于公钥应存放在当前OS环境（而非chroot环境）的~/.ssh/authorized_keys，因为sshd在执行chroot之前需要检查公钥是否正确。</p>
 
 <p>因此，本例中应该存放在当前OS的/home/centos-6/.ssh/authorized_keys.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Rinse简介——Debian/Ubuntu中创建RPM安装环境]]></title>
-    <link href="http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial/"/>
-    <updated>2014-07-15T20:34:58+08:00</updated>
-    <id>http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial</id>
-    <content type="html"><![CDATA[<p><a href="http://collab-maint.alioth.debian.org/rinse/">Rinse</a>是一个Debian环境中创建RPM发行版本（如CentOS，Scientific Linux和openSUSE）的工具。你可以利用它轻松创建各种RPM发行版本的chroot环境。</p>
-
-<p>以下基于Ubuntu 12.04 amd64，主要以创建CentOS 6 x86_64为例。</p>
-
-<h2>安装Rinse</h2>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo apt-get install -y rinse
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>创建CentOS 6</h2>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo rinse --distribution centos-6 --arch amd64 --directory centos-6
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>运行该命令将创建CentOS 6 amd64于当前工作目录的centos-6目录中。其中，</p>
-
-<ul>
-<li>&ndash;distribution指定发行版本，类似还可以centos-{4,5}， fedora-core-{4,5,6,7,8,9}和opensuse-{10.1,10.2,10.3,11.0,11.1,12.1}等。可以下述命令获取：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>rinse --list-distributions
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>具体对应于/etc/rinse/*.packages的模板名，它们主要包含RPM包列表。换一句话说，你根据需要定制自己的模板。另一方面，你也可以通过&ndash;pkgs-dir指定不同于/etc/rinse的模板目录。</p>
-
-<ul>
-<li>&ndash;arch指定架构，amd64表示64位架构，i386表示32位架构。缺省为i386.</li>
-<li>&ndash;directory指定为安装目录，安装结束后便可以chroot该目录了。</li>
-</ul>
-
-
-<p>另外，需要额外安装某些包，可以通过指定&ndash;add-pkg-list来完成。</p>
-
-<h2>配置RPM缓存</h2>
-
-<p>rinse默认使用/var/rinse/cache作为缓存目录，它大大缩短了重复运行同样命令的时间。具体通过：</p>
-
-<ul>
-<li>&ndash;cache 0指禁用缓存，缺省为1</li>
-<li>&ndash;cache-dir指定不同于/var/rinse/cache作为缓存目录。</li>
-<li>&ndash;clean-cache指清楚缓存</li>
-</ul>
-
-
-<h2>定制安装后执行脚本</h2>
-
-<p>&ndash;after-post-install, &ndash;before-post-install和&ndash;post-install顾名思义，需要指出的是&ndash;post-install默认执行/usr/lib/rinse/<distribution>/post-install.sh.</p>
-
-<h2>如何提高安装速度？</h2>
-
-<p>通过修改/etc/rinse/rinse.conf中对应发行版的镜像地址可以加速安装，如CentOS 6 x86_64的镜像地址可以修改为</p>
-
-<pre><code>http://centos.ustc.edu.cn/centos/6/os/x86_64/CentOS/
-</code></pre>
-
-<p>也可以通过&ndash;config指定不同于/etc/rinse/rinse.conf的配置文件。</p>
-
-<p>若内网存在HTTP cache服务器（如Squid)，还可以设置环境变量http_proxy来缓存rpm以及加速安装，如：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo <span class="nv">http_proxy</span><span class="o">=</span>http://&lt;http proxy address&gt; rinse --distribution centos-6 --arch amd64 --directory centos-6
-</span></code></pre></td></tr></table></div></figure>
-
 ]]></content>
   </entry>
   

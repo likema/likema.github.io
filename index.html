@@ -9,7 +9,12 @@
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="Fail2Ban 是入侵检测软件框架，保护计算机免受暴力破解（brute-force attack）。以 Python 语言编写，能运行于具有包（packet）控制或防火墙的 POSIX 系统，如 iptables 或 TCP Wrapper. 鉴于互联网针对 VPS 暴力破解 SSH 越来越频繁 &hellip;">
+  <meta name="description" content="一、安装 LXC 包 1
+2
+3
+yum install -y epel-release
+yum update -y
+yum install -y lxc lxc-devel lxc-templates dnsmasq iptables debootstrap epel-release : &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +83,232 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2021/06/04/centos-8-lxc/">CentOS 8 上安装 LXC</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2021-06-04T01:31:04+00:00" pubdate data-updated="true"></time>
+        
+           | <a href="/blog/2021/06/04/centos-8-lxc/#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn/blog/2021/06/04/centos-8-lxc/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>一、安装 LXC 包</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum install -y epel-release
+</span><span class='line'>yum update -y
+</span><span class='line'>yum install -y lxc lxc-devel lxc-templates dnsmasq iptables debootstrap
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>epel-release</code> : <a href="https://fedoraproject.org/wiki/EPEL">Extra Packages for Enterprise Linux (EPEL)</a> 仓库配置文件，因 EPEL 才包含 LXC 相关包。</li>
+<li><code>dnsmasq</code> 和 <code>iptables</code> 为后续配置 LXC 网络。</li>
+<li><code>debootstrap</code> 为后续安装 Ubuntu 容器。</li>
+</ul>
+
+
+<p>安装 LXC 模板</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum install -y gcc make
+</span><span class='line'>wget -O- https://linuxcontainers.org/downloads/lxc/lxc-templates-3.0.4.tar.gz <span class="p">|</span> tar zx
+</span><span class='line'><span class="nb">cd </span>lxc-templates-3.0.4
+</span><span class='line'>./configure --prefix<span class="o">=</span>/usr --localstatedir<span class="o">=</span>/var
+</span><span class='line'>make install
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>虽然 <code>lxc-templates</code> 包，但该包未包含 Ubuntu 容器模板。故还须从其源码安装。</li>
+<li><code>lxc-templates-3.0.4</code> 并不需要编译任何 C 程序，但 <code>configure</code> 将检查 <code>gcc</code>。故须安装 <code>gcc</code></li>
+<li>安装模板后，若不需要 <code>gcc</code> 和 <code>make</code> ，则可自行 <strong>卸载</strong> 。</li>
+</ul>
+
+
+<h2>二、配置 LXC 网络</h2>
+
+<p>创建虚拟网卡 <code>lxcbr0</code> ，作为容器虚拟网络的网桥：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="s1">&#39;USE_LXC_BRIDGE=&quot;true&quot;&#39;</span> &gt; /etc/sysconfig/lxc
+</span><span class='line'>systemctl <span class="nb">enable</span> --now lxc-net.service
+</span><span class='line'>systemctl start lxc-net
+</span><span class='line'>
+</span><span class='line'>cat &gt; /etc/lxc/default.conf <span class="s">&lt;&lt;EOF</span>
+</span><span class='line'><span class="s">lxc.net.0.type = veth</span>
+</span><span class='line'><span class="s">lxc.net.0.flags = up</span>
+</span><span class='line'><span class="s">lxc.net.0.link = lxcbr0</span>
+</span><span class='line'><span class="s">EOF</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>三、创建容器</h2>
+
+<p>以安装 Ubuntu 20.04 容器为例：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc-create -n focal -t ubuntu <span class="se">\</span>
+</span><span class='line'>  -- -r focal <span class="se">\</span>
+</span><span class='line'>  --mirror http://cn.archive.ubuntu.com/ubuntu/ <span class="se">\</span>
+</span><span class='line'>  --security-mirror http://cn.archive.ubuntu.com/ubuntu/
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>-n</code> ：容器名。</li>
+<li><code>-t</code> ：模板名，对应 <code>/usr/share/lxc/templates/lxc-*</code> 文件。</li>
+<li><code>--</code> ：其后为传入 <code>/usr/share/lxc/templates/lxc-ubuntu</code> 的参数。</li>
+<li><code>-r</code> ： Ubuntu 发行代号，默认为主机的 Ubuntu 发行代号，否则为最近 LTS</li>
+<li><code>--mirror</code> 和 <code>--security-mirror</code> ：为加速创建，两者设置为国内镜像。</li>
+</ul>
+
+
+<p>其它参数：</p>
+
+<ul>
+<li><code>-u &lt;user&gt;</code> : 容器用户名，默认 <code>ubuntu</code> 。</li>
+<li><code>--password &lt;password&gt;</code> ：容器密码，默认 <code>ubuntu</code> 。</li>
+<li><code>-S &lt;keyfile&gt;</code> : SSH 私钥文件。</li>
+</ul>
+
+
+<p>其它模板，如 CentOS ，可通过 <code>/usr/share/lxc/templates/lxc-centos -h</code> 查看相关参数。</p>
+
+<h2>四、启动容器</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc-start focal
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>登录</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc-console focal
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>五、查看容器</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lxc-info focal
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>输出形如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Name:           focal
+</span><span class='line'>State:          RUNNING
+</span><span class='line'>PID:            26063
+</span><span class='line'>IP:             &lt;container ip&gt;
+</span><span class='line'>CPU use:        0.35 seconds
+</span><span class='line'>BlkIO use:      26.36 MiB
+</span><span class='line'>Memory use:     21.13 MiB
+</span><span class='line'>KMem use:       <span class="m">0</span> bytes
+</span><span class='line'>Link:           vethJI5UF9
+</span><span class='line'> TX bytes:      1.51 KiB
+</span><span class='line'> RX bytes:      2.18 KiB
+</span><span class='line'> Total bytes:   3.68 KiB
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>六、端口转发</h2>
+
+<p>仅以将主机端口 <code>2222</code> 重定向至容器 <code>22</code> 为例（须将 <code>&lt;container ip&gt;</code> 替换为容器 IP ）。</p>
+
+<p>以下两者取其一，若未安装 <code>firewalld</code> ，则采用 <code>iptables</code> ：</p>
+
+<h3>iptables</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>iptables -t nat -A PREROUTING -p tcp -i lxcbr0 --dport <span class="m">2222</span> -j DNAT --to-destination &lt;container ip&gt;:22
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>将上述命令写入 <code>/etc/rc.local</code> ，从而保证重启依旧生效：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="s1">&#39;iptables -t nat -A PREROUTING -p tcp -i lxcbr0 --dport 2222 -j DNAT --to-destination &lt;container ip&gt;:22&#39;</span> &gt; /etc/rc.local
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>firewalld</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>firewall-cmd --zone<span class="o">=</span>public --add-forward-port<span class="o">=</span><span class="nv">port</span><span class="o">=</span>2222:proto<span class="o">=</span>tcp:toport<span class="o">=</span>22:toaddr<span class="o">=</span>&lt;container ip&gt; --permanent
+</span><span class='line'>firewall-cmd --zone<span class="o">=</span>public --add-port<span class="o">=</span>2222/tcp --permanent
+</span><span class='line'>firewall-cmd --reload
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>七、参考</h2>
+
+<ul>
+<li><a href="https://fedoraproject.org/wiki/LXC">Fedora LXC</a></li>
+<li><a href="https://www.cyberciti.biz/faq/how-to-set-up-a-firewall-using-firewalld-on-centos-8/">How to set up a firewall using FirewallD on CentOS 8</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -2481,258 +2712,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/11/29/shadowsocks-tutorial/">Shadowsocks简介</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-11-29T01:39:55+00:00" pubdate data-updated="true"></time>
-        
-           | <a href="/blog/2016/11/29/shadowsocks-tutorial/#disqus_thread"
-             data-disqus-identifier="http://www.malike.net.cn/blog/2016/11/29/shadowsocks-tutorial/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><a href="https://shadowsocks.org/en/index.html">Shadowsocks</a>（中文名: 影梭） 是一款开源的安全SOCKS 5代理，它主要用于在大陆翻墙。</p>
-
-<h2>原理</h2>
-
-<p>与SSH动态代理相似，客户端呈现为SOCKS 5代理服务，客户端与服务器之间采用加密通信。服务器部署于GFW之外，从而实现代理翻墙服务。</p>
-
-<h2>特点</h2>
-
-<ul>
-<li>使用自行设计的协议加密通信，支持多种加密算法：AES、Blowfish、IDEA、RC4等。除创建TCP连接外无需握手，每次请求只转发1个连接，因此使用起来网速较快，在移动设备上较省电。</li>
-<li>通过异步I/O和事件驱动实现，响应速度快。</li>
-<li>客户端支持主流操作系统平台：Windows、Linux、OS X、Android、iOS和OpenWrt</li>
-</ul>
-
-
-<h2>shadowsocks-libev简介</h2>
-
-<p>网络中普遍采用Python版本的<a href="https://pypi.python.org/pypi/shadowsocks">shadowsocks</a>，该版本看似安装简单，却存在如下缺点：</p>
-
-<ul>
-<li>没有Linux操作系统原生安装包（如：RPM和DEB）：从Ubuntu 16.04开始，提供shadowsocks安装包。</li>
-<li>没有操作系统的服务脚本（如init.d和upstart）。</li>
-<li>Python程序占用内存较多，运行效率不佳。</li>
-</ul>
-
-
-<p>而<a href="https://github.com/shadowsocks/shadowsocks-libev">shadowsocks-libev</a>是Shadowsocks在嵌入式和低端设备的轻量级实现：</p>
-
-<ul>
-<li>纯C实现，不仅占用内存极小，且运行效率更快。</li>
-<li>在几乎所有Linux平台都存在原生安装包，且具有对应平台的服务启动脚本。</li>
-</ul>
-
-
-<p>下面基于Ubuntu 14.04/16.04介绍它的安装和配置。</p>
-
-<h2>安装shadowsocks-libev</h2>
-
-<p>客户端和服务端的安装方法相同：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo add-apt-repository ppa:max-c-lv/shadowsocks-libev
-</span><span class='line'>sudo apt-get update
-</span><span class='line'>sudo apt-get install -y shadowsocks-libev
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>配置shadowsocks-libev服务端</h2>
-
-<p>编辑/etc/shadowsocks-libev/config.json：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="nt">&quot;server_port&quot;</span><span class="p">:</span> <span class="mi">8388</span><span class="p">,</span>
-</span><span class='line'>    <span class="nt">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;共享密码&gt;&quot;</span><span class="p">,</span>
-</span><span class='line'>    <span class="nt">&quot;timeout&quot;</span><span class="p">:</span> <span class="mi">60</span><span class="p">,</span>
-</span><span class='line'>    <span class="nt">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;aes-256-cfb&quot;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li><code>server_port</code>为服务端监听端口</li>
-<li><code>password</code>为客户端和服务端预设的共享密码，它最好由安全密码生成器生成（如<a href="https://www.lastpass.com/">LastPass</a>或<a href="http://keepass.info/">KeePass</a>），且长度不小于6个字符。</li>
-<li><code>timeout</code>为连接超时时间。</li>
-<li><code>method</code>为加密算法，<code>aes-256-cfb</code>的安全性较好。</li>
-</ul>
-
-
-<p>配置完成后，需重启：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo service shadowsocks-libev restart
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>配置shadowsocks-libev客户端</h2>
-
-<p>创建/etc/shadowsocks-libev/client.json （文件名可修改）：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="nt">&quot;server&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;服务端地址&gt;&quot;</span><span class="p">,</span>
-</span><span class='line'>    <span class="nt">&quot;server_port&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;服务端端口&gt;&quot;</span><span class="p">,</span>
-</span><span class='line'>    <span class="nt">&quot;local_port&quot;</span><span class="p">:</span> <span class="s2">&quot;22357&quot;</span><span class="p">,</span>
-</span><span class='line'>    <span class="nt">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;共享密码&gt;&quot;</span><span class="p">,</span>
-</span><span class='line'>    <span class="nt">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;aes-256-cfb&quot;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Ubuntu 14.04</h3>
-
-<p>安装包没有提供系统服务脚本，故须自己创建Upstart脚本/etc/init/ss-local.conf （文件名可修改）：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="err">#</span> <span class="err">ss-local</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">description</span> <span class="s2">&quot;shadowsocks client&quot;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">start</span> <span class="err">on</span> <span class="err">(net-device-up</span> <span class="err">IFACE=eth</span><span class="mi">0</span> <span class="err">or</span> <span class="err">net-device-up</span> <span class="err">IFACE=wlan</span><span class="mi">0</span><span class="err">)</span>
-</span><span class='line'><span class="err">stop</span> <span class="err">on</span> <span class="err">(net-device-down</span> <span class="err">IFACE=eth</span><span class="mi">0</span> <span class="err">and</span> <span class="err">net-device-down</span> <span class="err">IFACE=wlan</span><span class="mi">0</span><span class="err">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">respawn</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">setuid</span> <span class="err">nobody</span>
-</span><span class='line'><span class="err">setgid</span> <span class="err">nogroup</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">exec</span> <span class="err">ss-local</span> <span class="err">-c</span> <span class="err">/etc/shadowsocks-libev/client.json</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>为了client.json的安全：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo chown -R root:nogroup /etc/shadowsocks-libev
-</span><span class='line'>sudo chmod <span class="m">0750</span> /etc/shadowsocks-libev
-</span><span class='line'>sudo chmod <span class="m">0640</span> /etc/shadowsocks-libev/client.json
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>启动客户端</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo start ss-local
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>最后，通过修改/etc/default/shadowsocks-libev的<code>START=no</code>禁止在客户机启动服务端程序——它在客户机没有作用。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo service shadowsocks-libev stop
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Ubuntu 16.04</h3>
-
-<p>安装包提供了systemd的服务模板/lib/systemd/system/shadowsocks-libev-local@.service</p>
-
-<p>默认<code>ss-local</code>以root用户运行，可修改上述模板为nobody用户和nogroup组，从而提高安全：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>Service<span class="o">]</span>
-</span><span class='line'><span class="nv">Type</span><span class="o">=</span>simple
-</span><span class='line'><span class="nv">CapabilityBoundingSet</span><span class="o">=</span>CAP_NET_BIND_SERVICE
-</span><span class='line'><span class="nv">AmbientCapabilities</span><span class="o">=</span>CAP_NET_BIND_SERVICE
-</span><span class='line'><span class="nv">User</span><span class="o">=</span>nobody
-</span><span class='line'><span class="nv">Group</span><span class="o">=</span>nogroup
-</span><span class='line'><span class="nv">ExecStart</span><span class="o">=</span>/usr/bin/ss-local -c /etc/shadowsocks-libev/%i.json.
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>注意，升级shadowsocks-libev，模板将回复原状，须再次修改。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo systemctl daemon-reload
-</span><span class='line'>sudo systemctl <span class="nb">enable </span>shadowsocks-libev-local@client
-</span><span class='line'>sudo systemctl start shadowsocks-libev-local@client
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>注意，@client与client.json的基本名必须一致。</p>
-
-<p>最后，禁用并停止服务端程序：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo systemctl disable shadowsocks-libev
-</span><span class='line'>sudo systemctl stop shadowsocks-libev
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>集群化</h2>
-
-<p>类似SSH集群，多个shadowsocks也可以构建SOCKS 5集群，具体请参考《<a href="http://www.malike.net.cn/blog/2015/03/15/ssh-proxy-cluster/">SSH翻墙集群</a>》的“HAProxy的配置方法”。</p>
-
-<p>实用中发现，<code>ss-local</code>不会因为shadowsocks服务器是否可达，而停止运行或拒绝HAProxy连接。</p>
-
-<p>导致HAProxy无法探测shadowsocks服务器是否离线或不可访问，部分负载将失败或重试（浏览器），从而影响体验。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="2">&larr; Older</a>
@@ -2748,6 +2727,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2021/06/04/centos-8-lxc/">CentOS 8 上安装 LXC</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2021/03/15/fail2ban-tutorial-1/">Fail2Ban 简介 （一）</a>
       </li>
     
@@ -2761,10 +2744,6 @@
     
       <li class="post">
         <a href="/blog/2020/04/30/snap-tutorial/">Snap简介</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2020/04/19/ace-one-loop-per-thread/">用ACE实现One Loop Per Thread</a>
       </li>
     
   </ul>
@@ -2804,7 +2783,7 @@
 
 <section>
   <h1>Categories</h1>
-    <ul id="category-list"><li><a href='/blog/categories/ace'>ace (1)</a></li><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (2)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (2)</a></li><li><a href='/blog/categories/fail2ban'>fail2ban (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (16)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lvm'>lvm (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/lxd'>lxd (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/snap'>snap (2)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (13)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
+    <ul id="category-list"><li><a href='/blog/categories/ace'>ace (1)</a></li><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (2)</a></li><li><a href='/blog/categories/centos'>centos (1)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (2)</a></li><li><a href='/blog/categories/fail2ban'>fail2ban (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (17)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lvm'>lvm (1)</a></li><li><a href='/blog/categories/lxc'>lxc (2)</a></li><li><a href='/blog/categories/lxd'>lxd (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/redhat'>redhat (1)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/snap'>snap (2)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (13)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
 </section>
 
   

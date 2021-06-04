@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: redhat | Like的世界]]></title>
+  <link href="http://www.malike.net.cn/blog/categories/redhat/atom.xml" rel="self"/>
+  <link href="http://www.malike.net.cn/"/>
+  <updated>2021-06-04T07:25:12+00:00</updated>
+  <id>http://www.malike.net.cn/</id>
+  <author>
+    <name><![CDATA[Like Ma]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[CentOS 8 上安装 LXC]]></title>
+    <link href="http://www.malike.net.cn/blog/2021/06/04/centos-8-lxc/"/>
+    <updated>2021-06-04T01:31:04+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2021/06/04/centos-8-lxc</id>
+    <content type="html"><![CDATA[<h2>一、安装 LXC 包</h2>
+
+<pre><code class="bash">yum install -y epel-release
+yum update -y
+yum install -y lxc lxc-devel lxc-templates dnsmasq iptables debootstrap
+</code></pre>
+
+<ul>
+<li><code>epel-release</code> : <a href="https://fedoraproject.org/wiki/EPEL">Extra Packages for Enterprise Linux (EPEL)</a> 仓库配置文件，因 EPEL 才包含 LXC 相关包。</li>
+<li><code>dnsmasq</code> 和 <code>iptables</code> 为后续配置 LXC 网络。</li>
+<li><code>debootstrap</code> 为后续安装 Ubuntu 容器。</li>
+</ul>
+
+
+<p>安装 LXC 模板</p>
+
+<pre><code class="bash">yum install -y gcc make
+wget -O- https://linuxcontainers.org/downloads/lxc/lxc-templates-3.0.4.tar.gz | tar zx
+cd lxc-templates-3.0.4
+./configure --prefix=/usr --localstatedir=/var
+make install
+</code></pre>
+
+<ul>
+<li>虽然 <code>lxc-templates</code> 包，但该包未包含 Ubuntu 容器模板。故还须从其源码安装。</li>
+<li><code>lxc-templates-3.0.4</code> 并不需要编译任何 C 程序，但 <code>configure</code> 将检查 <code>gcc</code>。故须安装 <code>gcc</code></li>
+<li>安装模板后，若不需要 <code>gcc</code> 和 <code>make</code> ，则可自行 <strong>卸载</strong> 。</li>
+</ul>
+
+
+<h2>二、配置 LXC 网络</h2>
+
+<p>创建虚拟网卡 <code>lxcbr0</code> ，作为容器虚拟网络的网桥：</p>
+
+<pre><code class="bash">echo 'USE_LXC_BRIDGE="true"' &gt; /etc/sysconfig/lxc
+systemctl enable --now lxc-net.service
+systemctl start lxc-net
+
+cat &gt; /etc/lxc/default.conf &lt;&lt;EOF
+lxc.net.0.type = veth
+lxc.net.0.flags = up
+lxc.net.0.link = lxcbr0
+EOF
+</code></pre>
+
+<h2>三、创建容器</h2>
+
+<p>以安装 Ubuntu 20.04 容器为例：</p>
+
+<pre><code class="bash">lxc-create -n focal -t ubuntu \
+    -- -r focal \
+    --mirror http://cn.archive.ubuntu.com/ubuntu/ \
+    --security-mirror http://cn.archive.ubuntu.com/ubuntu/
+</code></pre>
+
+<ul>
+<li><code>-n</code> ：容器名。</li>
+<li><code>-t</code> ：模板名，对应 <code>/usr/share/lxc/templates/lxc-*</code> 文件。</li>
+<li><code>--</code> ：其后为传入 <code>/usr/share/lxc/templates/lxc-ubuntu</code> 的参数。</li>
+<li><code>-r</code> ： Ubuntu 发行代号，默认为主机的 Ubuntu 发行代号，否则为最近 LTS</li>
+<li><code>--mirror</code> 和 <code>--security-mirror</code> ：为加速创建，两者设置为国内镜像。</li>
+</ul>
+
+
+<p>其它参数：</p>
+
+<ul>
+<li><code>-u &lt;user&gt;</code> : 容器用户名，默认 <code>ubuntu</code> 。</li>
+<li><code>--password &lt;password&gt;</code> ：容器密码，默认 <code>ubuntu</code> 。</li>
+<li><code>-S &lt;keyfile&gt;</code> : SSH 私钥文件。</li>
+</ul>
+
+
+<p>其它模板，如 CentOS ，可通过 <code>/usr/share/lxc/templates/lxc-centos -h</code> 查看相关参数。</p>
+
+<h2>四、启动容器</h2>
+
+<pre><code class="bash">lxc-start focal
+</code></pre>
+
+<p>登录</p>
+
+<pre><code class="bash">lxc-console focal
+</code></pre>
+
+<h2>五、查看容器</h2>
+
+<pre><code class="bash">lxc-info focal
+</code></pre>
+
+<p>输出形如：</p>
+
+<pre><code>Name:           focal
+State:          RUNNING
+PID:            26063
+IP:             &lt;container ip&gt;
+CPU use:        0.35 seconds
+BlkIO use:      26.36 MiB
+Memory use:     21.13 MiB
+KMem use:       0 bytes
+Link:           vethJI5UF9
+ TX bytes:      1.51 KiB
+ RX bytes:      2.18 KiB
+ Total bytes:   3.68 KiB
+</code></pre>
+
+<h2>六、端口转发</h2>
+
+<p>仅以将主机端口 <code>2222</code> 重定向至容器 <code>22</code> 为例（须将 <code>&lt;container ip&gt;</code> 替换为容器 IP ）。</p>
+
+<p>以下两者取其一，若未安装 <code>firewalld</code> ，则采用 <code>iptables</code> ：</p>
+
+<h3>iptables</h3>
+
+<pre><code class="bash">iptables -t nat -A PREROUTING -p tcp -i lxcbr0 --dport 2222 -j DNAT --to-destination &lt;container ip&gt;:22
+</code></pre>
+
+<p>将上述命令写入 <code>/etc/rc.local</code> ，从而保证重启依旧生效：</p>
+
+<pre><code class="bash">echo 'iptables -t nat -A PREROUTING -p tcp -i lxcbr0 --dport 2222 -j DNAT --to-destination &lt;container ip&gt;:22' &gt; /etc/rc.local
+</code></pre>
+
+<h3>firewalld</h3>
+
+<pre><code class="bash">firewall-cmd --zone=public --add-forward-port=port=2222:proto=tcp:toport=22:toaddr=&lt;container ip&gt; --permanent
+firewall-cmd --zone=public --add-port=2222/tcp --permanent
+firewall-cmd --reload
+</code></pre>
+
+<h2>七、参考</h2>
+
+<ul>
+<li><a href="https://fedoraproject.org/wiki/LXC">Fedora LXC</a></li>
+<li><a href="https://www.cyberciti.biz/faq/how-to-set-up-a-firewall-using-firewalld-on-centos-8/">How to set up a firewall using FirewallD on CentOS 8</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>

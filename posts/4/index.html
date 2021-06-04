@@ -9,7 +9,7 @@
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="Makefile, Project, and Workspace Creator (MPC) 原始OCI为网络通信库ACE开发的跨平台工程文件生成工具，它可以生成很多种工程文件，例如Windows平台的Borland Developer Studio, Borland C++ Build 2007 &hellip;">
+  <meta name="description" content="近日在学习tolua时发现在Kubuntu 11.10 amd64平台下将其链接到so时报告如下错误： relocation R_X86_64_32 against &lsquo;.rodata&rsquo; can not be used when making a shared object &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,120 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/10/31/tolua-deb-patch/">为tolua的deb包作一个补丁</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-10-31T00:00:00+00:00" pubdate data-updated="true"></time>
+        
+           | <a href="/blog/2011/10/31/tolua-deb-patch/#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn/blog/2011/10/31/tolua-deb-patch/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>近日在学习tolua时发现在Kubuntu 11.10 amd64平台下将其链接到so时报告如下错误：</p>
+
+<blockquote><p>relocation R_X86_64_32 against &lsquo;.rodata&rsquo; can not be used when making a shared object; recompile with -fPIC</p></blockquote>
+
+<p>为此，我决定在其原deb基础上加一个补丁，这样生成的新包可以安装到其他开发机器上，省去了每次重编译tolua的重复劳动。</p>
+
+<p>为构建和修改deb安装必要的工具（配置quilt）：</p>
+
+<pre><code>sudo apt-get install build-essential debhelper quilt
+</code></pre>
+
+<p>下载libtolua-dev的源码，创建补丁add-fpic-O2-for-amd64.patch，并将config文件加入其中：</p>
+
+<pre><code>apt-get source libtolua-dev
+cd tolua-5.1.3
+mkdir -p debian/patches
+quilt new add-fpic-O2-for-amd64.patch
+quilt add config
+</code></pre>
+
+<p>将config文件中，如下内容</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nv">CFLAGS</span> <span class="o">=</span> -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
+</span><span class='line'><span class="nv">CPPFLAGS</span> <span class="o">=</span> -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>替换为</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nv">CFLAGS</span> <span class="o">=</span> -fPIC -O2 -pipe -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
+</span><span class='line'><span class="nv">CPPFLAGS</span> <span class="o">=</span> -fPIC -O2 -pipe  -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
+</span><span class='line'><span class="nv">CFLAGS</span> <span class="o">=</span> -fPIC -O2 -pipe -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>生成补丁add-fpic-O2-for-amd64.patch</p>
+
+<pre><code>quilt refresh
+</code></pre>
+
+<p>为补丁增加描述信息</p>
+
+<pre><code>quilt header -e
+</code></pre>
+
+<p>其具体内容如下：</p>
+
+<pre><code>Description: Fix relocation R_X86_64_32 against '.rodata' error for shared object.
+Author: Like Ma &lt;likemartinma@gmail.com&gt;
+
+  * config: add -fPIC -O2 -pipe to CFLAGS and CPPFLAGS
+</code></pre>
+
+<p>通过执行</p>
+
+<pre><code>dch -R
+</code></pre>
+
+<p>在debian/changelog顶部增加日志信息：</p>
+
+<pre><code>tolua (5.1.3-2) unstable; urgency=low
+
+  * Fix relocation R_X86_64_32 against '.rodata' error for shared object.
+
+-- Like Ma &lt;likemartinma@gmail.com&gt; Mon, 31 Oct 2011 15:23:09 +0800
+</code></pre>
+
+<p>构建libtolua-dev_5.1.3-2_amd64.deb:</p>
+
+<pre><code>dpkg-buildpackage -d -uc -us -rfakeroot
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -391,6 +505,10 @@ nmake CFG="Win32 Release"
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2021/06/04/centos-8-lxc/">CentOS 8 上安装 LXC</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2021/03/15/fail2ban-tutorial-1/">Fail2Ban 简介 （一）</a>
       </li>
     
@@ -404,10 +522,6 @@ nmake CFG="Win32 Release"
     
       <li class="post">
         <a href="/blog/2020/04/30/snap-tutorial/">Snap简介</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2020/04/19/ace-one-loop-per-thread/">用ACE实现One Loop Per Thread</a>
       </li>
     
   </ul>
@@ -447,7 +561,7 @@ nmake CFG="Win32 Release"
 
 <section>
   <h1>Categories</h1>
-    <ul id="category-list"><li><a href='/blog/categories/ace'>ace (1)</a></li><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (2)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (2)</a></li><li><a href='/blog/categories/fail2ban'>fail2ban (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (16)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lvm'>lvm (1)</a></li><li><a href='/blog/categories/lxc'>lxc (1)</a></li><li><a href='/blog/categories/lxd'>lxd (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/snap'>snap (2)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (13)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
+    <ul id="category-list"><li><a href='/blog/categories/ace'>ace (1)</a></li><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (2)</a></li><li><a href='/blog/categories/centos'>centos (1)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (2)</a></li><li><a href='/blog/categories/fail2ban'>fail2ban (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (17)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lvm'>lvm (1)</a></li><li><a href='/blog/categories/lxc'>lxc (2)</a></li><li><a href='/blog/categories/lxd'>lxd (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/redhat'>redhat (1)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/snap'>snap (2)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (13)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
 </section>
 
   
