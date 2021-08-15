@@ -4,7 +4,7 @@
   <title><![CDATA[Category: c | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/c/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2021-08-15T13:21:11+00:00</updated>
+  <updated>2021-08-15T13:26:55+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,202 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[通过 LIEF 修改 ELF 解决 glibc 兼容性问题]]></title>
+    <link href="http://www.malike.net.cn/blog/2021/08/15/modify-elf-by-lief/"/>
+    <updated>2021-08-15T21:25:15+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2021/08/15/modify-elf-by-lief</id>
+    <content type="html"><![CDATA[<p>数月前，我读了 <a href="https://mp.weixin.qq.com/s/2NNqYGYcCo2TEX4yfqG0qQ">Linux 修改 ELF 解决 glibc 兼容性问题</a> ，颇受启发，但暂无用武之地。</p>
+
+<p>最近，我遇到了几乎一样的问题，即 <code>clock_gettime</code> 兼容性。</p>
+
+<h2>最小化问题</h2>
+
+<p>为了将问题最小化，这里我以 <code>hello.c</code> 模拟该问题：</p>
+
+<pre><code class="c">#include &lt;stdio.h&gt;
+#include &lt;time.h&gt;
+
+int main() {
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &amp;ts);
+    printf("%lu, %ld\n", ts.tv_sec, ts.tv_nsec);
+    return 0;
+}
+</code></pre>
+
+<p>在 Ubuntu 20.04 中，用系统内置 GCC 9.3.0 构建它：</p>
+
+<pre><code class="bash">gcc -fno-stack-protector -o hello hello.c -s
+</code></pre>
+
+<ul>
+<li><code>-fno-stack-protector</code> : 禁用 stack 保护特性。目的为最小化未定义符号，最小化问题场景。</li>
+<li><code>-s</code> : 除去调试相关符号，目的同上。</li>
+</ul>
+
+
+<p>通过 <code>readelf -sV hello</code> 展示其符号：</p>
+
+<pre><code>Symbol table '.dynsym' contains 8 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     .....
+     2: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND clock_gettime@GLIBC_2.17 (2)
+     3: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND printf@GLIBC_2.2.5 (3)
+     ......
+
+Version symbols section '.gnu.version' contains 8 entries:
+ Addr: 0x0000000000000526  Offset: 0x000526  Link: 6 (.dynsym)
+  000:   0 (*local*)       0 (*local*)       2 (GLIBC_2.17)    3 (GLIBC_2.2.5)
+  ......
+
+Version needs section '.gnu.version_r' contains 1 entry:
+ Addr: 0x0000000000000538  Offset: 0x000538  Link: 7 (.dynstr)
+  000000: Version: 1  File: libc.so.6  Cnt: 2
+  0x0010:   Name: GLIBC_2.2.5  Flags: none  Version: 3
+  0x0020:   Name: GLIBC_2.17  Flags: none  Version: 2
+</code></pre>
+
+<p>问题在于修改 <code>.gnu.version_r</code> 段偏移 <code>0x0020</code> 的相关值。回顾 <code>Elfxx_Vernaux</code> 结构：</p>
+
+<pre><code class="c">typedef struct {
+    Elfxx_Word    vna_hash;  // 库名称 (如 GLIBC_2.17) 的 hash 值
+    Elfxx_Half    vna_flags;
+    Elfxx_Half    vna_other; // .gnu.version 段中符号的版本值
+    Elfxx_Word    vna_name;  // 库名称 (如 GLIBC_2.17) 为相对 .dynstr 段偏移
+    Elfxx_Word    vna_next;  // 下一条记录相对本记录首地址的偏移
+} Elfxx_Vernaux;
+</code></pre>
+
+<p>实际仅须修改 <code>vna_hash</code> 和 <code>vna_name</code> ，前者实为后者的校验和。</p>
+
+<p>以下提供 2 种方法修改 <code>hello</code> 二进制文件，使其无须重编译就能运行于 RHEL/CentOS 6 中。</p>
+
+<h2>通过 dd 修改</h2>
+
+<pre><code class="bash"># 复制 hello 偏移 0x538 + 0x10 = 0x548 的 4 byte 至文件 glibc225_vna_hash ；
+dd if=hello of=glibc225_vna_hash skip=$((16#548)) bs=1 count=4
+
+# 复制 hello 偏移 0x538 + 0x10 + 0x08 = 0x550 的 4 byte 至文件 glibc225_vna_hash
+dd if=hello of=glibc225_vna_name skip=$((16#550)) bs=1 count=4
+</code></pre>
+
+<ul>
+<li><code>0x538</code> 为 <code>.gnu.version_r</code> 段首地址。</li>
+<li><code>0x10</code> 为 <code>GLIBC_2.2.5</code> 记录的段偏移，即 <code>Elfxx_Vernaux::vna_hash</code> 偏移。</li>
+<li><code>0x08</code> 为 <code>GLIBC_2.2.5</code> 记录内 <code>Elfxx_Vernaux::vna_name</code> 偏移。</li>
+</ul>
+
+
+<p>为保持 <code>hello</code> 不改变， 修改 <code>hello</code> 至 <code>hello-dd</code></p>
+
+<pre><code class="bash">cp hello hello-dd
+
+# 复制 glibc225_vna_hash 至 hello-dd 偏移 0x530 + 0x20 = 0x558
+dd if=glibc225_vna_hash of=hello-dd seek=$((16#558)) bs=1 conv=notrunc
+
+# 复制 glibc225_vna_name 至 hello-dd 偏移 0x530 + 0x20 + 0x08 = 0x560
+dd if=glibc225_vna_name of=hello-dd seek=$((16#560)) bs=1 conv=notrunc
+</code></pre>
+
+<ul>
+<li><code>0x20</code> 为 <code>GLIBC_2.1.7</code> 记录的段偏移，即 <code>Elfxx_Vernaux::vna_hash</code> 偏移。</li>
+<li><code>0x08</code> 为 <code>GLIBC_2.1.7</code> 记录内 <code>Elfxx_Vernaux::vna_name</code> 偏移。</li>
+</ul>
+
+
+<p>通过 <code>readelf -sV hello</code> 观察修改是否生效：</p>
+
+<pre><code>Symbol table '.dynsym' contains 8 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     ......
+     2: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND clock_gettime@GLIBC_2.2.5 (2)
+     3: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND printf@GLIBC_2.2.5 (3)
+     ......
+
+Version symbols section '.gnu.version' contains 8 entries:
+ Addr: 0x0000000000000526  Offset: 0x000526  Link: 4 (.dynsym)
+  000:   0 (*local*)       0 (*local*)       2 (GLIBC_2.2.5)   3 (GLIBC_2.2.5)
+  ......
+
+Version needs section '.gnu.version_r' contains 1 entry:
+ Addr: 0x0000000000000538  Offset: 0x000538  Link: 26 (.dynstr)
+  000000: Version: 1  File: libc.so.6  Cnt: 2
+  0x0010:   Name: GLIBC_2.2.5  Flags: none  Version: 3
+  0x0020:   Name: GLIBC_2.2.5  Flags: none  Version: 2
+</code></pre>
+
+<p>最后，将 <code>librt.so.1</code> 添加至 <code>hello-dd</code> 的库依赖列表中。</p>
+
+<pre><code class="bash">patchelf --add-needed librt.so.1 hello-dd
+</code></pre>
+
+<h2>通过 LIEF</h2>
+
+<p><a href="https://lief.quarkslab.com/doc/latest/intro.html">LIEF</a> 是一个能分析和修改 ELF , PE , MachO 和 Android 格式的库，它提供了 C/C++ 和 Python 的 API.</p>
+
+<p>以下通过 LIEF 的 Python API 达到上述同样的效果。</p>
+
+<h3>安装</h3>
+
+<pre><code class="bash">pip3 install lief
+</code></pre>
+
+<h3>写脚本</h3>
+
+<p>创建 <code>lief-hello.py</code> :</p>
+
+<pre><code class="python">import lief
+
+
+binary = lief.parse('hello')
+glibc225_aux = clock_gettime_aux = None
+
+for i in binary.imported_symbols:
+    # 查找 GLIBC_2.2.5 的 symbol_version_auxiliary 记录，
+    if i.symbol_version.symbol_version_auxiliary.name == 'GLIBC_2.2.5':
+        glibc225_aux = i.symbol_version.symbol_version_auxiliary
+    # 查找 clock_gettime 的 symbol_version_auxiliary 记录，
+    elif i.name == 'clock_gettime':
+        clock_gettime_aux = i.symbol_version.symbol_version_auxiliary
+
+# 复制 GLIBC_2.2.5 记录 name 和 hash 至 clock_gettime 记录对应字段中。
+if glibc225_aux and clock_gettime_aux:
+    clock_gettime_aux.name = glibc225_aux.name
+    clock_gettime_aux.hash = glibc225_aux.hash
+    binary.add_library('librt.so.1')  # 相当于 patchelf --add-needed librt.so.1
+    binary.write('hello-lief')
+</code></pre>
+
+<p>以上 <code>symbol_version_auxiliary</code> 相当于前述 <code>Elfxx_Vernaux</code></p>
+
+<h3>执行脚本</h3>
+
+<p>执行 <code>python3 lief-hello.py</code> 将生成 <code>hello-lief</code> 。</p>
+
+<p>通过 <code>readelf -sV hello-lief</code> 观察修改是否生效：</p>
+
+<pre><code>Symbol table '.dynsym' contains 8 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     ......
+     2: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND clock_gettime@GLIBC_2.2.5 (2)
+     3: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND printf@GLIBC_2.2.5 (3)
+     ......
+
+Version symbols section '.gnu.version' contains 8 entries:
+ Addr: 0x0000000000002526  Offset: 0x002526  Link: 6 (.dynsym)
+  000:   0 (*local*)       0 (*local*)       2 (GLIBC_2.2.5)   3 (GLIBC_2.2.5)
+  ......
+
+Version needs section '.gnu.version_r' contains 1 entry:
+ Addr: 0x0000000000002538  Offset: 0x002538  Link: 7 (.dynstr)
+  000000: Version: 1  File: libc.so.6  Cnt: 2
+  0x0010:   Name: GLIBC_2.2.5  Flags: none  Version: 3
+  0x0020:   Name: GLIBC_2.2.5  Flags: none  Version: 2
+</code></pre>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[MakeProjectCreator (MPC) 简介]]></title>
