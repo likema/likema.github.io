@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2021-06-04T07:25:12+00:00</updated>
+  <updated>2021-08-15T13:21:11+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,315 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[通过 LIEF 修改 ELF 解决 glibc 兼容性问题]]></title>
+    <link href="http://www.malike.net.cn/blog/2021/08/15/modify-elf-by-lief/"/>
+    <updated>2021-08-15T21:25:15+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2021/08/15/modify-elf-by-lief</id>
+    <content type="html"><![CDATA[<p>数月前，我读了 <a href="https://mp.weixin.qq.com/s/2NNqYGYcCo2TEX4yfqG0qQ">Linux 修改 ELF 解决 glibc 兼容性问题</a> ，颇受启发，但暂无用武之地。</p>
+
+<p>最近，我遇到了几乎一样的问题，即 <code>clock_gettime</code> 兼容性。</p>
+
+<h2>最小化问题</h2>
+
+<p>为了将问题最小化，这里我以 <code>hello.c</code> 模拟该问题：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &lt;stdio.h&gt;</span>
+</span><span class='line'><span class="cp">#include &lt;time.h&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">struct</span> <span class="n">timespec</span> <span class="n">ts</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">clock_gettime</span><span class="p">(</span><span class="n">CLOCK_REALTIME</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ts</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%lu, %ld</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">ts</span><span class="p">.</span><span class="n">tv_sec</span><span class="p">,</span> <span class="n">ts</span><span class="p">.</span><span class="n">tv_nsec</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在 Ubuntu 20.04 中，用系统内置 GCC 9.3.0 构建它：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gcc -fno-stack-protector -o hello hello.c -s
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>-fno-stack-protector</code> : 禁用 stack 保护特性。目的为最小化未定义符号，最小化问题场景。</li>
+<li><code>-s</code> : 除去调试相关符号，目的同上。</li>
+</ul>
+
+
+<p>通过 <code>readelf -sV hello</code> 展示其符号：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Symbol table <span class="s1">&#39;.dynsym&#39;</span> contains <span class="m">8</span> entries:
+</span><span class='line'>   Num:    Value          Size Type    Bind   Vis      Ndx Name
+</span><span class='line'>     .....
+</span><span class='line'>     2: <span class="m">0000000000000000</span>     <span class="m">0</span> FUNC    GLOBAL DEFAULT  UND clock_gettime@GLIBC_2.17 <span class="o">(</span>2<span class="o">)</span>
+</span><span class='line'>     3: <span class="m">0000000000000000</span>     <span class="m">0</span> FUNC    GLOBAL DEFAULT  UND <span class="nb">printf</span>@GLIBC_2.2.5 <span class="o">(</span>3<span class="o">)</span>
+</span><span class='line'>     ......
+</span><span class='line'>
+</span><span class='line'>Version symbols section <span class="s1">&#39;.gnu.version&#39;</span> contains <span class="m">8</span> entries:
+</span><span class='line'> Addr: 0x0000000000000526  Offset: 0x000526  Link: <span class="m">6</span> <span class="o">(</span>.dynsym<span class="o">)</span>
+</span><span class='line'>  000:   <span class="m">0</span> <span class="o">(</span>*local*<span class="o">)</span>       <span class="m">0</span> <span class="o">(</span>*local*<span class="o">)</span>       <span class="m">2</span> <span class="o">(</span>GLIBC_2.17<span class="o">)</span>    <span class="m">3</span> <span class="o">(</span>GLIBC_2.2.5<span class="o">)</span>
+</span><span class='line'>  ......
+</span><span class='line'>
+</span><span class='line'>Version needs section <span class="s1">&#39;.gnu.version_r&#39;</span> contains <span class="m">1</span> entry:
+</span><span class='line'> Addr: 0x0000000000000538  Offset: 0x000538  Link: <span class="m">7</span> <span class="o">(</span>.dynstr<span class="o">)</span>
+</span><span class='line'>  000000: Version: <span class="m">1</span>  File: libc.so.6  Cnt: 2
+</span><span class='line'>  0x0010:   Name: GLIBC_2.2.5  Flags: none  Version: 3
+</span><span class='line'>  0x0020:   Name: GLIBC_2.17  Flags: none  Version: 2
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>问题在于修改 <code>.gnu.version_r</code> 段偏移 <code>0x0020</code> 的相关值。回顾 <code>Elfxx_Vernaux</code> 结构：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">Elfxx_Word</span>    <span class="n">vna_hash</span><span class="p">;</span>  <span class="c1">// 库名称 (如 GLIBC_2.17) 的 hash 值</span>
+</span><span class='line'>    <span class="n">Elfxx_Half</span>    <span class="n">vna_flags</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">Elfxx_Half</span>    <span class="n">vna_other</span><span class="p">;</span> <span class="c1">// .gnu.version 段中符号的版本值</span>
+</span><span class='line'>    <span class="n">Elfxx_Word</span>    <span class="n">vna_name</span><span class="p">;</span>  <span class="c1">// 库名称 (如 GLIBC_2.17) 为相对 .dynstr 段偏移</span>
+</span><span class='line'>    <span class="n">Elfxx_Word</span>    <span class="n">vna_next</span><span class="p">;</span>  <span class="c1">// 下一条记录相对本记录首地址的偏移</span>
+</span><span class='line'><span class="p">}</span> <span class="n">Elfxx_Vernaux</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>实际仅须修改 <code>vna_hash</code> 和 <code>vna_name</code> ，前者实为后者的校验和。</p>
+
+<p>以下提供 2 种方法修改 <code>hello</code> 二进制文件，使其无须重编译就能运行于 RHEL/CentOS 6 中。</p>
+
+<h2>通过 dd 修改</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># 复制 hello 偏移 0x538 + 0x10 = 0x548 的 4 byte 至文件 glibc225_vna_hash ；</span>
+</span><span class='line'>dd <span class="k">if</span><span class="o">=</span>hello <span class="nv">of</span><span class="o">=</span>glibc225_vna_hash <span class="nv">skip</span><span class="o">=</span><span class="k">$((</span><span class="m">16#548</span><span class="k">))</span> <span class="nv">bs</span><span class="o">=</span><span class="m">1</span> <span class="nv">count</span><span class="o">=</span>4
+</span><span class='line'>
+</span><span class='line'><span class="c"># 复制 hello 偏移 0x538 + 0x10 + 0x08 = 0x550 的 4 byte 至文件 glibc225_vna_hash</span>
+</span><span class='line'>dd <span class="k">if</span><span class="o">=</span>hello <span class="nv">of</span><span class="o">=</span>glibc225_vna_name <span class="nv">skip</span><span class="o">=</span><span class="k">$((</span><span class="m">16#550</span><span class="k">))</span> <span class="nv">bs</span><span class="o">=</span><span class="m">1</span> <span class="nv">count</span><span class="o">=</span>4
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>0x538</code> 为 <code>.gnu.version_r</code> 段首地址。</li>
+<li><code>0x10</code> 为 <code>GLIBC_2.2.5</code> 记录的段偏移，即 <code>Elfxx_Vernaux::vna_hash</code> 偏移。</li>
+<li><code>0x08</code> 为 <code>GLIBC_2.2.5</code> 记录内 <code>Elfxx_Vernaux::vna_name</code> 偏移。</li>
+</ul>
+
+
+<p>为保持 <code>hello</code> 不改变， 修改 <code>hello</code> 至 <code>hello-dd</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>cp hello hello-dd
+</span><span class='line'>
+</span><span class='line'><span class="c"># 复制 glibc225_vna_hash 至 hello-dd 偏移 0x530 + 0x20 = 0x558</span>
+</span><span class='line'>dd <span class="k">if</span><span class="o">=</span>glibc225_vna_hash <span class="nv">of</span><span class="o">=</span>hello-dd <span class="nv">seek</span><span class="o">=</span><span class="k">$((</span><span class="m">16#558</span><span class="k">))</span> <span class="nv">bs</span><span class="o">=</span><span class="m">1</span> <span class="nv">conv</span><span class="o">=</span>notrunc
+</span><span class='line'>
+</span><span class='line'><span class="c"># 复制 glibc225_vna_name 至 hello-dd 偏移 0x530 + 0x20 + 0x08 = 0x560</span>
+</span><span class='line'>dd <span class="k">if</span><span class="o">=</span>glibc225_vna_name <span class="nv">of</span><span class="o">=</span>hello-dd <span class="nv">seek</span><span class="o">=</span><span class="k">$((</span><span class="m">16#560</span><span class="k">))</span> <span class="nv">bs</span><span class="o">=</span><span class="m">1</span> <span class="nv">conv</span><span class="o">=</span>notrunc
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>0x20</code> 为 <code>GLIBC_2.1.7</code> 记录的段偏移，即 <code>Elfxx_Vernaux::vna_hash</code> 偏移。</li>
+<li><code>0x08</code> 为 <code>GLIBC_2.1.7</code> 记录内 <code>Elfxx_Vernaux::vna_name</code> 偏移。</li>
+</ul>
+
+
+<p>通过 <code>readelf -sV hello</code> 观察修改是否生效：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Symbol table <span class="s1">&#39;.dynsym&#39;</span> contains <span class="m">8</span> entries:
+</span><span class='line'>   Num:    Value          Size Type    Bind   Vis      Ndx Name
+</span><span class='line'>     ......
+</span><span class='line'>     2: <span class="m">0000000000000000</span>     <span class="m">0</span> FUNC    GLOBAL DEFAULT  UND clock_gettime@GLIBC_2.2.5 <span class="o">(</span>2<span class="o">)</span>
+</span><span class='line'>     3: <span class="m">0000000000000000</span>     <span class="m">0</span> FUNC    GLOBAL DEFAULT  UND <span class="nb">printf</span>@GLIBC_2.2.5 <span class="o">(</span>3<span class="o">)</span>
+</span><span class='line'>     ......
+</span><span class='line'>
+</span><span class='line'>Version symbols section <span class="s1">&#39;.gnu.version&#39;</span> contains <span class="m">8</span> entries:
+</span><span class='line'> Addr: 0x0000000000000526  Offset: 0x000526  Link: <span class="m">4</span> <span class="o">(</span>.dynsym<span class="o">)</span>
+</span><span class='line'>  000:   <span class="m">0</span> <span class="o">(</span>*local*<span class="o">)</span>       <span class="m">0</span> <span class="o">(</span>*local*<span class="o">)</span>       <span class="m">2</span> <span class="o">(</span>GLIBC_2.2.5<span class="o">)</span>   <span class="m">3</span> <span class="o">(</span>GLIBC_2.2.5<span class="o">)</span>
+</span><span class='line'>  ......
+</span><span class='line'>
+</span><span class='line'>Version needs section <span class="s1">&#39;.gnu.version_r&#39;</span> contains <span class="m">1</span> entry:
+</span><span class='line'> Addr: 0x0000000000000538  Offset: 0x000538  Link: <span class="m">26</span> <span class="o">(</span>.dynstr<span class="o">)</span>
+</span><span class='line'>  000000: Version: <span class="m">1</span>  File: libc.so.6  Cnt: 2
+</span><span class='line'>  0x0010:   Name: GLIBC_2.2.5  Flags: none  Version: 3
+</span><span class='line'>  0x0020:   Name: GLIBC_2.2.5  Flags: none  Version: 2
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最后，将 <code>librt.so.1</code> 添加至 <code>hello-dd</code> 的库依赖列表中。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>patchelf --add-needed librt.so.1 hello-dd
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>通过 LIEF</h2>
+
+<p><a href="https://lief.quarkslab.com/doc/latest/intro.html">LIEF</a> 是一个能分析和修改 ELF , PE , MachO 和 Android 格式的库，它提供了 C/C++ 和 Python 的 API.</p>
+
+<p>以下通过 LIEF 的 Python API 达到上述同样的效果。</p>
+
+<h3>安装</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>pip3 install lief
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>写脚本</h3>
+
+<p>创建 <code>lief-hello.py</code> :</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">lief</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="n">binary</span> <span class="o">=</span> <span class="n">lief</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s">&#39;hello&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="n">glibc225_aux</span> <span class="o">=</span> <span class="n">clock_gettime_aux</span> <span class="o">=</span> <span class="bp">None</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">binary</span><span class="o">.</span><span class="n">imported_symbols</span><span class="p">:</span>
+</span><span class='line'>    <span class="c"># 查找 GLIBC_2.2.5 的 symbol_version_auxiliary 记录，</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">symbol_version</span><span class="o">.</span><span class="n">symbol_version_auxiliary</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;GLIBC_2.2.5&#39;</span><span class="p">:</span>
+</span><span class='line'>        <span class="n">glibc225_aux</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">symbol_version</span><span class="o">.</span><span class="n">symbol_version_auxiliary</span>
+</span><span class='line'>    <span class="c"># 查找 clock_gettime 的 symbol_version_auxiliary 记录，</span>
+</span><span class='line'>    <span class="k">elif</span> <span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;clock_gettime&#39;</span><span class="p">:</span>
+</span><span class='line'>        <span class="n">clock_gettime_aux</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">symbol_version</span><span class="o">.</span><span class="n">symbol_version_auxiliary</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># 复制 GLIBC_2.2.5 记录 name 和 hash 至 clock_gettime 记录对应字段中。</span>
+</span><span class='line'><span class="k">if</span> <span class="n">glibc225_aux</span> <span class="ow">and</span> <span class="n">clock_gettime_aux</span><span class="p">:</span>
+</span><span class='line'>    <span class="n">clock_gettime_aux</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">glibc225_aux</span><span class="o">.</span><span class="n">name</span>
+</span><span class='line'>    <span class="n">clock_gettime_aux</span><span class="o">.</span><span class="n">hash</span> <span class="o">=</span> <span class="n">glibc225_aux</span><span class="o">.</span><span class="n">hash</span>
+</span><span class='line'>    <span class="n">binary</span><span class="o">.</span><span class="n">add_library</span><span class="p">(</span><span class="s">&#39;librt.so.1&#39;</span><span class="p">)</span>  <span class="c"># 相当于 patchelf --add-needed librt.so.1</span>
+</span><span class='line'>    <span class="n">binary</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;hello-lief&#39;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>以上 <code>symbol_version_auxiliary</code> 相当于前述 <code>Elfxx_Vernaux</code></p>
+
+<h3>执行脚本</h3>
+
+<p>执行 <code>python3 lief-hello.py</code> 将生成 <code>hello-lief</code> 。</p>
+
+<p>通过 <code>readelf -sV hello-lief</code> 观察修改是否生效：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">Symbol</span> <span class="n">table</span> <span class="s">&#39;.dynsym&#39;</span> <span class="n">contains</span> <span class="mi">8</span> <span class="n">entries</span><span class="p">:</span>
+</span><span class='line'>   <span class="n">Num</span><span class="p">:</span>    <span class="n">Value</span>          <span class="n">Size</span> <span class="n">Type</span>    <span class="n">Bind</span>   <span class="n">Vis</span>      <span class="n">Ndx</span> <span class="n">Name</span>
+</span><span class='line'>     <span class="o">......</span>
+</span><span class='line'>     <span class="mi">2</span><span class="p">:</span> <span class="mo">0000000000000000</span>     <span class="mi">0</span> <span class="n">FUNC</span>    <span class="n">GLOBAL</span> <span class="n">DEFAULT</span>  <span class="n">UND</span> <span class="n">clock_gettime</span><span class="nd">@GLIBC_2.2.5</span> <span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</span><span class='line'>     <span class="mi">3</span><span class="p">:</span> <span class="mo">0000000000000000</span>     <span class="mi">0</span> <span class="n">FUNC</span>    <span class="n">GLOBAL</span> <span class="n">DEFAULT</span>  <span class="n">UND</span> <span class="n">printf</span><span class="nd">@GLIBC_2.2.5</span> <span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</span><span class='line'>     <span class="o">......</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Version</span> <span class="n">symbols</span> <span class="n">section</span> <span class="s">&#39;.gnu.version&#39;</span> <span class="n">contains</span> <span class="mi">8</span> <span class="n">entries</span><span class="p">:</span>
+</span><span class='line'> <span class="n">Addr</span><span class="p">:</span> <span class="mh">0x0000000000002526</span>  <span class="n">Offset</span><span class="p">:</span> <span class="mh">0x002526</span>  <span class="n">Link</span><span class="p">:</span> <span class="mi">6</span> <span class="p">(</span><span class="o">.</span><span class="n">dynsym</span><span class="p">)</span>
+</span><span class='line'>  <span class="mo">000</span><span class="p">:</span>   <span class="mi">0</span> <span class="p">(</span><span class="o">*</span><span class="n">local</span><span class="o">*</span><span class="p">)</span>       <span class="mi">0</span> <span class="p">(</span><span class="o">*</span><span class="n">local</span><span class="o">*</span><span class="p">)</span>       <span class="mi">2</span> <span class="p">(</span><span class="n">GLIBC_2</span><span class="o">.</span><span class="mf">2.5</span><span class="p">)</span>   <span class="mi">3</span> <span class="p">(</span><span class="n">GLIBC_2</span><span class="o">.</span><span class="mf">2.5</span><span class="p">)</span>
+</span><span class='line'>  <span class="o">......</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Version</span> <span class="n">needs</span> <span class="n">section</span> <span class="s">&#39;.gnu.version_r&#39;</span> <span class="n">contains</span> <span class="mi">1</span> <span class="n">entry</span><span class="p">:</span>
+</span><span class='line'> <span class="n">Addr</span><span class="p">:</span> <span class="mh">0x0000000000002538</span>  <span class="n">Offset</span><span class="p">:</span> <span class="mh">0x002538</span>  <span class="n">Link</span><span class="p">:</span> <span class="mi">7</span> <span class="p">(</span><span class="o">.</span><span class="n">dynstr</span><span class="p">)</span>
+</span><span class='line'>  <span class="mo">000000</span><span class="p">:</span> <span class="n">Version</span><span class="p">:</span> <span class="mi">1</span>  <span class="n">File</span><span class="p">:</span> <span class="n">libc</span><span class="o">.</span><span class="n">so</span><span class="o">.</span><span class="mi">6</span>  <span class="n">Cnt</span><span class="p">:</span> <span class="mi">2</span>
+</span><span class='line'>  <span class="mh">0x0010</span><span class="p">:</span>   <span class="n">Name</span><span class="p">:</span> <span class="n">GLIBC_2</span><span class="o">.</span><span class="mf">2.5</span>  <span class="n">Flags</span><span class="p">:</span> <span class="n">none</span>  <span class="n">Version</span><span class="p">:</span> <span class="mi">3</span>
+</span><span class='line'>  <span class="mh">0x0020</span><span class="p">:</span>   <span class="n">Name</span><span class="p">:</span> <span class="n">GLIBC_2</span><span class="o">.</span><span class="mf">2.5</span>  <span class="n">Flags</span><span class="p">:</span> <span class="n">none</span>  <span class="n">Version</span><span class="p">:</span> <span class="mi">2</span>
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[CentOS 8 上安装 LXC]]></title>
@@ -60,6 +369,10 @@
 
 <h2>二、配置 LXC 网络</h2>
 
+<p>LXC 存在 3 种网络：</p>
+
+<h3>虚拟网络</h3>
+
 <p>创建虚拟网卡 <code>lxcbr0</code> ，作为容器虚拟网络的网桥：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -82,6 +395,24 @@
 </span><span class='line'><span class="s">EOF</span>
 </span></code></pre></td></tr></table></div></figure>
 
+
+<h3>共享 host 网络</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="s1">&#39;lxc.net.0.type = none&#39;</span> &gt; /etc/lxc/default.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>因容器与 host 在同一网络名字空间，容器中进程监听端口不能与 host 中端口相同，否则监听失败，如 <code>sshd</code></p>
+
+<h3>loopback 网络</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="s1">&#39;lxc.net.0.type = empty&#39;</span> &gt; /etc/lxc/default.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>默认不配置或如上述，容器仅存在 loopback 网络。</p>
 
 <h2>三、创建容器</h2>
 
@@ -202,6 +533,7 @@
 <h2>七、参考</h2>
 
 <ul>
+<li><a href="https://www.oreilly.com/library/view/containerization-with-lxc/9781785888946/ch05s02.html">Connecting LXC to the host network</a></li>
 <li><a href="https://fedoraproject.org/wiki/LXC">Fedora LXC</a></li>
 <li><a href="https://www.cyberciti.biz/faq/how-to-set-up-a-firewall-using-firewalld-on-centos-8/">How to set up a firewall using FirewallD on CentOS 8</a></li>
 </ul>
@@ -4574,116 +4906,6 @@
 <li>加密隧道：保证网络访问的数据安全。</li>
 </ul>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[创建通过SSH访问的chroot]]></title>
-    <link href="http://www.malike.net.cn/blog/2014/08/07/create-chroot-for-ssh-access/"/>
-    <updated>2014-08-07T18:09:48+08:00</updated>
-    <id>http://www.malike.net.cn/blog/2014/08/07/create-chroot-for-ssh-access</id>
-    <content type="html"><![CDATA[<p>我的工作环境是Ubuntu，然而经常需要CentOS来编译或测试。一般存在3种解决办法：</p>
-
-<ul>
-<li>创建VirtualBox或KVM虚拟机：
-
-<ul>
-<li>优点：部署容易，且可以运行各种应用（如Oracle）。</li>
-<li>缺点：运行速度相对LXC和chroot慢，特别是I/O.</li>
-</ul>
-</li>
-<li>创建CentOS的LXC：
-
-<ul>
-<li>优点：运行速度快，且具有独立IP，可以通过SSH访问。</li>
-<li>缺点: 需要修改启动脚本。</li>
-</ul>
-</li>
-<li>创建CentOS的chroot：
-
-<ul>
-<li>优点：不需要修改任何配置。</li>
-<li>缺点：无法直接通过SSH访问，且需要root权限才能运行chroot。</li>
-</ul>
-</li>
-</ul>
-
-
-<h2>创建CentOS的chroot</h2>
-
-<p>具体参看<a href="http://www.malike.net.cn/blog/2014/07/15/rinse-tutorial/">Rinse简介</a></p>
-
-<h2>创建SSH用户（或组）</h2>
-
-<p>在当前OS环境中，创建用户centos6.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo useradd -m -s /bin/bash centos6
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>获取centos6的uid和gid</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>id -u centos6
-</span><span class='line'>id -g centos6
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在chroot环境中创建同名用户，且保持uid和gid相同。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo chroot /var/lib/centos-6 /bin/bash
-</span><span class='line'>groupadd -g &lt;gid&gt; centos6
-</span><span class='line'>useradd -s /bin/bash -m -u &lt;uid&gt; -g centos6 centos6
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>配置sshd</h2>
-
-<p>将下述内容追加至/etc/ssh/sshd_config</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>Match group centos6
-</span><span class='line'>  ChrootDirectory /var/lib/centos-6
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>确保/var/lib/centos-6的每一级目录的属主为root，且其他用户或组没有写权限。</p>
-
-<p>然后，重启ssh</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>service ssh restart
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这样保证centos6组的用户登录ssh时，chroot至/var/lib/centos-6目录中。</p>
-
-<h2>配置dev, proc和sysfs</h2>
-
-<p>chroot环境中rpm安装和卸载的前/后置脚本依赖dev, proc和sysfs，否则可能将造成安装和卸载错误。</p>
-
-<p>在/etc/fstab中，增加proc和sysfs的挂载选项</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>proc /var/lib/centos-6/proc proc  defaults      <span class="m">0</span> 0
-</span><span class='line'>none /var/lib/centos-6/sys  sysfs defaults      <span class="m">0</span> 0
-</span><span class='line'>/dev /var/lib/centos-6/dev  none  defaults,bind <span class="m">0</span> 0
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>配置ssh密钥登录</h2>
-
-<p>chroot的ssh密钥登录与常规情况的唯一区别在于公钥应存放在当前OS环境（而非chroot环境）的~/.ssh/authorized_keys，因为sshd在执行chroot之前需要检查公钥是否正确。</p>
-
-<p>因此，本例中应该存放在当前OS的/home/centos-6/.ssh/authorized_keys.</p>
 ]]></content>
   </entry>
   

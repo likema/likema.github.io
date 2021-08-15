@@ -4,7 +4,7 @@
   <title><![CDATA[Category: lxc | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/lxc/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2021-06-04T07:25:12+00:00</updated>
+  <updated>2021-08-15T13:21:11+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -50,6 +50,10 @@ make install
 
 <h2>二、配置 LXC 网络</h2>
 
+<p>LXC 存在 3 种网络：</p>
+
+<h3>虚拟网络</h3>
+
 <p>创建虚拟网卡 <code>lxcbr0</code> ，作为容器虚拟网络的网桥：</p>
 
 <pre><code class="bash">echo 'USE_LXC_BRIDGE="true"' &gt; /etc/sysconfig/lxc
@@ -62,6 +66,20 @@ lxc.net.0.flags = up
 lxc.net.0.link = lxcbr0
 EOF
 </code></pre>
+
+<h3>共享 host 网络</h3>
+
+<pre><code class="bash">echo 'lxc.net.0.type = none' &gt; /etc/lxc/default.conf
+</code></pre>
+
+<p>因容器与 host 在同一网络名字空间，容器中进程监听端口不能与 host 中端口相同，否则监听失败，如 <code>sshd</code></p>
+
+<h3>loopback 网络</h3>
+
+<pre><code class="bash">echo 'lxc.net.0.type = empty' &gt; /etc/lxc/default.conf
+</code></pre>
+
+<p>默认不配置或如上述，容器仅存在 loopback 网络。</p>
 
 <h2>三、创建容器</h2>
 
@@ -150,6 +168,7 @@ firewall-cmd --reload
 <h2>七、参考</h2>
 
 <ul>
+<li><a href="https://www.oreilly.com/library/view/containerization-with-lxc/9781785888946/ch05s02.html">Connecting LXC to the host network</a></li>
 <li><a href="https://fedoraproject.org/wiki/LXC">Fedora LXC</a></li>
 <li><a href="https://www.cyberciti.biz/faq/how-to-set-up-a-firewall-using-firewalld-on-centos-8/">How to set up a firewall using FirewallD on CentOS 8</a></li>
 </ul>

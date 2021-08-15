@@ -154,6 +154,10 @@ yum install -y lxc lxc-devel lxc-templates dnsmasq iptables debootstrap epel-rel
 
 <h2>二、配置 LXC 网络</h2>
 
+<p>LXC 存在 3 种网络：</p>
+
+<h3>虚拟网络</h3>
+
 <p>创建虚拟网卡 <code>lxcbr0</code> ，作为容器虚拟网络的网桥：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -176,6 +180,24 @@ yum install -y lxc lxc-devel lxc-templates dnsmasq iptables debootstrap epel-rel
 </span><span class='line'><span class="s">EOF</span>
 </span></code></pre></td></tr></table></div></figure>
 
+
+<h3>共享 host 网络</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="s1">&#39;lxc.net.0.type = none&#39;</span> &gt; /etc/lxc/default.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>因容器与 host 在同一网络名字空间，容器中进程监听端口不能与 host 中端口相同，否则监听失败，如 <code>sshd</code></p>
+
+<h3>loopback 网络</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="s1">&#39;lxc.net.0.type = empty&#39;</span> &gt; /etc/lxc/default.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>默认不配置或如上述，容器仅存在 loopback 网络。</p>
 
 <h2>三、创建容器</h2>
 
@@ -296,6 +318,7 @@ yum install -y lxc lxc-devel lxc-templates dnsmasq iptables debootstrap epel-rel
 <h2>七、参考</h2>
 
 <ul>
+<li><a href="https://www.oreilly.com/library/view/containerization-with-lxc/9781785888946/ch05s02.html">Connecting LXC to the host network</a></li>
 <li><a href="https://fedoraproject.org/wiki/LXC">Fedora LXC</a></li>
 <li><a href="https://www.cyberciti.biz/faq/how-to-set-up-a-firewall-using-firewalld-on-centos-8/">How to set up a firewall using FirewallD on CentOS 8</a></li>
 </ul>
@@ -350,6 +373,8 @@ yum install -y lxc lxc-devel lxc-templates dnsmasq iptables debootstrap epel-rel
         <a class="basic-alignment left" href="/blog/2021/03/15/fail2ban-tutorial-1/" title="Previous Post: Fail2Ban 简介 （一）">&laquo; Fail2Ban 简介 （一）</a>
       
       
+        <a class="basic-alignment right" href="/blog/2021/08/15/modify-elf-by-lief/" title="Next Post: 通过 LIEF 修改 ELF 解决 glibc 兼容性问题">通过 LIEF 修改 ELF 解决 glibc 兼容性问题 &raquo;</a>
+      
     </p>
   </footer>
 </article>
@@ -369,6 +394,10 @@ yum install -y lxc lxc-devel lxc-templates dnsmasq iptables debootstrap epel-rel
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2021/08/15/modify-elf-by-lief/">通过 LIEF 修改 ELF 解决 Glibc 兼容性问题</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2021/06/04/centos-8-lxc/">CentOS 8 上安装 LXC</a>
       </li>
     
@@ -382,10 +411,6 @@ yum install -y lxc lxc-devel lxc-templates dnsmasq iptables debootstrap epel-rel
     
       <li class="post">
         <a href="/blog/2020/05/05/lxd-tutorial-1/">LXD简介（一）</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2020/04/30/snap-tutorial/">Snap简介</a>
       </li>
     
   </ul>
@@ -425,7 +450,7 @@ yum install -y lxc lxc-devel lxc-templates dnsmasq iptables debootstrap epel-rel
 
 <section>
   <h1>Categories</h1>
-    <ul id="category-list"><li><a href='/blog/categories/ace'>ace (1)</a></li><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (2)</a></li><li><a href='/blog/categories/centos'>centos (1)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (2)</a></li><li><a href='/blog/categories/fail2ban'>fail2ban (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/linux'>linux (17)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lvm'>lvm (1)</a></li><li><a href='/blog/categories/lxc'>lxc (2)</a></li><li><a href='/blog/categories/lxd'>lxd (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (8)</a></li><li><a href='/blog/categories/redhat'>redhat (1)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/snap'>snap (2)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (13)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
+    <ul id="category-list"><li><a href='/blog/categories/ace'>ace (1)</a></li><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (1)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (3)</a></li><li><a href='/blog/categories/centos'>centos (1)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (2)</a></li><li><a href='/blog/categories/elf'>elf (1)</a></li><li><a href='/blog/categories/fail2ban'>fail2ban (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/lief'>lief (1)</a></li><li><a href='/blog/categories/linux'>linux (18)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lvm'>lvm (1)</a></li><li><a href='/blog/categories/lxc'>lxc (2)</a></li><li><a href='/blog/categories/lxd'>lxd (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (9)</a></li><li><a href='/blog/categories/redhat'>redhat (1)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/snap'>snap (2)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (13)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
 </section>
 
   
