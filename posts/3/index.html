@@ -9,8 +9,7 @@
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="我的工作环境是Ubuntu，然而经常需要CentOS来编译或测试。一般存在3种解决办法： 创建VirtualBox或KVM虚拟机： 优点：部署容易，且可以运行各种应用（如Oracle）。
-缺点：运行速度相对LXC和chroot慢，特别是I/O. 创建CentOS的LXC： 优点：运行速度快， &hellip;">
+  <meta name="description" content="SSH的功能非常强大，日常除了用于命令行远程登录服务器。它还具有神奇的隧道（tunnel）功能（也被称为SSH代理），可用于加密访问本地或远程主机的服务。 通常，SSH代理具有3种方式： SSH（正向）代理 通过参数-L [bind_address:]port:remote_host: &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +78,93 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/27/ssh-tunnel-tutorial/">SSH隧道简介</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-27T00:00:00+00:00" pubdate data-updated="true"></time>
+        
+           | <a href="/blog/2014/10/27/ssh-tunnel-tutorial/#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn/blog/2014/10/27/ssh-tunnel-tutorial/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>SSH的功能非常强大，日常除了用于命令行远程登录服务器。它还具有神奇的隧道（tunnel）功能（也被称为SSH代理），可用于加密访问本地或远程主机的服务。</p>
+
+<p>通常，SSH代理具有3种方式：</p>
+
+<h2>SSH（正向）代理</h2>
+
+<p>通过参数-L [bind_address:]port:remote_host:remote_port，将指定本地（客户端）端口转发至远程端口上。</p>
+
+<p><img src="/images/ssh-tunnel-proxy.png" alt="SSH Proxy" /></p>
+
+<p>如上图， hosta无法直接访问hostb，但它能直接SSH登录gateway；如此通过gateway，将hosta的端口X转发至hostb的端口Y上。相当于端口X和端口Y之间建立了加密隧道。</p>
+
+<p>一般来说，端口Y为hostb上某服务的监听端口。当建立隧道后，hosta将监听端口X。应用程序访问hosta的端口X，等同于访问hostb的端口Y。对于应用程序，hostb端口Y对应的服务就如同运行在hosta上。</p>
+
+<p>日常工作中，客户的网络常由于信息安全而被网关（或防火墙）隔离。当我们的软件在客户网络中某服务器发生问题时，我们常需奔赴客户现场进行调试。若客户存在某机器安装了SSH服务器，且能被外部访问。就可以利用SSH正向代理的方法，快速简便的登录被隔离的服务器并进行应用调试。</p>
+
+<h2>SSH反向代理</h2>
+
+<p>通过参数-R [bind_address:]port:remote_host:remote_port，将指定远程端口转发至本地（客户端）端口上。</p>
+
+<p><img src="/images/ssh-tunnel-reverse-proxy.png" alt="SSH Reverse Proxy" /></p>
+
+<p>如上图，hosta在防火墙内，无法被hostb直接访问。但它能直接SSH登录hostb；如此通过hostb，将hostb的端口X转发至hosta的端口Y上。该方法与SSH正向代理类似，所不同的是该隧道的访问方向是从服务端（hostb）至客户端(hosta），故被称为反向代理。</p>
+
+<p>其应用场景也与SSH正向代理类似，所不同的是若客户不存在可供外部访问的SSH服务器时，我们可以在外网建设一个SSH服务器给客户的被隔离服务器来建立隧道。如此，我们可以访问自己的SSH服务器对应端口来调试客户服务器的应用。</p>
+
+<p>更进一步，客户内网甚至不能访问外网，此时可利用客户内网一台笔记本（或台式机，它可以访问目标服务器）USB接上3G/4G手机来达到访问外部SSH服务器的目的。</p>
+
+<p><img src="/images/ssh-tunnel-reverse-proxy-mobile.png" alt="SSH Reverse Proxy Mobile" /></p>
+
+<h2>SSH动态代理</h2>
+
+<p>通过参数-D [bind_address:]port，利用远程服务器为访问出口，在本地建立SOCKS 4/5代理服务器。</p>
+
+<p>可以形象描绘为将本地应用的端口（SOCKS客户端端口），动态转发至远程。</p>
+
+<p><img src="/images/ssh-tunnel-dynamic-proxy.png" alt="SSH Dynamic Proxy" /></p>
+
+<p>该功能广为人知的应用场景为翻墙。如上图，在国外租用VPS（hostb），客户端（hosta）通过SSH动态代理端口X（SOCKS 4/5的端口）便可以访问被GFW封锁的网络。</p>
+
+<p>这种翻墙最大的优势在于</p>
+
+<ul>
+<li>低成本：国外廉价低配置VPS基本满足个人翻墙需求。</li>
+<li>服务端0配置：服务端只需要安装SSH服务端。</li>
+<li>客户端配置简单：客户端需要安装SSH客户端，以及一条命令。</li>
+<li>加密隧道：保证网络访问的数据安全。</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1737,268 +1823,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/02/19/git-buildpackage-1/">Git-buildpackage示例（一）</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-02-19T00:00:00+00:00" pubdate data-updated="true"></time>
-        
-           | <a href="/blog/2012/02/19/git-buildpackage-1/#disqus_thread"
-             data-disqus-identifier="http://www.malike.net.cn/blog/2012/02/19/git-buildpackage-1/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>在《为tolua的deb包作一个补丁》中，我介绍了如何利用quilt为Ubuntu已有包做一个补丁包的办法。可以看出quilt具有一定的版本管理能力，然而与流行版本管理系统相比，功能较弱也不灵活。</p>
-
-<p>从<a href="http://www.debian.org/doc/manuals/maint-guide/">Debian New Maintainers' Guide</a>中，了解到deb包的制作和维护管理已经与现有流行版本管理系统结合在了一块，其中一款工具为git-buildpackage，它将包制作和维护，特别是第三方补丁包维护，与git紧密的结合了起来。</p>
-
-<p>下面仍然以tolua的补丁制作为例，一步一步展示git-buildpackage的基本操作。</p>
-
-<ul>
-<li>安装必要的工具：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo apt-get install git-buildpackage build-essential debhelper quilt
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>下载libtolua-dev的源码（建立upstream目录单独存放Ubuntu的deb源码包是为了保证清洁和正确）：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>mkdir upstream
-</span><span class='line'>apt-get <span class="nb">source </span>libtolua-dev
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>导入upsteam的dsc文件（将生成与目录upstream同级的目录tolua）：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">cd</span> ..
-</span><span class='line'>git-import-dsc upstream/tolua_5.1.3-1.dsc
-</span><span class='line'><span class="nb">cd </span>tolua
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这时，运行</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>git log --format<span class="o">=</span>%d:%s
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>输出：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'> (HEAD, debian/5.1.3-1, master):Imported Debian patch 5.1.3-1
-</span><span class='line'> (upstream/5.1.3, upstream):Imported Upstream version 5.1.3</span></code></pre></td></tr></table></div></figure>
-
-
-<p>从下至上，首条提交导入了tolua 5.1.3的源码，次条提交导入了deb包维护者的deb包文件(debian/*)；并且建立了upstream和master两个分支，标签upstream/5.1.3位于upstream分支上，标签debian/5.1.3-1位于master分支头部。</p>
-
-<p>此外，upstream分支用于维护源码作者的发布版本更新情况，master分支用于维护deb包描述文件及其补丁文件。git-buildpackage工具集的正确运行将依赖于标签upstream/5.1.3和debian/5.1.3-1，不能随意删改。</p>
-
-<ul>
-<li>导入quilt patches到patch queue中——创建patch-queue/master分支，并将debian/patches/*逐一变成该分支的提交，并自动切换到该分支上：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>gbp-pq import
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>执行make后发现构建目标libtolua.a的生成目录lib不存在，这是git只针对文件做版本，所以upstream导入git时，该目录被忽略了。为此，我将src/lib/Makefile中</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nf">$T</span><span class="o">:</span> <span class="k">$(</span><span class="nv">OBJS</span><span class="k">)</span>
-</span><span class='line'>  <span class="k">$(</span>AR<span class="k">)</span> <span class="nv">$@</span> <span class="k">$(</span>OBJS<span class="k">)</span>
-</span><span class='line'>  <span class="k">$(</span>RANLIB<span class="k">)</span> <span class="nv">$@</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>修改为：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nf">$T</span><span class="o">:</span> <span class="k">$(</span><span class="nv">OBJS</span><span class="k">)</span>
-</span><span class='line'>  mkdir -p <span class="k">$(</span>@D<span class="k">)</span>
-</span><span class='line'>  <span class="k">$(</span>AR<span class="k">)</span> <span class="nv">$@</span> <span class="k">$(</span>OBJS<span class="k">)</span>
-</span><span class='line'>  <span class="k">$(</span>RANLIB<span class="k">)</span> <span class="nv">$@</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这样，它将在每次构建该目标时，创建该目标所在目录。更进一步不难发现，src/bin/tolua_lua.o和src/bin/toluabind.c为受版本控制的中间文件，将影响构建的正确运行。为此，删除这两个文件并提交日志。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>git rm -f src/bin/tolua_lua.o src/bin/toluabind.c
-</span><span class='line'>git commit -a -m <span class="s2">&quot;mkdir for tolua lib archive and remove temp files&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>此时，可以正确make该工程了。</p>
-
-<ul>
-<li>修复x86_64链接问题，将config文件中，如下内容</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nv">CFLAGS</span><span class="o">=</span> -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
-</span><span class='line'><span class="nv">CPPFLAGS</span><span class="o">=</span> -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>替换为</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nv">CFLAGS</span><span class="o">=</span> -fPIC -O2 -pipe -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
-</span><span class='line'><span class="nv">CPPFLAGS</span><span class="o">=</span> -fPIC -O2 -pipe  -g <span class="k">$(</span>WARN<span class="k">)</span> <span class="k">$(</span>INC<span class="k">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>并提交日志：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>git commit -a -m <span class="s2">&quot;Fix relocation R_X86_64_32 against &#39;.rodata&#39; erro for shared object.&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>导出patch-queue——将其分支提交逐一转化为debian/patches目录下的补丁文件（为保证正确运行，清理掉中间文件）：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>git clean -df
-</span><span class='line'>gbp-pq <span class="nb">export</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>指定版本号5.1.3-2自动生成snapshot的debian/changelog：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>git-dch -S -a -N 5.1.3-2
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>debian/changelog的新增内容如下：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>tolua (5.1.3-2~1.gbp896bed) UNRELEASED; urgency=low
-</span><span class='line'>
-</span><span class='line'>  ** SNAPSHOT build @896bede5a4eb6f3967cdfe94ea2ef419235e7183 **
-</span><span class='line'>
-</span><span class='line'>  * UNRELEASED
-</span><span class='line'>
-</span><span class='line'> -- Like Ma   Sun, 19 Feb 2012 01:07:06 +0800</span></code></pre></td></tr></table></div></figure>
-
-
-<p>提交相关修改：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>git add debian/changelog <span class="se">\</span>
-</span><span class='line'>      debian/patches/series <span class="se">\</span>
-</span><span class='line'>      debian/patches/0001-mkdir-for-tolua-lib-archive-and-remove-temp-files.patch <span class="se">\</span>
-</span><span class='line'>      debian/patches/0002-Fix-relocation-R_X86_64_32-against-.rodata-can-not-b.patch
-</span><span class='line'>git commit -m <span class="s2">&quot;Fix relocation R_X86_64_32 against &#39;.rodata&#39; error for shared object&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>测试构建新的deb包。为了避免污染当前环境，这里指定git首先导出源码至../tolua-build目录：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>git-buildpackage --git-export-dir<span class="o">=</span>../tolua-build --git-ignore-new
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>可以看出，上述debian/changelog新增信息，除版本号5.1.3-2外（新包的版本信息），并无实在意义，仅用于测试deb包的构建。</p>
-
-<ul>
-<li>生成release的版本信息，并构建release的deb包：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>git checkout src/bin/tolua_lua.o src/bin/toluabind.c
-</span><span class='line'>git-dch -R -a
-</span><span class='line'>git commit -a --amend
-</span><span class='line'>git-buildpackage --git-export-dir<span class="o">=</span>../tolua-build --git-ignore-new
-</span><span class='line'>git tag debian/5.1.3-2
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>注意，前面仅仅在patch-queue分支上删除的两个中间文件，并未在master分支上删除它们，所以重新checkout它们以保证后续构建的正确运行。</p>
-
-<p>这里的关键命令git-dch -R -a自动生成了release的版本信息，当然我们也可以根据需要再修改它们。最后一条命令，给master分支的HEAD加上标签debian/5.1.3-2，git-buildpackage将依赖于它才能继续正确工作。</p>
-
-<p>到此为止，我已经演示了git-buildpackage的补丁制作过程，可以观察../tolua-build目录中生成的文件，它们就是我们可以用于发布的deb包源码文件，形式上与ubuntu/debian中apt-get source得到的一样。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="4">&larr; Older</a>
@@ -2016,6 +1840,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2021/12/03/std-forward-list-tutorial/">Std::forward_list 简介</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2021/08/15/modify-elf-by-lief/">通过 LIEF 修改 ELF 解决 Glibc 兼容性问题</a>
       </li>
     
@@ -2029,10 +1857,6 @@
     
       <li class="post">
         <a href="/blog/2020/07/19/import-ubuntu-duplciate-root-vg/">如何导入 Ubuntu 重复 Root 卷组</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2020/05/05/lxd-tutorial-1/">LXD简介（一）</a>
       </li>
     
   </ul>
@@ -2072,7 +1896,7 @@
 
 <section>
   <h1>Categories</h1>
-    <ul id="category-list"><li><a href='/blog/categories/ace'>ace (1)</a></li><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (2)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (3)</a></li><li><a href='/blog/categories/centos'>centos (1)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (2)</a></li><li><a href='/blog/categories/elf'>elf (1)</a></li><li><a href='/blog/categories/fail2ban'>fail2ban (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glibc'>glibc (1)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/lief'>lief (1)</a></li><li><a href='/blog/categories/linux'>linux (18)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lvm'>lvm (1)</a></li><li><a href='/blog/categories/lxc'>lxc (2)</a></li><li><a href='/blog/categories/lxd'>lxd (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (9)</a></li><li><a href='/blog/categories/redhat'>redhat (1)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/snap'>snap (2)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (13)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
+    <ul id="category-list"><li><a href='/blog/categories/ace'>ace (1)</a></li><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (2)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (4)</a></li><li><a href='/blog/categories/centos'>centos (1)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (2)</a></li><li><a href='/blog/categories/elf'>elf (1)</a></li><li><a href='/blog/categories/fail2ban'>fail2ban (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glibc'>glibc (1)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/lief'>lief (1)</a></li><li><a href='/blog/categories/linux'>linux (18)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lvm'>lvm (1)</a></li><li><a href='/blog/categories/lxc'>lxc (2)</a></li><li><a href='/blog/categories/lxd'>lxd (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (9)</a></li><li><a href='/blog/categories/redhat'>redhat (1)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/snap'>snap (2)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (13)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
 </section>
 
   

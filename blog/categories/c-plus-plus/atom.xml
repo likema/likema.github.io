@@ -4,7 +4,7 @@
   <title><![CDATA[Category: c++ | Like的世界]]></title>
   <link href="http://www.malike.net.cn/blog/categories/c-plus-plus/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2021-08-15T13:26:55+00:00</updated>
+  <updated>2021-12-05T09:44:11+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,116 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[std::forward_list 简介]]></title>
+    <link href="http://www.malike.net.cn/blog/2021/12/03/std-forward-list-tutorial/"/>
+    <updated>2021-12-03T23:35:46+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2021/12/03/std-forward-list-tutorial</id>
+    <content type="html"><![CDATA[<p><a href="https://en.cppreference.com/w/cpp/container/forward_list"><code>std::forward_list</code></a> 为 C++ 11 STL 的 <strong>单向</strong> 链表:</p>
+
+<ul>
+<li>仅记录了首指针，未记录尾指针和链表长度，即无 <code>push_back</code> 和 <code>size</code> 方法。</li>
+<li>相比 <a href="https://en.cppreference.com/w/cpp/container/list"><code>std::list</code></a> （双向链表，以下简化为 <code>list</code>）
+
+<ul>
+<li>节约内存空间</li>
+<li>仅能 <strong>顺序访问</strong> ，无法 <strong>倒序访问</strong></li>
+<li><code>forward_list::sort</code> 时间复杂度 <strong>O(n log n)</strong> ，但效率不如 <code>list::sort</code> ，尤其链表包含大量元素时。</li>
+</ul>
+</li>
+</ul>
+
+
+<p>因 <code>forward_list</code> 与 <code>list</code> 大部分方法相同，这里仅介绍 <code>forward_list</code> 不具备的能力。</p>
+
+<h2>顺序插入</h2>
+
+<p>因无 <code>forward_list::push_back</code> 方法，顺序插入 <code>forward_list</code> 一组元素得依靠调用者 <strong>自行</strong> 保存尾指针。</p>
+
+<pre><code class="cpp">forward_list&lt;int&gt; fl;
+auto iter = fl.before_begin();
+
+for (int i = 0; i &lt; 9; ++i) {
+    iter = fl.insert_after(iter, i);
+}
+</code></pre>
+
+<p><a href="https://en.cppreference.com/w/cpp/container/forward_list/before_begin"><code>before_begin</code></a> 返回首元素之前的元素（placeholder）。该元素实际不存在，访问它将导致未定义行为。</p>
+
+<h2>顺序复制</h2>
+
+<ul>
+<li><code>back_inserter</code> 返回的 <code>std::back_insert_iterator</code> 要求容器实现了 <code>push_back</code> 方法。</li>
+<li><code>inserter</code> 返回的 <code>std::insert_iterator</code> 要求容器实现了 <code>insert</code> 方法。</li>
+</ul>
+
+
+<p>显然，两者皆不适用于 <code>forward_list</code> ，然 <code>inserter</code> 最接近：</p>
+
+<pre><code class="cpp">forward_list&lt;int&gt; fl;
+vector&lt;int&gt; v{1, 2, 3, 4, 5, 6};
+
+copy(v.begin(), v.end(), inserter(fl, fl.before_begin()));
+</code></pre>
+
+<p>为使上述代码能被编译和运行，须偏特化 <code>std::insert_iterator</code> :</p>
+
+<pre><code class="cpp">namespace std {
+
+template &lt;typename T&gt;
+class insert_iterator&lt;forward_list&lt;T&gt; &gt;:
+    public iterator&lt;output_iterator_tag, void, void, void, void&gt;
+{
+public:
+    typedef forward_list&lt;T&gt; container_type;
+    typedef typename container_type::iterator iterator_type;
+
+    insert_iterator(container_type&amp; c, iterator_type i):
+        container_(c), iter_(i)
+    {
+    }
+
+    insert_iterator&amp; operator = (const typename container_type::value_type&amp; v)
+    {
+        iter_ = container_.insert_after(iter_, v);
+        return *this;
+    }
+
+    insert_iterator&amp; operator = (const typename container_type::value_type&amp;&amp; v)
+    {
+        iter_ = container_.insert_after(iter_, std::move(v));
+        return *this;
+    }
+
+    insert_iterator&amp; operator * () { return *this; }
+    insert_iterator&amp; operator ++ () { return *this; }
+    insert_iterator&amp; operator ++ (int) { return *this; }
+protected:
+    container_type&amp; container_;
+    iterator_type iter_;
+};
+
+} // namespace std
+</code></pre>
+
+<p>此法不支持让用户定义 <code>forward_list</code> 的 allocator 。</p>
+
+<p>完美办法为重新实现 <code>forward_list_insert_iterator</code> 和 <code>forward_list_inserter</code> 。</p>
+
+<h2>求长度</h2>
+
+<p>因 <code>forward_list</code> 未保存长度——无 <code>size</code> 方法，故须 <strong>O(n)</strong> 时间复杂度的 <code>std::distance</code> 计算长度：</p>
+
+<pre><code class="cpp">forward_list&lt;int&gt; fl{1, 2, 3, 4, 5, 6};
+auto size = std::distance(fl.begin(), fl.end());
+</code></pre>
+
+<p>而 <code>forward_list::empty</code> （长度是否为 <code>0</code> ）的时间复杂度 <strong>O(1)</strong></p>
+
+<p>值得一提 <a href="https://www.boost.org/doc/libs/1_77_0/doc/html/boost/container/slist.html"><code>boost::slist</code></a> 高度相似于 <code>forward_list</code> ，但前者保存长度，即 <code>boost::slist::size</code> 方法时间复杂度 <strong>O(1)</strong></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[通过 LIEF 修改 ELF 解决 glibc 兼容性问题]]></title>

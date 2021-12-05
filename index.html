@@ -9,16 +9,9 @@
   <meta name="author" content="Like Ma">
 
   
-  <meta name="description" content="数月前，我读了 Linux 修改 ELF 解决 glibc 兼容性问题 ，颇受启发，但暂无用武之地。 最近，我遇到了几乎一样的问题，即 clock_gettime 兼容性。 最小化问题 为了将问题最小化，这里我以 hello.c 模拟该问题： 1
-2
-3
-4
-5
-6
-7
-8
-9
-#include &hellip;">
+  <meta name="description" content="std::forward_list 为 C++ 11 STL 的 单向 链表: 仅记录了首指针，未记录尾指针和链表长度，即无 push_back 和 size 方法。
+相比 std::list （双向链表，以下简化为 list） 节约内存空间
+仅能 顺序访问 ，无法 倒序访问 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -87,6 +80,198 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2021/12/03/std-forward-list-tutorial/">Std::forward_list 简介</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2021-12-03T23:35:46+00:00" pubdate data-updated="true"></time>
+        
+           | <a href="/blog/2021/12/03/std-forward-list-tutorial/#disqus_thread"
+             data-disqus-identifier="http://www.malike.net.cn/blog/2021/12/03/std-forward-list-tutorial/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="https://en.cppreference.com/w/cpp/container/forward_list"><code>std::forward_list</code></a> 为 C++ 11 STL 的 <strong>单向</strong> 链表:</p>
+
+<ul>
+<li>仅记录了首指针，未记录尾指针和链表长度，即无 <code>push_back</code> 和 <code>size</code> 方法。</li>
+<li>相比 <a href="https://en.cppreference.com/w/cpp/container/list"><code>std::list</code></a> （双向链表，以下简化为 <code>list</code>）
+
+<ul>
+<li>节约内存空间</li>
+<li>仅能 <strong>顺序访问</strong> ，无法 <strong>倒序访问</strong></li>
+<li><code>forward_list::sort</code> 时间复杂度 <strong>O(n log n)</strong> ，但效率不如 <code>list::sort</code> ，尤其链表包含大量元素时。</li>
+</ul>
+</li>
+</ul>
+
+
+<p>因 <code>forward_list</code> 与 <code>list</code> 大部分方法相同，这里仅介绍 <code>forward_list</code> 不具备的能力。</p>
+
+<h2>顺序插入</h2>
+
+<p>因无 <code>forward_list::push_back</code> 方法，顺序插入 <code>forward_list</code> 一组元素得依靠调用者 <strong>自行</strong> 保存尾指针。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">forward_list</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">fl</span><span class="p">;</span>
+</span><span class='line'><span class="k">auto</span> <span class="n">iter</span> <span class="o">=</span> <span class="n">fl</span><span class="p">.</span><span class="n">before_begin</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">9</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">iter</span> <span class="o">=</span> <span class="n">fl</span><span class="p">.</span><span class="n">insert_after</span><span class="p">(</span><span class="n">iter</span><span class="p">,</span> <span class="n">i</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><a href="https://en.cppreference.com/w/cpp/container/forward_list/before_begin"><code>before_begin</code></a> 返回首元素之前的元素（placeholder）。该元素实际不存在，访问它将导致未定义行为。</p>
+
+<h2>顺序复制</h2>
+
+<ul>
+<li><code>back_inserter</code> 返回的 <code>std::back_insert_iterator</code> 要求容器实现了 <code>push_back</code> 方法。</li>
+<li><code>inserter</code> 返回的 <code>std::insert_iterator</code> 要求容器实现了 <code>insert</code> 方法。</li>
+</ul>
+
+
+<p>显然，两者皆不适用于 <code>forward_list</code> ，然 <code>inserter</code> 最接近：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">forward_list</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">fl</span><span class="p">;</span>
+</span><span class='line'><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">v</span><span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">copy</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">v</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span> <span class="n">inserter</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span> <span class="n">fl</span><span class="p">.</span><span class="n">before_begin</span><span class="p">()));</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为使上述代码能被编译和运行，须偏特化 <code>std::insert_iterator</code> :</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">namespace</span> <span class="n">std</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">T</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">insert_iterator</span><span class="o">&lt;</span><span class="n">forward_list</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="o">&gt;:</span>
+</span><span class='line'>    <span class="k">public</span> <span class="n">iterator</span><span class="o">&lt;</span><span class="n">output_iterator_tag</span><span class="p">,</span> <span class="kt">void</span><span class="p">,</span> <span class="kt">void</span><span class="p">,</span> <span class="kt">void</span><span class="p">,</span> <span class="kt">void</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">forward_list</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">container_type</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="k">typename</span> <span class="n">container_type</span><span class="o">::</span><span class="n">iterator</span> <span class="n">iterator_type</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">insert_iterator</span><span class="p">(</span><span class="n">container_type</span><span class="o">&amp;</span> <span class="n">c</span><span class="p">,</span> <span class="n">iterator_type</span> <span class="n">i</span><span class="p">)</span><span class="o">:</span>
+</span><span class='line'>        <span class="n">container_</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">iter_</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">insert_iterator</span><span class="o">&amp;</span> <span class="k">operator</span> <span class="o">=</span> <span class="p">(</span><span class="k">const</span> <span class="k">typename</span> <span class="n">container_type</span><span class="o">::</span><span class="n">value_type</span><span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">iter_</span> <span class="o">=</span> <span class="n">container_</span><span class="p">.</span><span class="n">insert_after</span><span class="p">(</span><span class="n">iter_</span><span class="p">,</span> <span class="n">v</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">return</span> <span class="o">*</span><span class="k">this</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">insert_iterator</span><span class="o">&amp;</span> <span class="k">operator</span> <span class="o">=</span> <span class="p">(</span><span class="k">const</span> <span class="k">typename</span> <span class="n">container_type</span><span class="o">::</span><span class="n">value_type</span><span class="o">&amp;&amp;</span> <span class="n">v</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">iter_</span> <span class="o">=</span> <span class="n">container_</span><span class="p">.</span><span class="n">insert_after</span><span class="p">(</span><span class="n">iter_</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">v</span><span class="p">));</span>
+</span><span class='line'>        <span class="k">return</span> <span class="o">*</span><span class="k">this</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">insert_iterator</span><span class="o">&amp;</span> <span class="k">operator</span> <span class="o">*</span> <span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="o">*</span><span class="k">this</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>    <span class="n">insert_iterator</span><span class="o">&amp;</span> <span class="k">operator</span> <span class="o">++</span> <span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="o">*</span><span class="k">this</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>    <span class="n">insert_iterator</span><span class="o">&amp;</span> <span class="k">operator</span> <span class="o">++</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="o">*</span><span class="k">this</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="k">protected</span><span class="o">:</span>
+</span><span class='line'>    <span class="n">container_type</span><span class="o">&amp;</span> <span class="n">container_</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">iterator_type</span> <span class="n">iter_</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">}</span> <span class="c1">// namespace std</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>此法不支持让用户定义 <code>forward_list</code> 的 allocator 。</p>
+
+<p>完美办法为重新实现 <code>forward_list_insert_iterator</code> 和 <code>forward_list_inserter</code> 。</p>
+
+<h2>求长度</h2>
+
+<p>因 <code>forward_list</code> 未保存长度——无 <code>size</code> 方法，故须 <strong>O(n)</strong> 时间复杂度的 <code>std::distance</code> 计算长度：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">forward_list</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">fl</span><span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">};</span>
+</span><span class='line'><span class="k">auto</span> <span class="n">size</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">distance</span><span class="p">(</span><span class="n">fl</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">fl</span><span class="p">.</span><span class="n">end</span><span class="p">());</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>而 <code>forward_list::empty</code> （长度是否为 <code>0</code> ）的时间复杂度 <strong>O(1)</strong></p>
+
+<p>值得一提 <a href="https://www.boost.org/doc/libs/1_77_0/doc/html/boost/container/slist.html"><code>boost::slist</code></a> 高度相似于 <code>forward_list</code> ，但前者保存长度，即 <code>boost::slist::size</code> 方法时间复杂度 <strong>O(1)</strong></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -2764,178 +2949,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2019/04/30/shadowsocks-rust-tutorial/">Shadowsocks-Rust简介</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2019-04-30T01:30:00+00:00" pubdate data-updated="true"></time>
-        
-           | <a href="/blog/2019/04/30/shadowsocks-rust-tutorial/#disqus_thread"
-             data-disqus-identifier="http://www.malike.net.cn/blog/2019/04/30/shadowsocks-rust-tutorial/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>在《<a href="https://www.malike.net.cn/blog/2016/11/29/shadowsocks-tutorial/">Shadowsocks简介</a>》中，我介绍了如何使用<a href="https://shadowsocks.org/en/index.html">Shadowsocks</a>。但它不具备负载均衡集群能力，而结合HAProxy的集群配置复杂。</p>
-
-<p><a href="https://github.com/shadowsocks/shadowsocks-rust">shadowsocks-rust</a>是Shadowsocks的Rust语言实现，它不仅具有传统Shadowsocks特性，而且还具有：</p>
-
-<ul>
-<li><strong>负载均衡</strong> 多个Shadowsocks服务器的能力。</li>
-<li>探测Shadowsocks服务器 <strong>延迟</strong> 的能力。</li>
-</ul>
-
-
-<h2>安装</h2>
-
-<p>Shadowsocks-Rust未提供DEB安装包。为了方便安装，可下载其<a href="https://github.com/shadowsocks/shadowsocks-rust/releases">静态链接版本</a></p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo tar atf shadowsocks-v1.7.0-nightly.x86_64-unknown-linux-musl.tar.xz -C /usr/local/bin
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>配置</h2>
-
-<p>以root用户创建目录/etc/shadowsocks-rust，编辑/etc/shadowsocks-rust/config.json：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="nt">&quot;servers&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="nt">&quot;address&quot;</span><span class="p">:</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span>
-</span><span class='line'>            <span class="nt">&quot;port&quot;</span><span class="p">:</span> <span class="mi">1080</span><span class="p">,</span>
-</span><span class='line'>            <span class="nt">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;hello-world&quot;</span><span class="p">,</span>
-</span><span class='line'>            <span class="nt">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;aes-256-cfb&quot;</span>
-</span><span class='line'>            <span class="s2">&quot;timeout&quot;</span><span class="p">:</span> <span class="mi">300</span>
-</span><span class='line'>        <span class="p">},</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="nt">&quot;address&quot;</span><span class="p">:</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span>
-</span><span class='line'>            <span class="nt">&quot;port&quot;</span><span class="p">:</span> <span class="mi">1081</span><span class="p">,</span>
-</span><span class='line'>            <span class="nt">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;hello-kitty&quot;</span><span class="p">,</span>
-</span><span class='line'>            <span class="nt">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;aes-256-cfb&quot;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">],</span>
-</span><span class='line'>    <span class="nt">&quot;local_port&quot;</span><span class="p">:</span> <span class="mi">8388</span><span class="p">,</span>
-</span><span class='line'>    <span class="nt">&quot;local_address&quot;</span><span class="p">:</span> <span class="s2">&quot;127.0.0.1&quot;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li><code>address</code>为服务端地址。</li>
-<li><code>server_port</code>为服务端监听端口。</li>
-<li><code>password</code>为客户端和服务端预设的共享密码，它最好由安全密码生成器生成（如<a href="https://www.lastpass.com/">LastPass</a>或<a href="http://keepass.info/">KeePass</a>），且长度不小于6个字符。</li>
-<li><code>timeout</code>为连接超时时间。</li>
-<li><code>method</code>为加密算法，<code>aes-256-cfb</code>的安全性较好。</li>
-<li>每个<code>servers</code>元素为一个Shadowsocks服务器配置。</li>
-</ul>
-
-
-<p>因Ubuntu 14.04过保，下面仅以Ubuntu 16.04及以后版本为例。</p>
-
-<p>以root用户创建/etc/systemd/system/shadowsocks-rust-local.service:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[Unit]</span>
-</span><span class='line'><span class="na">Description</span><span class="o">=</span><span class="s">Shadowsocks-Rust Custom Client Service.</span>
-</span><span class='line'><span class="na">Documentation</span><span class="o">=</span><span class="s">sslocal -h</span>
-</span><span class='line'><span class="na">After</span><span class="o">=</span><span class="s">network.target</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">[Service]</span>
-</span><span class='line'><span class="na">Type</span><span class="o">=</span><span class="s">simple</span>
-</span><span class='line'><span class="na">CapabilityBoundingSet</span><span class="o">=</span><span class="s">CAP_NET_BIND_SERVICE</span>
-</span><span class='line'><span class="na">AmbientCapabilities</span><span class="o">=</span><span class="s">CAP_NET_BIND_SERVICE</span>
-</span><span class='line'><span class="na">User</span><span class="o">=</span><span class="s">nobody</span>
-</span><span class='line'><span class="na">Group</span><span class="o">=</span><span class="s">nogroup</span>
-</span><span class='line'><span class="na">ExecStart</span><span class="o">=</span><span class="s">/usr/local/bin/sslocal --log-without-time -c /etc/shadowsocks-rust/config.json</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">[Install]</span>
-</span><span class='line'><span class="na">WantedBy</span><span class="o">=</span><span class="s">multi-user.target</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>注册并启动服务：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo chown -R root:nogroup /etc/shadowsocks-rust
-</span><span class='line'>sudo chmod -R g-w,o-rwx /etc/shadowsocks-rust
-</span><span class='line'>sudo systemctl daemon-reload
-</span><span class='line'>sudo systemctl <span class="nb">enable </span>shadowsocks-rust-local
-</span><span class='line'>sudo systemctl start shadowsocks-rust-local
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>注：</p>
-
-<ul>
-<li>为降低<code>sslocal</code>进程权限，以nobody用户和nogroup组运行它。</li>
-<li>为防止密码泄漏，/etc/shadowsocks-rust/config.json仅root用户或nogroup组可读。</li>
-<li>限制<code>sslocal</code>进程仅能监听socket.</li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="2">&larr; Older</a>
@@ -2951,6 +2964,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2021/12/03/std-forward-list-tutorial/">Std::forward_list 简介</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2021/08/15/modify-elf-by-lief/">通过 LIEF 修改 ELF 解决 Glibc 兼容性问题</a>
       </li>
     
@@ -2964,10 +2981,6 @@
     
       <li class="post">
         <a href="/blog/2020/07/19/import-ubuntu-duplciate-root-vg/">如何导入 Ubuntu 重复 Root 卷组</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2020/05/05/lxd-tutorial-1/">LXD简介（一）</a>
       </li>
     
   </ul>
@@ -3007,7 +3020,7 @@
 
 <section>
   <h1>Categories</h1>
-    <ul id="category-list"><li><a href='/blog/categories/ace'>ace (1)</a></li><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (2)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (3)</a></li><li><a href='/blog/categories/centos'>centos (1)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (2)</a></li><li><a href='/blog/categories/elf'>elf (1)</a></li><li><a href='/blog/categories/fail2ban'>fail2ban (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glibc'>glibc (1)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/lief'>lief (1)</a></li><li><a href='/blog/categories/linux'>linux (18)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lvm'>lvm (1)</a></li><li><a href='/blog/categories/lxc'>lxc (2)</a></li><li><a href='/blog/categories/lxd'>lxd (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (9)</a></li><li><a href='/blog/categories/redhat'>redhat (1)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/snap'>snap (2)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (13)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
+    <ul id="category-list"><li><a href='/blog/categories/ace'>ace (1)</a></li><li><a href='/blog/categories/actor'>actor (3)</a></li><li><a href='/blog/categories/c'>c (2)</a></li><li><a href='/blog/categories/c-plus-plus'>c++ (4)</a></li><li><a href='/blog/categories/centos'>centos (1)</a></li><li><a href='/blog/categories/debian'>debian (7)</a></li><li><a href='/blog/categories/dnsmasq'>dnsmasq (1)</a></li><li><a href='/blog/categories/docker'>docker (2)</a></li><li><a href='/blog/categories/elf'>elf (1)</a></li><li><a href='/blog/categories/fail2ban'>fail2ban (1)</a></li><li><a href='/blog/categories/gevent'>gevent (1)</a></li><li><a href='/blog/categories/git'>git (2)</a></li><li><a href='/blog/categories/glibc'>glibc (1)</a></li><li><a href='/blog/categories/glusterfs'>glusterfs (1)</a></li><li><a href='/blog/categories/haproxy'>haproxy (1)</a></li><li><a href='/blog/categories/lief'>lief (1)</a></li><li><a href='/blog/categories/linux'>linux (18)</a></li><li><a href='/blog/categories/lua'>lua (1)</a></li><li><a href='/blog/categories/lvm'>lvm (1)</a></li><li><a href='/blog/categories/lxc'>lxc (2)</a></li><li><a href='/blog/categories/lxd'>lxd (1)</a></li><li><a href='/blog/categories/mpc'>mpc (1)</a></li><li><a href='/blog/categories/nginx'>nginx (1)</a></li><li><a href='/blog/categories/nodejs'>nodejs (1)</a></li><li><a href='/blog/categories/proxy'>proxy (5)</a></li><li><a href='/blog/categories/python'>python (9)</a></li><li><a href='/blog/categories/redhat'>redhat (1)</a></li><li><a href='/blog/categories/ruby'>ruby (1)</a></li><li><a href='/blog/categories/snap'>snap (2)</a></li><li><a href='/blog/categories/ssh'>ssh (5)</a></li><li><a href='/blog/categories/ubuntu'>ubuntu (13)</a></li><li><a href='/blog/categories/virtualbox'>virtualbox (1)</a></li><li><a href='/blog/categories/windows'>windows (1)</a></li></ul>
 </section>
 
   

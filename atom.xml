@@ -4,7 +4,7 @@
   <title><![CDATA[Like的世界]]></title>
   <link href="http://www.malike.net.cn/atom.xml" rel="self"/>
   <link href="http://www.malike.net.cn/"/>
-  <updated>2021-08-15T13:26:55+00:00</updated>
+  <updated>2021-12-05T09:44:11+00:00</updated>
   <id>http://www.malike.net.cn/</id>
   <author>
     <name><![CDATA[Like Ma]]></name>
@@ -12,6 +12,168 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[std::forward_list 简介]]></title>
+    <link href="http://www.malike.net.cn/blog/2021/12/03/std-forward-list-tutorial/"/>
+    <updated>2021-12-03T23:35:46+00:00</updated>
+    <id>http://www.malike.net.cn/blog/2021/12/03/std-forward-list-tutorial</id>
+    <content type="html"><![CDATA[<p><a href="https://en.cppreference.com/w/cpp/container/forward_list"><code>std::forward_list</code></a> 为 C++ 11 STL 的 <strong>单向</strong> 链表:</p>
+
+<ul>
+<li>仅记录了首指针，未记录尾指针和链表长度，即无 <code>push_back</code> 和 <code>size</code> 方法。</li>
+<li>相比 <a href="https://en.cppreference.com/w/cpp/container/list"><code>std::list</code></a> （双向链表，以下简化为 <code>list</code>）
+
+<ul>
+<li>节约内存空间</li>
+<li>仅能 <strong>顺序访问</strong> ，无法 <strong>倒序访问</strong></li>
+<li><code>forward_list::sort</code> 时间复杂度 <strong>O(n log n)</strong> ，但效率不如 <code>list::sort</code> ，尤其链表包含大量元素时。</li>
+</ul>
+</li>
+</ul>
+
+
+<p>因 <code>forward_list</code> 与 <code>list</code> 大部分方法相同，这里仅介绍 <code>forward_list</code> 不具备的能力。</p>
+
+<h2>顺序插入</h2>
+
+<p>因无 <code>forward_list::push_back</code> 方法，顺序插入 <code>forward_list</code> 一组元素得依靠调用者 <strong>自行</strong> 保存尾指针。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">forward_list</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">fl</span><span class="p">;</span>
+</span><span class='line'><span class="k">auto</span> <span class="n">iter</span> <span class="o">=</span> <span class="n">fl</span><span class="p">.</span><span class="n">before_begin</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">9</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">iter</span> <span class="o">=</span> <span class="n">fl</span><span class="p">.</span><span class="n">insert_after</span><span class="p">(</span><span class="n">iter</span><span class="p">,</span> <span class="n">i</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><a href="https://en.cppreference.com/w/cpp/container/forward_list/before_begin"><code>before_begin</code></a> 返回首元素之前的元素（placeholder）。该元素实际不存在，访问它将导致未定义行为。</p>
+
+<h2>顺序复制</h2>
+
+<ul>
+<li><code>back_inserter</code> 返回的 <code>std::back_insert_iterator</code> 要求容器实现了 <code>push_back</code> 方法。</li>
+<li><code>inserter</code> 返回的 <code>std::insert_iterator</code> 要求容器实现了 <code>insert</code> 方法。</li>
+</ul>
+
+
+<p>显然，两者皆不适用于 <code>forward_list</code> ，然 <code>inserter</code> 最接近：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">forward_list</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">fl</span><span class="p">;</span>
+</span><span class='line'><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">v</span><span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">copy</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">v</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span> <span class="n">inserter</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span> <span class="n">fl</span><span class="p">.</span><span class="n">before_begin</span><span class="p">()));</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为使上述代码能被编译和运行，须偏特化 <code>std::insert_iterator</code> :</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">namespace</span> <span class="n">std</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">T</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">insert_iterator</span><span class="o">&lt;</span><span class="n">forward_list</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="o">&gt;:</span>
+</span><span class='line'>    <span class="k">public</span> <span class="n">iterator</span><span class="o">&lt;</span><span class="n">output_iterator_tag</span><span class="p">,</span> <span class="kt">void</span><span class="p">,</span> <span class="kt">void</span><span class="p">,</span> <span class="kt">void</span><span class="p">,</span> <span class="kt">void</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">forward_list</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">container_type</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="k">typename</span> <span class="n">container_type</span><span class="o">::</span><span class="n">iterator</span> <span class="n">iterator_type</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">insert_iterator</span><span class="p">(</span><span class="n">container_type</span><span class="o">&amp;</span> <span class="n">c</span><span class="p">,</span> <span class="n">iterator_type</span> <span class="n">i</span><span class="p">)</span><span class="o">:</span>
+</span><span class='line'>        <span class="n">container_</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">iter_</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">insert_iterator</span><span class="o">&amp;</span> <span class="k">operator</span> <span class="o">=</span> <span class="p">(</span><span class="k">const</span> <span class="k">typename</span> <span class="n">container_type</span><span class="o">::</span><span class="n">value_type</span><span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">iter_</span> <span class="o">=</span> <span class="n">container_</span><span class="p">.</span><span class="n">insert_after</span><span class="p">(</span><span class="n">iter_</span><span class="p">,</span> <span class="n">v</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">return</span> <span class="o">*</span><span class="k">this</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">insert_iterator</span><span class="o">&amp;</span> <span class="k">operator</span> <span class="o">=</span> <span class="p">(</span><span class="k">const</span> <span class="k">typename</span> <span class="n">container_type</span><span class="o">::</span><span class="n">value_type</span><span class="o">&amp;&amp;</span> <span class="n">v</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">iter_</span> <span class="o">=</span> <span class="n">container_</span><span class="p">.</span><span class="n">insert_after</span><span class="p">(</span><span class="n">iter_</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">v</span><span class="p">));</span>
+</span><span class='line'>        <span class="k">return</span> <span class="o">*</span><span class="k">this</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">insert_iterator</span><span class="o">&amp;</span> <span class="k">operator</span> <span class="o">*</span> <span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="o">*</span><span class="k">this</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>    <span class="n">insert_iterator</span><span class="o">&amp;</span> <span class="k">operator</span> <span class="o">++</span> <span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="o">*</span><span class="k">this</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>    <span class="n">insert_iterator</span><span class="o">&amp;</span> <span class="k">operator</span> <span class="o">++</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="o">*</span><span class="k">this</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="k">protected</span><span class="o">:</span>
+</span><span class='line'>    <span class="n">container_type</span><span class="o">&amp;</span> <span class="n">container_</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">iterator_type</span> <span class="n">iter_</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">}</span> <span class="c1">// namespace std</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>此法不支持让用户定义 <code>forward_list</code> 的 allocator 。</p>
+
+<p>完美办法为重新实现 <code>forward_list_insert_iterator</code> 和 <code>forward_list_inserter</code> 。</p>
+
+<h2>求长度</h2>
+
+<p>因 <code>forward_list</code> 未保存长度——无 <code>size</code> 方法，故须 <strong>O(n)</strong> 时间复杂度的 <code>std::distance</code> 计算长度：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">forward_list</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">fl</span><span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">};</span>
+</span><span class='line'><span class="k">auto</span> <span class="n">size</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">distance</span><span class="p">(</span><span class="n">fl</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">fl</span><span class="p">.</span><span class="n">end</span><span class="p">());</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>而 <code>forward_list::empty</code> （长度是否为 <code>0</code> ）的时间复杂度 <strong>O(1)</strong></p>
+
+<p>值得一提 <a href="https://www.boost.org/doc/libs/1_77_0/doc/html/boost/container/slist.html"><code>boost::slist</code></a> 高度相似于 <code>forward_list</code> ，但前者保存长度，即 <code>boost::slist::size</code> 方法时间复杂度 <strong>O(1)</strong></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[通过 LIEF 修改 ELF 解决 glibc 兼容性问题]]></title>
@@ -4848,63 +5010,6 @@
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo systemctl <span class="nb">enable </span>sshproxy@hello
 </span><span class='line'>sudo systemctl start sshproxy@hello
 </span></code></pre></td></tr></table></div></figure>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[SSH隧道简介]]></title>
-    <link href="http://www.malike.net.cn/blog/2014/10/27/ssh-tunnel-tutorial/"/>
-    <updated>2014-10-27T00:00:00+00:00</updated>
-    <id>http://www.malike.net.cn/blog/2014/10/27/ssh-tunnel-tutorial</id>
-    <content type="html"><![CDATA[<p>SSH的功能非常强大，日常除了用于命令行远程登录服务器。它还具有神奇的隧道（tunnel）功能（也被称为SSH代理），可用于加密访问本地或远程主机的服务。</p>
-
-<p>通常，SSH代理具有3种方式：</p>
-
-<h2>SSH（正向）代理</h2>
-
-<p>通过参数-L [bind_address:]port:remote_host:remote_port，将指定本地（客户端）端口转发至远程端口上。</p>
-
-<p><img src="http://www.malike.net.cn/images/ssh-tunnel-proxy.png" alt="SSH Proxy" /></p>
-
-<p>如上图， hosta无法直接访问hostb，但它能直接SSH登录gateway；如此通过gateway，将hosta的端口X转发至hostb的端口Y上。相当于端口X和端口Y之间建立了加密隧道。</p>
-
-<p>一般来说，端口Y为hostb上某服务的监听端口。当建立隧道后，hosta将监听端口X。应用程序访问hosta的端口X，等同于访问hostb的端口Y。对于应用程序，hostb端口Y对应的服务就如同运行在hosta上。</p>
-
-<p>日常工作中，客户的网络常由于信息安全而被网关（或防火墙）隔离。当我们的软件在客户网络中某服务器发生问题时，我们常需奔赴客户现场进行调试。若客户存在某机器安装了SSH服务器，且能被外部访问。就可以利用SSH正向代理的方法，快速简便的登录被隔离的服务器并进行应用调试。</p>
-
-<h2>SSH反向代理</h2>
-
-<p>通过参数-R [bind_address:]port:remote_host:remote_port，将指定远程端口转发至本地（客户端）端口上。</p>
-
-<p><img src="http://www.malike.net.cn/images/ssh-tunnel-reverse-proxy.png" alt="SSH Reverse Proxy" /></p>
-
-<p>如上图，hosta在防火墙内，无法被hostb直接访问。但它能直接SSH登录hostb；如此通过hostb，将hostb的端口X转发至hosta的端口Y上。该方法与SSH正向代理类似，所不同的是该隧道的访问方向是从服务端（hostb）至客户端(hosta），故被称为反向代理。</p>
-
-<p>其应用场景也与SSH正向代理类似，所不同的是若客户不存在可供外部访问的SSH服务器时，我们可以在外网建设一个SSH服务器给客户的被隔离服务器来建立隧道。如此，我们可以访问自己的SSH服务器对应端口来调试客户服务器的应用。</p>
-
-<p>更进一步，客户内网甚至不能访问外网，此时可利用客户内网一台笔记本（或台式机，它可以访问目标服务器）USB接上3G/4G手机来达到访问外部SSH服务器的目的。</p>
-
-<p><img src="http://www.malike.net.cn/images/ssh-tunnel-reverse-proxy-mobile.png" alt="SSH Reverse Proxy Mobile" /></p>
-
-<h2>SSH动态代理</h2>
-
-<p>通过参数-D [bind_address:]port，利用远程服务器为访问出口，在本地建立SOCKS 4/5代理服务器。</p>
-
-<p>可以形象描绘为将本地应用的端口（SOCKS客户端端口），动态转发至远程。</p>
-
-<p><img src="http://www.malike.net.cn/images/ssh-tunnel-dynamic-proxy.png" alt="SSH Dynamic Proxy" /></p>
-
-<p>该功能广为人知的应用场景为翻墙。如上图，在国外租用VPS（hostb），客户端（hosta）通过SSH动态代理端口X（SOCKS 4/5的端口）便可以访问被GFW封锁的网络。</p>
-
-<p>这种翻墙最大的优势在于</p>
-
-<ul>
-<li>低成本：国外廉价低配置VPS基本满足个人翻墙需求。</li>
-<li>服务端0配置：服务端只需要安装SSH服务端。</li>
-<li>客户端配置简单：客户端需要安装SSH客户端，以及一条命令。</li>
-<li>加密隧道：保证网络访问的数据安全。</li>
-</ul>
 
 ]]></content>
   </entry>
