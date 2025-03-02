@@ -1,0 +1,161 @@
+---
+title: CentOS 8 上安装 LXC
+date: 2021-06-04 01:31:04
+categories: [Linux, CentOS, Redhat, LXC]
+---
+
+## 一、安装 LXC 包
+
+```bash
+yum install -y epel-release
+yum update -y
+yum install -y lxc lxc-devel lxc-templates dnsmasq iptables debootstrap
+```
+
+* `epel-release` : [Extra Packages for Enterprise Linux (EPEL)](https://fedoraproject.org/wiki/EPEL) 仓库配置文件，因 EPEL 才包含 LXC 相关包。
+* `dnsmasq` 和 `iptables` 为后续配置 LXC 网络。
+* `debootstrap` 为后续安装 Ubuntu 容器。
+
+安装 LXC 模板
+
+```bash
+yum install -y gcc make
+wget -O- https://linuxcontainers.org/downloads/lxc/lxc-templates-3.0.4.tar.gz | tar zx
+cd lxc-templates-3.0.4
+./configure --prefix=/usr --localstatedir=/var
+make install
+```
+
+* 虽然 `lxc-templates` 包，但该包未包含 Ubuntu 容器模板。故还须从其源码安装。
+* `lxc-templates-3.0.4` 并不需要编译任何 C 程序，但 `configure` 将检查 `gcc`。故须安装 `gcc`
+* 安装模板后，若不需要 `gcc` 和 `make` ，则可自行 **卸载** 。
+
+## 二、配置 LXC 网络
+
+LXC 存在 3 种网络：
+
+### 虚拟网络
+
+创建虚拟网卡 `lxcbr0` ，作为容器虚拟网络的网桥：
+
+```bash
+echo 'USE_LXC_BRIDGE="true"' > /etc/sysconfig/lxc
+systemctl enable --now lxc-net.service
+systemctl start lxc-net
+
+cat > /etc/lxc/default.conf <<EOF
+lxc.net.0.type = veth
+lxc.net.0.flags = up
+lxc.net.0.link = lxcbr0
+EOF
+```
+
+### 共享 host 网络
+
+```bash
+echo 'lxc.net.0.type = none' > /etc/lxc/default.conf
+```
+
+因容器与 host 在同一网络名字空间，容器中进程监听端口不能与 host 中端口相同，否则监听失败，如 `sshd`
+
+
+### loopback 网络
+
+```bash
+echo 'lxc.net.0.type = empty' > /etc/lxc/default.conf
+```
+
+默认不配置或如上述，容器仅存在 loopback 网络。
+
+## 三、创建容器
+
+以安装 Ubuntu 20.04 容器为例：
+
+```bash
+lxc-create -n focal -t ubuntu \
+	-- -r focal \
+	--mirror http://cn.archive.ubuntu.com/ubuntu/ \
+	--security-mirror http://cn.archive.ubuntu.com/ubuntu/
+```
+
+* `-n` ：容器名。
+* `-t` ：模板名，对应 `/usr/share/lxc/templates/lxc-*` 文件。
+* `--` ：其后为传入 `/usr/share/lxc/templates/lxc-ubuntu` 的参数。
+* `-r` ： Ubuntu 发行代号，默认为主机的 Ubuntu 发行代号，否则为最近 LTS
+* `--mirror` 和 `--security-mirror` ：为加速创建，两者设置为国内镜像。
+
+其它参数：
+
+* `-u <user>` : 容器用户名，默认 `ubuntu` 。
+* `--password <password>` ：容器密码，默认 `ubuntu` 。
+* `-S <keyfile>` : SSH 私钥文件。
+
+其它模板，如 CentOS ，可通过 `/usr/share/lxc/templates/lxc-centos -h` 查看相关参数。
+
+
+## 四、启动容器
+
+```bash
+lxc-start focal
+```
+
+登录
+
+```bash
+lxc-console focal
+```
+
+## 五、查看容器
+
+```bash
+lxc-info focal
+```
+
+输出形如：
+
+```
+Name:           focal
+State:          RUNNING
+PID:            26063
+IP:             <container ip>
+CPU use:        0.35 seconds
+BlkIO use:      26.36 MiB
+Memory use:     21.13 MiB
+KMem use:       0 bytes
+Link:           vethJI5UF9
+ TX bytes:      1.51 KiB
+ RX bytes:      2.18 KiB
+ Total bytes:   3.68 KiB
+```
+
+## 六、端口转发
+
+仅以将主机端口 `2222` 重定向至容器 `22` 为例（须将 `<container ip>` 替换为容器 IP ）。
+
+以下两者取其一，若未安装 `firewalld` ，则采用 `iptables` ：
+
+### iptables
+
+```bash
+iptables -t nat -A PREROUTING -p tcp -i lxcbr0 --dport 2222 -j DNAT --to-destination <container ip>:22
+```
+
+将上述命令写入 `/etc/rc.local` ，从而保证重启依旧生效：
+
+```bash
+echo 'iptables -t nat -A PREROUTING -p tcp -i lxcbr0 --dport 2222 -j DNAT --to-destination <container ip>:22' > /etc/rc.local
+```
+
+### firewalld
+
+```bash
+firewall-cmd --zone=public --add-forward-port=port=2222:proto=tcp:toport=22:toaddr=<container ip> --permanent
+firewall-cmd --zone=public --add-port=2222/tcp --permanent
+firewall-cmd --reload
+```
+
+## 七、参考
+
+* [Connecting LXC to the host network](https://www.oreilly.com/library/view/containerization-with-lxc/9781785888946/ch05s02.html)
+* [Fedora LXC](https://fedoraproject.org/wiki/LXC)
+* [How to set up a firewall using FirewallD on CentOS 8](https://www.cyberciti.biz/faq/how-to-set-up-a-firewall-using-firewalld-on-centos-8/)
