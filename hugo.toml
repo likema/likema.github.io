@@ -1,0 +1,71 @@
+# vim: set ts=2 sw=2 sts=2 et:
+baseURL = 'https://www.malike.net.cn/'
+languageCode = 'en-us'
+title = 'Like 的世界'
+theme = 'LoveIt'
+
+[permalinks]
+  posts = "/blog/:year/:month/:day/:contentbasename/"
+
+[menu]
+  [[menu.main]]
+    weight = 1
+    identifier = "posts"
+    name = "Posts"
+    url = "/posts/"
+  [[menu.main]]
+    weight = 2
+    identifier = "categories"
+    name = "Categories"
+    url = "/categories/"
+
+[params]
+  title = "Like 的世界"
+  description = "个人总结与随想"
+  defaultTheme = "dark"
+
+  [params.author]
+    name = "Like"
+    email = "likemartinma@gmail.com"
+
+  [params.header.title]
+    name = "Like 的世界"
+    typeit = false
+
+  [params.footer]
+    enable = true
+    custom = ''
+    hugo = false
+    copyright = true
+    author = true
+    since = 2008
+
+  [params.search]
+    enable = true
+    type = "lunr"
+
+  [params.home.profile]
+    enable = false
+
+  [params.social]
+    GitHub = "likemartinma@gmail.com"
+    Linkedin = "likemartinma@gmail.com"
+    RSS = true #
+
+  [params.page.share]
+    enable = true
+    X = true
+    Facebook = true
+    Linkedin = true
+    HackerNews = true
+    Reddit = true
+    Line = false
+    Pocket = true
+  [params.page.comment]
+    enable = true
+    [params.page.comment.disqus]
+      enable = true
+      shortname = "likeworld"
+
+[outputs]
+  home = ["HTML", "RSS", "JSON"]
